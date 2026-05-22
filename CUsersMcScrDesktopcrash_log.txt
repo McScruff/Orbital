@@ -1,0 +1,1832 @@
+--------- beginning of main
+05-21 16:34:03.574  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.574  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.574  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.575  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.575  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.575  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.575  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.575  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.575  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.575  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.576  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.576  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.576  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.577  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.577  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.577  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.577  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.577  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.578  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.578  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.578  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.578  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.578  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.578  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.578  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.578  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.579  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.579  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.579  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.579  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.583  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.583  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.583  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.583  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.583  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.584  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.584  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.584  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.584  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.584  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.584  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.584  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.584  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.586  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.586  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.586  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.587  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.587  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.587  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.587  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.587  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.587  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.587  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.588  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.588  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.588  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.588  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.589  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.590  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.591  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.591  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.591  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.591  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.591  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.592  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.592  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.592  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.592  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.592  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.592  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.592  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.593  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.593  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.593  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.593  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.593  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.593  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.593  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.594  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.594  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.594  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.594  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.594  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.594  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.594  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.594  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.595  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.595  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.595  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.595  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.595  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.595  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.595  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.595  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.596  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.596  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.596  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.596  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.596  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.596  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.596  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.597  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.597  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.597  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.597  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.597  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.597  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.597  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.598  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.598  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.598  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.598  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.598  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.598  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.598  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.598  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.599  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.600  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.600  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.600  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.600  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.600  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.600  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.600  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.601  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.602  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.602  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.602  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.602  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.602  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.602  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.602  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.603  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.607  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.608  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.608  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.608  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.608  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.608  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.608  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.609  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.609  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.609  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.609  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.609  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.609  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.609  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.609  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.610  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.610  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.610  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.610  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.611  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.611  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.611  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.612  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.612  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:03.612  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:08.074   512 27040 W C2MtkComponent: [0xE91C3F80] processQueue: queue is empty.
+05-21 16:34:08.074   512 27043 W C2MtkComponent: [0xE91C3F80] preprocessPostQueue: queue is empty.
+05-21 16:34:08.074   512 27041 W C2MtkComponent: [0xE91C3F80] processPreQueue: queue is empty.
+05-21 16:34:08.075   512 27042 W C2MtkComponent: [0xE91C3F80] processPostQueue: queue is empty.
+05-21 16:34:08.079  1822 27034 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:34:08.079  1822 27034 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:34:08.079  1822 27034 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:34:08.291   512 27041 W C2MtkComponent: [0xE91C3F80] processPreQueue: queue is empty.
+05-21 16:34:08.291   512 27040 W C2MtkComponent: [0xE91C3F80] processQueue: queue is empty.
+05-21 16:34:08.291   512 27042 W C2MtkComponent: [0xE91C3F80] processPostQueue: queue is empty.
+05-21 16:34:08.291   512 27043 W C2MtkComponent: [0xE91C3F80] preprocessPostQueue: queue is empty.
+05-21 16:34:08.293  1822 27034 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:34:08.293  1822 27034 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:34:08.293  1822 27034 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:34:08.295  1822 27034 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.295  1822 27034 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.295  1822 27034 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:34:08.295  1822 27034 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:34:08.295  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:34:08.295  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:34:08.295  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:34:08.295  1822 27034 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:34:08.296  1822 27034 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.296  1822 27034 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:34:08.296  1822 27034 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.296  1822 27034 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:34:08.296  1822 27034 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.296  1822 27034 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:34:08.296  1822 27034 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.296  1822 27034 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:34:08.296  1822 27034 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:34:08.297  1822 27034 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.297  1822 27034 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:34:08.297  1822 27034 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.297  1822 27034 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {74b53d2} sending message to a Handler on a dead thread
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:34:08.297  1822 27034 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:34:08.365  1822 27018 W MediaCodec: no metrics handle found
+05-21 16:34:08.403  1822 27072 W ColorUtils: expected specified color aspects (2:0:0:0)
+05-21 16:34:08.415  1822 27072 W Codec2Client: query -- param skipped: index = 1107298332.
+05-21 16:34:08.415  1822 27072 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+05-21 16:34:08.429   512 27077 E mtkpower_client: [getMtkPerfHal] nullptr
+05-21 16:34:08.430  1822 27072 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:34:08.430  1822 27072 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:34:08.430  1822 27072 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:34:08.431   512  1174 E C2MtkStorePlugin: hook CreateBlockPool allocatorId 274 poolId 197
+05-21 16:34:08.442   764  5256 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+05-21 16:34:47.093  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.093  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.094  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.094  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.094  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.094  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.094  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.094  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.094  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.095  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.096  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.096  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.096  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.097  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.098  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.098  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.098  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.099  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.099  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.099  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.099  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.099  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.099  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.099  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.100  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.100  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.100  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.100  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.100  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.100  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.100  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.101  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.101  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.101  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.101  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.101  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.101  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.103  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.103  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.103  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.103  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.104  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.104  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.104  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.104  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.104  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.104  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.107  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.107  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.108  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.108  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.108  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.108  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.108  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.108  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.108  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.108  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.109  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.110  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.110  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.110  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.110  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.110  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.110  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.110  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.111  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.112  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.112  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.112  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.112  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.112  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.112  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.112  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.112  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.113  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.124  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:47.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:34:59.834   700  1968 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+--------- beginning of system
+05-21 16:34:59.878   700  2179 W ProcessStats: Tracking association SourceState{dfae09 com.google.android.gms/10070 BTop #41559} whose proc state 2 is better than process ProcessState{8769a04 com.google.android.gms.persistent/10070 pkg=com.google.android.gms} proc state 3 (17 skipped)
+05-21 16:35:00.054 27094 27094 W ziparchive: Unable to open '/data/app/~~hlQP1gFu6rpqP1GtsX0YCQ==/com.skyretro.iptv-6cHVc8b82amtJzRVGIHUlg==/base.dm': No such file or directory
+05-21 16:35:00.054 27094 27094 W ziparchive: Unable to open '/data/app/~~hlQP1gFu6rpqP1GtsX0YCQ==/com.skyretro.iptv-6cHVc8b82amtJzRVGIHUlg==/base.dm': No such file or directory
+05-21 16:35:00.999 27094 27094 W m.skyretro.iptv: Accessing hidden method Landroid/view/View;->computeFitSystemWindows(Landroid/graphics/Rect;Landroid/graphics/Rect;)Z (unsupported, reflection, allowed)
+05-21 16:35:01.000 27094 27094 W m.skyretro.iptv: Accessing hidden method Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V (unsupported, reflection, allowed)
+05-21 16:35:01.027   700  1962 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:01.786 27094 27094 W m.skyretro.iptv: Accessing hidden method Ljava/lang/invoke/MethodHandles$Lookup;-><init>(Ljava/lang/Class;I)V (unsupported, reflection, allowed)
+05-21 16:35:01.922 27094 27094 W OpenGLRenderer: Unknown dataspace 0
+05-21 16:35:01.932   700  1968 W WindowManager: Failed looking up window session=Session{cdea951 27094:u0a10128} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.updateRequestedVisibleTypes:690 android.view.IWindowSession$Stub.onTransact:1034 
+05-21 16:35:02.068 27094 27115 W libc    : Access denied finding property "ro.debuggable"
+05-21 16:35:02.069 27094 27115 E ion     : open /dev/ion failed: No such file or directory
+05-21 16:35:02.064 27094 27094 W RenderThread: type=1400 audit(0.0:977): avc:  denied  { read } for  name="u:object_r:userdebug_or_eng_prop:s0" dev="tmpfs" ino=459 scontext=u:r:untrusted_app:s0:c128,c256,c512,c768 tcontext=u:object_r:userdebug_or_eng_prop:s0 tclass=file permissive=0 app=com.skyretro.iptv
+05-21 16:35:02.107 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:02.180   700   846 W ziparchive: Unable to open '/data/app/~~hlQP1gFu6rpqP1GtsX0YCQ==/com.skyretro.iptv-6cHVc8b82amtJzRVGIHUlg==/base.dm': No such file or directory
+05-21 16:35:02.258   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:02.281   700  1962 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:02.641   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:02.682   512 27078 W C2MtkComponent: [0xE91C3F80] processPreQueue: queue is empty.
+05-21 16:35:02.683   512 27077 W C2MtkComponent: [0xE91C3F80] processQueue: queue is empty.
+05-21 16:35:02.683   512 27079 W C2MtkComponent: [0xE91C3F80] processPostQueue: queue is empty.
+05-21 16:35:02.683   512 27080 W C2MtkComponent: [0xE91C3F80] preprocessPostQueue: queue is empty.
+05-21 16:35:02.693  1822 27071 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:35:02.693  1822 27071 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:35:02.693  1822 27071 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:35:02.714  1822 27071 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.714  1822 27071 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:35:02.714  1822 27071 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.714  1822 27071 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:35:02.714  1822 27071 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:35:02.715  1822 27071 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.715  1822 27071 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:35:02.715  1822 27071 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.715  1822 27071 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:35:02.715  1822 27071 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:35:02.718  1822 27071 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.718  1822 27071 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.718  1822 27071 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:35:02.718  1822 27071 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:35:02.718  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:35:02.718  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:35:02.718  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:35:02.718  1822 27071 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:35:02.719  1822 27071 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.719  1822 27071 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:35:02.719  1822 27071 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.719  1822 27071 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:35:02.719  1822 27071 W MessageQueue: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.719  1822 27071 W MessageQueue: java.lang.IllegalStateException: Handler (android.media.MediaCodec$EventHandler) {8cb9a00} sending message to a Handler on a dead thread
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.MessageQueue.enqueueMessage(MessageQueue.java:560)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.enqueueMessage(Handler.java:786)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageAtTime(Handler.java:735)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessageDelayed(Handler.java:705)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.os.Handler.sendMessage(Handler.java:643)
+05-21 16:35:02.719  1822 27071 W MessageQueue: 	at android.media.MediaCodec.postEventFromNative(MediaCodec.java:5222)
+05-21 16:35:02.732   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:02.778  1822 27071 W MediaCodec: no metrics handle found
+05-21 16:35:03.850   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:04.451   700  1337 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:05.888 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:06.025   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:06.258   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:06.712   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:06.875   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:07.045   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:07.151   700  1962 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:07.155   700  1962 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
+05-21 16:35:07.158 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@3e4784
+05-21 16:35:07.173   700  1337 W InputManager-JNI: Input channel object '31de1c6 com.skyretro.iptv/com.skyretro.iptv.ui.home.HomeActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:07.183 27094 27094 W InputEventReceiver: Attempted to finish an input event but the input event receiver has already been disposed.
+05-21 16:35:07.209   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:07.225   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:07.358   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:07.535   700  1337 W WindowManager: Failed looking up window session=Session{cdea951 27094:u0a10128} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.updateRequestedVisibleTypes:690 android.view.IWindowSession$Stub.onTransact:1034 
+05-21 16:35:07.601 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:07.710   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:07.720   700  1946 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:08.094   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:08.176   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:09.024 27094 27105 W m.skyretro.iptv: Cleared Reference was only reachable from finalizer (only reported once)
+05-21 16:35:10.157   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:12.185 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:12.234   700  1337 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:12.258   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:12.641   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:12.664 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@735440c
+05-21 16:35:12.675   700  1337 W InputManager-JNI: Input channel object 'acc927c com.skyretro.iptv/com.skyretro.iptv.ui.series.SeriesActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:12.692   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:13.502   700  1968 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:15.682   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:17.024  1822  1822 W BillingClient: There was an exception while unbinding service!
+05-21 16:35:17.024  1822  1822 W BillingClient: java.lang.IllegalArgumentException: Service not registered: A2.y@c3cd043
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.LoadedApk.forgetServiceDispatcher(LoadedApk.java:2001)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.ContextImpl.unbindService(ContextImpl.java:2168)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.content.ContextWrapper.unbindService(ContextWrapper.java:923)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at A2.e.p(Unknown Source:12)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at A2.e.o(Unknown Source:72)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at A2.e.f(Unknown Source:1)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at R6.g.g(Unknown Source:47)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at F5.p.p(Unknown Source:72)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at s7.a.l(Unknown Source:11)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at Q7.J.run(Unknown Source:108)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at Q7.T.b0(Unknown Source:23)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at V7.b.n(Unknown Source:142)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at z4.b.h0(Unknown Source:10)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at Q7.a.c0(Unknown Source:30)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at Q7.A.J(Unknown Source:19)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at androidx.lifecycle.L.g(Unknown Source:19)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at androidx.lifecycle.A.a(Unknown Source:14)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at androidx.lifecycle.B.h(Unknown Source:374)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at androidx.lifecycle.B.e(Unknown Source:32)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at androidx.lifecycle.B.d(Unknown Source:14)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at p0.c0.n(Unknown Source:170)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at p0.c0.k(Unknown Source:58)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at p0.W.d0(Unknown Source:61)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at p0.W.z(Unknown Source:35)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at p0.W.x(Unknown Source:10)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at h.k.s(Unknown Source:18)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at h.k.onPostResume(Unknown Source:0)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.Activity.performResume(Activity.java:8770)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.ActivityThread.performResumeActivity(ActivityThread.java:4952)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:4995)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.servertransaction.ResumeActivityItem.execute(ResumeActivityItem.java:57)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:45)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.servertransaction.TransactionExecutor.executeLifecycleState(TransactionExecutor.java:180)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:98)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2443)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.os.Looper.loopOnce(Looper.java:205)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.os.Looper.loop(Looper.java:294)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at java.lang.reflect.Method.invoke(Native Method)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+05-21 16:35:17.024  1822  1822 W BillingClient: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+05-21 16:35:17.028   700  1337 W ProcessStats: Tracking association SourceState{dfae09 com.google.android.gms/10070 BTop #41602} whose proc state 2 is better than process ProcessState{8769a04 com.google.android.gms.persistent/10070 pkg=com.google.android.gms} proc state 3 (17 skipped)
+05-21 16:35:17.029  1822  1822 W BillingClient: Unable to log.
+05-21 16:35:17.029  1822  1822 W BillingClient: java.lang.NoClassDefFoundError: A2.I
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at A2.e.l(Unknown Source:0)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at A2.e.o(Unknown Source:290)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at A2.e.f(Unknown Source:1)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at R6.g.g(Unknown Source:47)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at F5.p.p(Unknown Source:72)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at s7.a.l(Unknown Source:11)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at Q7.J.run(Unknown Source:108)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at Q7.T.b0(Unknown Source:23)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at V7.b.n(Unknown Source:142)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at z4.b.h0(Unknown Source:10)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at Q7.a.c0(Unknown Source:30)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at Q7.A.J(Unknown Source:19)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at androidx.lifecycle.L.g(Unknown Source:19)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at androidx.lifecycle.A.a(Unknown Source:14)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at androidx.lifecycle.B.h(Unknown Source:374)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at androidx.lifecycle.B.e(Unknown Source:32)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at androidx.lifecycle.B.d(Unknown Source:14)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at p0.c0.n(Unknown Source:170)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at p0.c0.k(Unknown Source:58)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at p0.W.d0(Unknown Source:61)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at p0.W.z(Unknown Source:35)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at p0.W.x(Unknown Source:10)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at h.k.s(Unknown Source:18)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at h.k.onPostResume(Unknown Source:0)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.Activity.performResume(Activity.java:8770)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.ActivityThread.performResumeActivity(ActivityThread.java:4952)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:4995)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.servertransaction.ResumeActivityItem.execute(ResumeActivityItem.java:57)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:45)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.servertransaction.TransactionExecutor.executeLifecycleState(TransactionExecutor.java:180)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:98)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2443)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.os.Looper.loopOnce(Looper.java:205)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.os.Looper.loop(Looper.java:294)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at java.lang.reflect.Method.invoke(Native Method)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+05-21 16:35:17.029  1822  1822 W BillingClient: Caused by: java.lang.ExceptionInInitializerError
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at A2.I.<clinit>(Unknown Source:0)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at A2.e.l(Unknown Source:0)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at A2.e.o(Unknown Source:290)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at A2.e.f(Unknown Source:1)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at R6.g.g(Unknown Source:47)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at d6.e.p(Unknown Source:22)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at s7.a.l(Unknown Source:11)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at Q7.J.run(Unknown Source:108)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at U2.d.run(Unknown Source:334)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at X7.j.run(Unknown Source:2)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at X7.a.run(Unknown Source:87)
+05-21 16:35:17.029  1822  1822 W BillingClient: Caused by: java.lang.IllegalArgumentException: Multiple entries with same key: TryRoom=3 and TryRoom=2
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at com.google.android.gms.internal.play_billing.t.a(Unknown Source:47)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at com.google.android.gms.internal.play_billing.C.a(Unknown Source:475)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	at A2.J.<clinit>(Unknown Source:34)
+05-21 16:35:17.029  1822  1822 W BillingClient: 	... 11 more
+05-21 16:35:17.041  1822  2421 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:17.053  1822  1822 W Glide   : Load failed for [android.resource://com.skyretro.iptv/2131689472] with dimensions [182x182]
+05-21 16:35:17.053  1822  1822 W Glide   : class H2.z: Failed to load resource
+05-21 16:35:17.053  1822  1822 W Glide   : There were 4 root causes:
+05-21 16:35:17.053  1822  1822 W Glide   : java.io.FileNotFoundException(Resource does not exist: android.resource://com.skyretro.iptv/2131689472)
+05-21 16:35:17.053  1822  1822 W Glide   : java.io.FileNotFoundException(Resource does not exist: android.resource://com.skyretro.iptv/2131689472)
+05-21 16:35:17.053  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:35:17.053  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:35:17.053  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:17.053  1822  1822 W Glide   :   Cause (1 of 3): class H2.z: Fetching data failed, class java.io.InputStream, LOCAL
+05-21 16:35:17.053  1822  1822 W Glide   : There was 1 root cause:
+05-21 16:35:17.053  1822  1822 W Glide   : java.io.FileNotFoundException(Resource does not exist: android.resource://com.skyretro.iptv/2131689472)
+05-21 16:35:17.053  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:17.053  1822  1822 W Glide   :     Cause (1 of 1): class java.io.FileNotFoundException: Resource does not exist: android.resource://com.skyretro.iptv/2131689472
+05-21 16:35:17.053  1822  1822 W Glide   :   Cause (2 of 3): class H2.z: Fetching data failed, class android.os.ParcelFileDescriptor, LOCAL
+05-21 16:35:17.053  1822  1822 W Glide   : There was 1 root cause:
+05-21 16:35:17.053  1822  1822 W Glide   : java.io.FileNotFoundException(Resource does not exist: android.resource://com.skyretro.iptv/2131689472)
+05-21 16:35:17.053  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:17.053  1822  1822 W Glide   :     Cause (1 of 1): class java.io.FileNotFoundException: Resource does not exist: android.resource://com.skyretro.iptv/2131689472
+05-21 16:35:17.053  1822  1822 W Glide   :   Cause (3 of 3): class H2.z: Failed LoadPath{HierarchicalUri->Object->f}, LOCAL
+05-21 16:35:17.053  1822  1822 W Glide   : There were 2 root causes:
+05-21 16:35:17.053  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:35:17.053  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:35:17.053  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:17.053  1822  1822 W Glide   :     Cause (1 of 1): class H2.z: Failed DecodePath{HierarchicalUri->Drawable->f}
+05-21 16:35:17.053  1822  1822 W Glide   : There were 2 root causes:
+05-21 16:35:17.053  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:35:17.053  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:35:17.053  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:17.053  1822  1822 W Glide   :       Cause (1 of 2): class android.content.res.Resources$NotFoundException: Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000
+05-21 16:35:17.053  1822  1822 W Glide   :       Cause (2 of 2): class android.content.res.Resources$NotFoundException: Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000
+05-21 16:35:17.096   700  1337 W PackageConfigPersister: App-specific configuration not found for packageName: com.spocky.projengmenu and userId: 0
+05-21 16:35:17.134   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:17.312  1822 27165 W ColorUtils: expected specified color aspects (2:0:0:0)
+05-21 16:35:17.323  1822 27165 W Codec2Client: query -- param skipped: index = 1107298332.
+05-21 16:35:17.323  1822 27165 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+05-21 16:35:17.331   512 27170 E mtkpower_client: [getMtkPerfHal] nullptr
+05-21 16:35:17.332  1822 27165 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:35:17.332  1822 27165 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:35:17.332  1822 27165 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:35:17.333   512   577 E C2MtkStorePlugin: hook CreateBlockPool allocatorId 274 poolId 198
+05-21 16:35:17.339   764  5256 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+05-21 16:35:17.509   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:17.563   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:17.609 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@6fbb415
+05-21 16:35:17.629   700  1337 W InputManager-JNI: Input channel object '1565a24 com.skyretro.iptv/com.skyretro.iptv.ui.home.HomeActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:17.711  1822  2823 W Codec2-OutputBufferQueue: receiving stale buffer: generation 1866072 , diff 1 : slot 13
+05-21 16:35:17.714  1822  2823 W Codec2-OutputBufferQueue: receiving stale buffer: generation 1866072 , diff 1 : slot 16
+05-21 16:35:17.783  1822 27164 W Codec2-OutputBufferQueue: outputBuffer -- buffers from old generation to 1866072 , diff: 1 , slot: 13
+05-21 16:35:17.820  1822 27164 W Codec2-OutputBufferQueue: outputBuffer -- buffers from old generation to 1866072 , diff: 1 , slot: 16
+05-21 16:35:17.843  1822 27164 W CCodecBufferChannel: no present fence for frame 2
+05-21 16:35:18.049  1822  1836 W cky.projengmenu: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~hlQP1gFu6rpqP1GtsX0YCQ==/com.skyretro.iptv-6cHVc8b82amtJzRVGIHUlg==/base.apk' with 1 weak references
+05-21 16:35:18.253   700  1337 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:18.354   700  1968 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:18.586   700  1968 W WindowManager: Failed looking up window session=Session{cdea951 27094:u0a10128} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.updateRequestedVisibleTypes:690 android.view.IWindowSession$Stub.onTransact:1034 
+05-21 16:35:18.661 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:18.705   700   846 W ziparchive: Unable to open '/data/app/~~hlQP1gFu6rpqP1GtsX0YCQ==/com.skyretro.iptv-6cHVc8b82amtJzRVGIHUlg==/base.dm': No such file or directory
+05-21 16:35:18.758   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:18.770   700  1337 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:19.142   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:19.169   512 27170 W C2MtkComponent: [0xE91C4890] processQueue: queue is empty.
+05-21 16:35:19.169   512 27173 W C2MtkComponent: [0xE91C4890] preprocessPostQueue: queue is empty.
+05-21 16:35:19.169   512 27172 W C2MtkComponent: [0xE91C4890] processPostQueue: queue is empty.
+05-21 16:35:19.169   512 27171 W C2MtkComponent: [0xE91C4890] processPreQueue: queue is empty.
+05-21 16:35:19.177  1822 27164 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:35:19.177  1822 27164 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:35:19.177  1822 27164 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:35:19.233  1822 27164 W MediaCodec: no metrics handle found
+05-21 16:35:21.643   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:23.642   700   873 W BatteryExternalStatsWorker: error reading modem stats:ERROR_PHONE_NOT_AVAILABLE
+05-21 16:35:23.643   700  2179 W BatteryExternalStatsWorker: error reading Bluetooth stats: 11
+05-21 16:35:25.337 25867 25950 W native  : W0000 00:00:1779377725.337080   25950 publisher.cc:36] [FTL] No subscribers for event "hvc.api.events.MetricEvent" from publisher "UmaMetricsForwarder"
+05-21 16:35:25.738 27094 27094 W Glide   : Failed to find GeneratedAppGlideModule. You should include an annotationProcessor compile dependency on com.github.bumptech.glide:compiler in your application and a @GlideModule annotated AppGlideModule implementation or LibraryGlideModules will be silently ignored
+05-21 16:35:26.405 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.405 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.405 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.405 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.405 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.405 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.405 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.405 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.405 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.405 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.405 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.405 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.405 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.405 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:26.418 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.418 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.418 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.418 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.418 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.418 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.418 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.418 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.418 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.418 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.418 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.418 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.418 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.418 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:26.429 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.429 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.429 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.429 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.429 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.429 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.429 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.429 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.429 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.429 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.429 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.429 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.429 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.429 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:26.440 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.440 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.440 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.440 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.440 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.440 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.440 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.440 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.440 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.440 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.440 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.440 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.440 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.440 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:26.452 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.452 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.452 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.452 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.452 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.452 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.452 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.452 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.452 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.452 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.452 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.452 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.452 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.452 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:26.465 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.465 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.465 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.465 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.465 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.465 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.465 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.465 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.465 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.465 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.465 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.465 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.465 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.465 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:26.476 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.476 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.476 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.476 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.476 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.476 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.476 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.476 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.476 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.476 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.476 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.476 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.476 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.476 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:26.488 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.488 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.488 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.488 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.488 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.488 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.488 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.488 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.488 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.488 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.488 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.488 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.488 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.488 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:26.500 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:26.500 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:26.500 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.500 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.500 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.500 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:26.500 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.500 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.500 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.500 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:26.500 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:26.500 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:26.500 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:26.500 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:28.004   700  1337 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:28.701 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:28.808   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:29.041   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:29.445   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:29.607   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:29.845   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:29.968   700  1337 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:29.973   700  1337 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
+05-21 16:35:29.977 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@d899ebe
+05-21 16:35:29.988   700  2179 W InputManager-JNI: Input channel object '8c300a6 com.skyretro.iptv/com.skyretro.iptv.ui.home.HomeActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:29.996 27094 27094 W InputEventReceiver: Attempted to finish an input event but the input event receiver has already been disposed.
+05-21 16:35:30.025   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:30.040   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:30.114  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.115  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.116  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.117  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.118  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.119  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.120  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.120  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.120  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.120  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.121  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.121  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.121  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.124  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.125  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.126  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.127  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.128  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.129  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.130  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.131  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.132  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.132  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.132  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.132  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.132  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.132  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.132  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.133  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.133  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.133  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.133  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.133  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.133  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.133  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.133  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.134  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.134  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.134  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.134  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.134  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.134  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.134  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.134  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.135  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.135  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.135  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.135  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.135  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.135  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.136  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.136  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.136  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.136  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.136  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.136  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.136  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.137  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.137  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.137  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.137  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.137  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.137  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.137  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.139  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.141  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.142  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.144  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.144  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.144  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.144  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.144  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.144  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.145  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.145  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.145  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.145  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.145  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.145  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.145  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.145  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.146  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.147  3825  3839 W System  : A resource failed to call close. 
+05-21 16:35:30.175   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:30.183   700  1960 W WindowManager: Failed looking up window session=Session{cdea951 27094:u0a10128} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.updateRequestedVisibleTypes:690 android.view.IWindowSession$Stub.onTransact:1034 
+05-21 16:35:30.236 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:30.341   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:30.363   700  1960 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:30.579 27094 27107 W System  : A resource failed to call end. 
+05-21 16:35:30.725   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:30.815   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:32.978   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:34.535   700  1961 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:35.529   700  1961 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:35.534   700  1961 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
+05-21 16:35:35.681   700  1981 W WindowManager: Failed looking up window session=Session{cdea951 27094:u0a10128} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.updateRequestedVisibleTypes:690 android.view.IWindowSession$Stub.onTransact:1034 
+05-21 16:35:35.758 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:35.843   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:35.850   700  1960 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:36.224   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:36.311   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:37.620 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:37.684   700  1960 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:37.707   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:38.093   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:38.107 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@42b4556
+05-21 16:35:38.114   700  1961 W InputManager-JNI: Input channel object '463c88c com.skyretro.iptv/com.skyretro.iptv.ui.series.SeriesDetailActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:38.141   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:38.299   700  1961 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:39.046   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:39.490   700  1960 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:39.494   700  1960 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
+05-21 16:35:39.619   700  1953 W WindowManager: Failed looking up window session=Session{cdea951 27094:u0a10128} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.updateRequestedVisibleTypes:690 android.view.IWindowSession$Stub.onTransact:1034 
+05-21 16:35:39.669 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:39.774   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:39.785   700  1953 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:40.158   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:40.245   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:41.184 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:41.241   700  1907 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:41.274   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:41.659   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:41.675 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@bc25a50
+05-21 16:35:41.682   700  1968 W InputManager-JNI: Input channel object '8c1aff2 com.skyretro.iptv/com.skyretro.iptv.ui.series.SeriesDetailActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:41.692   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:41.891   700  1907 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:42.742 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:42.835   700  1968 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:42.858   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:42.930 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.930 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.930 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.930 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.930 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.930 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.930 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.930 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.930 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.930 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.930 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.930 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.930 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.930 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:42.970 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.970 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.970 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.970 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.970 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.970 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.970 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.970 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.970 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.970 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.970 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.970 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.970 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.970 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:42.974 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.974 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.974 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.974 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.974 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.974 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.974 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.974 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.974 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.974 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.974 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.974 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.974 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.974 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:42.978 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.978 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.978 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.978 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.978 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.978 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.978 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.978 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.978 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.978 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.978 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.978 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.978 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.978 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:42.982 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.982 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.982 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.982 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.982 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.982 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.982 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.982 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.982 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.982 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.982 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.982 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.982 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.982 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:42.985 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.985 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.985 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.985 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.985 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.985 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.985 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.985 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.985 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.985 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.985 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.985 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.985 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.985 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:42.989 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.989 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.989 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.989 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.989 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.989 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.989 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.989 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.989 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.989 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.989 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.989 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.989 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.989 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:42.993 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.993 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.993 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.993 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.993 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.993 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.993 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.993 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.993 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.993 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.993 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.993 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.993 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.993 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:42.997 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:42.997 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:42.997 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.997 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.997 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.997 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:42.997 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.997 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.997 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.997 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:42.997 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:42.997 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:42.997 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:42.997 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:43.066   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:43.241   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:43.262 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@3bf43e1
+05-21 16:35:43.277   700  1953 W InputManager-JNI: Input channel object 'e92a1a9 com.skyretro.iptv/com.skyretro.iptv.ui.series.SeriesActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:43.295   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:46.235   700  1968 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:46.288   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:47.171 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:47.257   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:47.491   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:47.628   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:47.791   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:47.862   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:48.024   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:48.195   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:48.287   700  1968 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:48.294   700  1968 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
+05-21 16:35:48.300 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@1b14fa3
+05-21 16:35:48.310   700  1968 W InputManager-JNI: Input channel object 'c5934d9 com.skyretro.iptv/com.skyretro.iptv.ui.home.HomeActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:48.317 27094 27094 W InputEventReceiver: Attempted to finish an input event but the input event receiver has already been disposed.
+05-21 16:35:48.344   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:48.357   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:48.491   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:48.505   700  1968 W WindowManager: Failed looking up window session=Session{cdea951 27094:u0a10128} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.updateRequestedVisibleTypes:690 android.view.IWindowSession$Stub.onTransact:1034 
+05-21 16:35:48.752 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:48.860   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:48.880   700  1968 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:49.241   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:49.325   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:49.432   700  1968 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:51.029   700  1907 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:35:51.033   700  1907 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
+05-21 16:35:51.411 27094 27094 W m.skyretro.iptv: Accessing hidden method Landroid/media/AudioTrack;->getLatency()I (unsupported, reflection, allowed)
+05-21 16:35:51.606   700  1907 W WindowManager: Failed looking up window session=Session{cdea951 27094:u0a10128} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6034 com.android.server.wm.Session.updateRequestedVisibleTypes:690 android.view.IWindowSession$Stub.onTransact:1034 
+05-21 16:35:51.677 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:51.794   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:51.811   700  1953 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:51.861   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:35:52.175   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:52.260   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:54.349   700   714 W System  : A resource failed to call close. 
+05-21 16:35:54.352   700   714 W System  : A resource failed to call release. 
+05-21 16:35:54.372   700   714 W System  : A resource failed to call release. 
+05-21 16:35:54.375   700   714 W System  : A resource failed to call CursorWindow.close. 
+05-21 16:35:54.375   700   714 W System  : A resource failed to call CursorWindow.close. 
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal: Playback error
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:   androidx.media3.exoplayer.ExoPlaybackException: Source error
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at androidx.media3.exoplayer.ExoPlayerImplInternal.handleIoException(ExoPlayerImplInternal.java:717)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at androidx.media3.exoplayer.ExoPlayerImplInternal.handleMessage(ExoPlayerImplInternal.java:689)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at android.os.Handler.dispatchMessage(Handler.java:102)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at android.os.Looper.loopOnce(Looper.java:205)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at android.os.Looper.loop(Looper.java:294)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at android.os.HandlerThread.run(HandlerThread.java:67)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:   Caused by: androidx.media3.datasource.HttpDataSource$InvalidResponseCodeException: Response code: 502
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at androidx.media3.datasource.DefaultHttpDataSource.open(DefaultHttpDataSource.java:436)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at androidx.media3.datasource.StatsDataSource.open(StatsDataSource.java:86)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at androidx.media3.exoplayer.source.ProgressiveMediaPeriod$ExtractingLoadable.load(ProgressiveMediaPeriod.java:1029)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at androidx.media3.exoplayer.upstream.Loader$LoadTask.run(Loader.java:421)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+05-21 16:35:55.695 27094 27243 E ExoPlayerImplInternal:       at java.lang.Thread.run(Thread.java:1012)
+05-21 16:35:57.269   700   947 W InputDispatcher: Waiting because no window has focus but ActivityRecord{f06f102 u0 com.skyretro.iptv/.ui.favourites.FavouritesActivity t3202} may eventually add a window when it finishes starting up. Will wait for 5000ms
+05-21 16:35:57.276 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:57.359   700  1968 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:57.374   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:57.758   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:57.792 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@6556dd2
+05-21 16:35:57.800   700  1337 W InputManager-JNI: Input channel object '8ae5d29 com.skyretro.iptv/com.skyretro.iptv.ui.player.PlayerActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:57.825   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:58.419 27094 27115 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:35:58.522   700  1953 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:35:58.540 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.540 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.540 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.540 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.540 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.540 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.540 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.540 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.540 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.540 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.540 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.540 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.540 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.540 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.543   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:58.544 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.544 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.544 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.544 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.544 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.544 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.544 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.544 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.544 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.544 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.544 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.544 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.544 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.544 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.548 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.548 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.548 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.548 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.548 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.548 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.548 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.548 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.548 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.548 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.548 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.548 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.548 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.548 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.551 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.551 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.551 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.551 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.551 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.551 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.551 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.551 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.551 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.551 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.551 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.551 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.551 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.551 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.555 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.555 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.555 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.555 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.555 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.555 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.555 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.555 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.555 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.555 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.555 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.555 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.555 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.555 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.558 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.558 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.558 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.558 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.558 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.558 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.558 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.558 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.558 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.558 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.558 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.558 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.558 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.558 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.561 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.561 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.561 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.561 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.561 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.561 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.561 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.561 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.561 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.561 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.561 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.561 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.561 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.561 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.564 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.564 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.564 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.564 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.564 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.564 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.564 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.564 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.564 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.564 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.564 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.564 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.564 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.564 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.567 27094 27094 W Glide   : Load failed for [https://www.techfollows.com/wp-content/uploads/2019/08/PPV-on-Kodi.png] with dimensions [80x56]
+05-21 16:35:58.567 27094 27094 W Glide   : class com.bumptech.glide.load.engine.GlideException: Failed to load resource
+05-21 16:35:58.567 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.567 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.567 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.567 27094 27094 W Glide   :   Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetching data failed, class java.io.InputStream, REMOTE
+05-21 16:35:58.567 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.567 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.567 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.567 27094 27094 W Glide   :     Cause (1 of 1): class com.bumptech.glide.load.engine.GlideException: Fetch failed
+05-21 16:35:58.567 27094 27094 W Glide   : There was 1 root cause:
+05-21 16:35:58.567 27094 27094 W Glide   : com.bumptech.glide.load.HttpException(Failed to connect or obtain data, status code: 403)
+05-21 16:35:58.567 27094 27094 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:35:58.567 27094 27094 W Glide   :       Cause (1 of 1): class com.bumptech.glide.load.HttpException: Failed to connect or obtain data, status code: 403
+05-21 16:35:58.925   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:35:58.943 27094 27094 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@ec41090
+05-21 16:35:58.956   700  1907 W InputManager-JNI: Input channel object '2482d68 com.skyretro.iptv/com.skyretro.iptv.ui.favourites.FavouritesActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:35:58.974   700   849 W AccessibilityWindowsPopulator: Windows change within in 2 frames continuously over 500 ms and notify windows changed immediately
+05-21 16:35:59.218   700  1968 W PackageConfigPersister: App-specific configuration not found for packageName: com.skyretro.iptv and userId: 0
+05-21 16:36:00.040 27094 27094 W View    : couldn't find view with id 2131231208
+05-21 16:36:01.319   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:36:06.270   700  1957 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+05-21 16:36:06.277   700  1957 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
+--------- beginning of crash
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: FATAL EXCEPTION: main
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: Process: com.skyretro.iptv, PID: 27094
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: java.lang.RuntimeException: Unable to start activity ComponentInfo{com.skyretro.iptv/com.skyretro.iptv.ui.player.PlayerActivity}: java.lang.IllegalArgumentException: minBufferMs cannot be less than bufferForPlaybackAfterRebufferMs
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3782)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:3922)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:103)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:139)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:96)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2443)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:205)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:294)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: Caused by: java.lang.IllegalArgumentException: minBufferMs cannot be less than bufferForPlaybackAfterRebufferMs
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at androidx.media3.common.util.Assertions.checkArgument(Assertions.java:55)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at androidx.media3.exoplayer.DefaultLoadControl.assertGreaterOrEqual(DefaultLoadControl.java:465)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at androidx.media3.exoplayer.DefaultLoadControl.access$000(DefaultLoadControl.java:38)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at androidx.media3.exoplayer.DefaultLoadControl$Builder.setBufferDurationsMs(DefaultLoadControl.java:172)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at com.skyretro.iptv.ui.player.PlayerActivity.initPlayer(PlayerActivity.kt:402)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at com.skyretro.iptv.ui.player.PlayerActivity.onCreate(PlayerActivity.kt:194)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.Activity.performCreate(Activity.java:8595)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.Activity.performCreate(Activity.java:8573)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1456)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3764)
+05-21 16:36:06.568 27094 27094 E AndroidRuntime: 	... 12 more
+05-21 16:36:06.579   700  1953 W ActivityTaskManager:   Force finishing activity com.skyretro.iptv/.ui.player.PlayerActivity
+05-21 16:36:06.582   700  1953 W ActivityTaskManager:   Force finishing activity com.skyretro.iptv/.ui.home.HomeActivity
+05-21 16:36:06.664   700  1337 W InputManager-JNI: Input channel object 'f2ab535 com.skyretro.iptv/com.skyretro.iptv.ui.home.HomeActivity (client)' was disposed without first being removed with the input manager!
+05-21 16:36:06.687  1822  1822 W BillingClient: There was an exception while unbinding service!
+05-21 16:36:06.687  1822  1822 W BillingClient: java.lang.IllegalArgumentException: Service not registered: A2.y@4b12917
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.LoadedApk.forgetServiceDispatcher(LoadedApk.java:2001)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.ContextImpl.unbindService(ContextImpl.java:2168)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.content.ContextWrapper.unbindService(ContextWrapper.java:923)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at A2.e.p(Unknown Source:12)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at A2.e.o(Unknown Source:72)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at A2.e.f(Unknown Source:1)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at R6.g.g(Unknown Source:47)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at F5.p.p(Unknown Source:72)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at s7.a.l(Unknown Source:11)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at Q7.J.run(Unknown Source:108)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at Q7.T.b0(Unknown Source:23)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at V7.b.n(Unknown Source:142)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at z4.b.h0(Unknown Source:10)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at Q7.a.c0(Unknown Source:30)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at Q7.A.J(Unknown Source:19)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at androidx.lifecycle.L.g(Unknown Source:19)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at androidx.lifecycle.A.a(Unknown Source:14)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at androidx.lifecycle.B.h(Unknown Source:374)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at androidx.lifecycle.B.e(Unknown Source:32)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at androidx.lifecycle.B.d(Unknown Source:14)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at p0.c0.n(Unknown Source:170)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at p0.c0.k(Unknown Source:58)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at p0.W.d0(Unknown Source:61)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at p0.W.z(Unknown Source:35)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at p0.W.x(Unknown Source:10)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at h.k.s(Unknown Source:18)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at h.k.onPostResume(Unknown Source:0)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.Activity.performResume(Activity.java:8770)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.ActivityThread.performResumeActivity(ActivityThread.java:4952)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:4995)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.servertransaction.ResumeActivityItem.execute(ResumeActivityItem.java:57)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:45)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.servertransaction.TransactionExecutor.executeLifecycleState(TransactionExecutor.java:180)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:98)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2443)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.os.Looper.loopOnce(Looper.java:205)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.os.Looper.loop(Looper.java:294)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at java.lang.reflect.Method.invoke(Native Method)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+05-21 16:36:06.687  1822  1822 W BillingClient: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+05-21 16:36:06.688  1822  1822 W BillingClient: Unable to log.
+05-21 16:36:06.688  1822  1822 W BillingClient: java.lang.NoClassDefFoundError: A2.I
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at A2.e.l(Unknown Source:0)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at A2.e.o(Unknown Source:290)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at A2.e.f(Unknown Source:1)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at R6.g.g(Unknown Source:47)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at F5.p.p(Unknown Source:72)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at s7.a.l(Unknown Source:11)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at Q7.J.run(Unknown Source:108)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at Q7.T.b0(Unknown Source:23)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at V7.b.n(Unknown Source:142)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at z4.b.h0(Unknown Source:10)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at Q7.a.c0(Unknown Source:30)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at Q7.A.J(Unknown Source:19)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at androidx.lifecycle.L.g(Unknown Source:19)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at androidx.lifecycle.A.a(Unknown Source:14)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at androidx.lifecycle.B.h(Unknown Source:374)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at androidx.lifecycle.B.e(Unknown Source:32)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at androidx.lifecycle.B.d(Unknown Source:14)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at p0.c0.n(Unknown Source:170)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at p0.c0.k(Unknown Source:58)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at p0.W.d0(Unknown Source:61)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at p0.W.z(Unknown Source:35)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at p0.W.x(Unknown Source:10)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at h.k.s(Unknown Source:18)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at h.k.onPostResume(Unknown Source:0)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.Activity.performResume(Activity.java:8770)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.ActivityThread.performResumeActivity(ActivityThread.java:4952)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:4995)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.servertransaction.ResumeActivityItem.execute(ResumeActivityItem.java:57)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:45)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.servertransaction.TransactionExecutor.executeLifecycleState(TransactionExecutor.java:180)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:98)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2443)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.os.Looper.loopOnce(Looper.java:205)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.os.Looper.loop(Looper.java:294)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at java.lang.reflect.Method.invoke(Native Method)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+05-21 16:36:06.688  1822  1822 W BillingClient: Caused by: java.lang.ExceptionInInitializerError
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at A2.I.<clinit>(Unknown Source:0)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at A2.e.l(Unknown Source:0)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at A2.e.o(Unknown Source:290)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at A2.e.f(Unknown Source:1)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at R6.g.g(Unknown Source:47)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at d6.e.p(Unknown Source:22)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at s7.a.l(Unknown Source:11)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at Q7.J.run(Unknown Source:108)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at U2.d.run(Unknown Source:334)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at X7.j.run(Unknown Source:2)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at X7.a.run(Unknown Source:87)
+05-21 16:36:06.688  1822  1822 W BillingClient: Caused by: java.lang.IllegalArgumentException: Multiple entries with same key: TryRoom=3 and TryRoom=2
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at com.google.android.gms.internal.play_billing.t.a(Unknown Source:47)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at com.google.android.gms.internal.play_billing.C.a(Unknown Source:475)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	at A2.J.<clinit>(Unknown Source:34)
+05-21 16:36:06.688  1822  1822 W BillingClient: 	... 11 more
+05-21 16:36:06.704  1822  2421 E OpenGLRenderer: Unable to match the desired swap behavior.
+05-21 16:36:06.709   700  1981 W ProcessStats: Tracking association SourceState{dfae09 com.google.android.gms/10070 BTop #41710} whose proc state 2 is better than process ProcessState{8769a04 com.google.android.gms.persistent/10070 pkg=com.google.android.gms} proc state 3 (17 skipped)
+05-21 16:36:06.719  1822  1822 W Glide   : Load failed for [android.resource://com.skyretro.iptv/2131689472] with dimensions [182x182]
+05-21 16:36:06.719  1822  1822 W Glide   : class H2.z: Failed to load resource
+05-21 16:36:06.719  1822  1822 W Glide   : There were 4 root causes:
+05-21 16:36:06.719  1822  1822 W Glide   : java.io.FileNotFoundException(Resource does not exist: android.resource://com.skyretro.iptv/2131689472)
+05-21 16:36:06.719  1822  1822 W Glide   : java.io.FileNotFoundException(Resource does not exist: android.resource://com.skyretro.iptv/2131689472)
+05-21 16:36:06.719  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:36:06.719  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:36:06.719  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:36:06.719  1822  1822 W Glide   :   Cause (1 of 3): class H2.z: Fetching data failed, class java.io.InputStream, LOCAL
+05-21 16:36:06.719  1822  1822 W Glide   : There was 1 root cause:
+05-21 16:36:06.719  1822  1822 W Glide   : java.io.FileNotFoundException(Resource does not exist: android.resource://com.skyretro.iptv/2131689472)
+05-21 16:36:06.719  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:36:06.719  1822  1822 W Glide   :     Cause (1 of 1): class java.io.FileNotFoundException: Resource does not exist: android.resource://com.skyretro.iptv/2131689472
+05-21 16:36:06.719  1822  1822 W Glide   :   Cause (2 of 3): class H2.z: Fetching data failed, class android.os.ParcelFileDescriptor, LOCAL
+05-21 16:36:06.719  1822  1822 W Glide   : There was 1 root cause:
+05-21 16:36:06.719  1822  1822 W Glide   : java.io.FileNotFoundException(Resource does not exist: android.resource://com.skyretro.iptv/2131689472)
+05-21 16:36:06.719  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:36:06.719  1822  1822 W Glide   :     Cause (1 of 1): class java.io.FileNotFoundException: Resource does not exist: android.resource://com.skyretro.iptv/2131689472
+05-21 16:36:06.719  1822  1822 W Glide   :   Cause (3 of 3): class H2.z: Failed LoadPath{HierarchicalUri->Object->f}, LOCAL
+05-21 16:36:06.719  1822  1822 W Glide   : There were 2 root causes:
+05-21 16:36:06.719  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:36:06.719  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:36:06.719  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:36:06.719  1822  1822 W Glide   :     Cause (1 of 1): class H2.z: Failed DecodePath{HierarchicalUri->Drawable->f}
+05-21 16:36:06.719  1822  1822 W Glide   : There were 2 root causes:
+05-21 16:36:06.719  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:36:06.719  1822  1822 W Glide   : android.content.res.Resources$NotFoundException(Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000)
+05-21 16:36:06.719  1822  1822 W Glide   :  call GlideException#logRootCauses(String) for more detail
+05-21 16:36:06.719  1822  1822 W Glide   :       Cause (1 of 2): class android.content.res.Resources$NotFoundException: Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000
+05-21 16:36:06.719  1822  1822 W Glide   :       Cause (2 of 2): class android.content.res.Resources$NotFoundException: Drawable com.skyretro.iptv:string/abc_action_bar_home_description with resource ID #0x7f0f0000
+05-21 16:36:06.791   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:36:06.832   700   850 W WindowManager: Failed to deliver inset control state change to w=Window{f2ab535 u0 com.skyretro.iptv/com.skyretro.iptv.ui.home.HomeActivity EXITING}
+05-21 16:36:06.832   700   850 W WindowManager: android.os.DeadObjectException
+05-21 16:36:06.832   700   850 W WindowManager: 	at android.os.BinderProxy.transactNative(Native Method)
+05-21 16:36:06.832   700   850 W WindowManager: 	at android.os.BinderProxy.transact(BinderProxy.java:584)
+05-21 16:36:06.832   700   850 W WindowManager: 	at android.view.IWindow$Stub$Proxy.insetsControlChanged(IWindow.java:479)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.WindowState.notifyInsetsControlChanged(WindowState.java:3820)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.InsetsStateController.lambda$notifyPendingInsetsControlChanged$3(InsetsStateController.java:343)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.InsetsStateController.$r8$lambda$MnP7XA1MDcyrUwoj0hcoT5hTO8E(InsetsStateController.java:0)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.InsetsStateController$$ExternalSyntheticLambda0.run(R8$$SyntheticClass:0)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.WindowAnimator.executeAfterPrepareSurfacesRunnables(WindowAnimator.java:294)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.RootWindowContainer.performSurfacePlacementNoTrace(RootWindowContainer.java:811)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.RootWindowContainer.performSurfacePlacement(RootWindowContainer.java:756)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacementLoop(WindowSurfacePlacer.java:177)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacement(WindowSurfacePlacer.java:126)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacement(WindowSurfacePlacer.java:115)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.wm.WindowSurfacePlacer$Traverser.run(WindowSurfacePlacer.java:57)
+05-21 16:36:06.832   700   850 W WindowManager: 	at android.os.Handler.handleCallback(Handler.java:958)
+05-21 16:36:06.832   700   850 W WindowManager: 	at android.os.Handler.dispatchMessage(Handler.java:99)
+05-21 16:36:06.832   700   850 W WindowManager: 	at android.os.Looper.loopOnce(Looper.java:205)
+05-21 16:36:06.832   700   850 W WindowManager: 	at android.os.Looper.loop(Looper.java:294)
+05-21 16:36:06.832   700   850 W WindowManager: 	at android.os.HandlerThread.run(HandlerThread.java:67)
+05-21 16:36:06.832   700   850 W WindowManager: 	at com.android.server.ServiceThread.run(ServiceThread.java:46)
+05-21 16:36:06.833   700  1953 W PackageConfigPersister: App-specific configuration not found for packageName: com.spocky.projengmenu and userId: 0
+05-21 16:36:06.903   700  1337 W JobScheduler: Job didn't exist in JobStore: 7c7c592 {androidx.work.systemjobscheduler} #u0a138/30000 @androidx.work.systemjobscheduler@se.hedekonsult.sparkle/androidx.work.impl.background.systemjob.SystemJobService
+05-21 16:36:06.949  1822 27271 W ColorUtils: expected specified color aspects (2:0:0:0)
+05-21 16:36:06.957  1822 27271 W Codec2Client: query -- param skipped: index = 1107298332.
+05-21 16:36:06.957  1822 27271 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+05-21 16:36:06.965   512 27276 E mtkpower_client: [getMtkPerfHal] nullptr
+05-21 16:36:06.966  1822 27271 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:36:06.966  1822 27271 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:36:06.966  1822 27271 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:36:06.967   512  1174 E C2MtkStorePlugin: hook CreateBlockPool allocatorId 274 poolId 199
+05-21 16:36:06.975   764  5256 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+05-21 16:36:07.084   700   849 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{275da7d u0 com.skyretro.iptv/.ui.player.PlayerActivity t-1 f}}
+05-21 16:36:07.161   700  1953 W WindowManager: Exception thrown during dispatchAppVisibility Window{f2ab535 u0 com.skyretro.iptv/com.skyretro.iptv.ui.home.HomeActivity EXITING}
+05-21 16:36:07.161   700  1953 W WindowManager: android.os.DeadObjectException
+05-21 16:36:07.161   700  1953 W WindowManager: 	at android.os.BinderProxy.transactNative(Native Method)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at android.os.BinderProxy.transact(BinderProxy.java:584)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at android.view.IWindow$Stub$Proxy.dispatchAppVisibility(IWindow.java:546)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.WindowState.sendAppVisibilityToClients(WindowState.java:3289)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.WindowContainer.sendAppVisibilityToClients(WindowContainer.java:1221)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.WindowToken.setClientVisible(WindowToken.java:409)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.ActivityRecord.setClientVisible(ActivityRecord.java:6995)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.ActivityRecord.postApplyAnimation(ActivityRecord.java:5686)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.ActivityRecord.commitVisibility(ActivityRecord.java:5629)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.Transition.finishTransition(Transition.java:1153)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.TransitionController.finishTransition(TransitionController.java:868)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.WindowOrganizerController.finishTransition(WindowOrganizerController.java:396)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at android.window.IWindowOrganizerController$Stub.onTransact(IWindowOrganizerController.java:286)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at com.android.server.wm.WindowOrganizerController.onTransact(WindowOrganizerController.java:181)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at android.os.Binder.execTransactInternal(Binder.java:1344)
+05-21 16:36:07.161   700  1953 W WindowManager: 	at android.os.Binder.execTransact(Binder.java:1275)
+05-21 16:36:07.175   753   765 E mtkpower@impl: [setMode] unknown type
+05-21 16:36:07.179   700   849 W ActivityManager: setHasOverlayUi called on unknown pid: 27094
+05-21 16:36:07.189   553   553 E BpTransactionCompletedListener: Failed to transact (-32)
+05-21 16:36:07.308  1822  2823 W Codec2-OutputBufferQueue: receiving stale buffer: generation 1866076 , diff 1 : slot 15
+05-21 16:36:07.413  1822 27270 W Codec2-OutputBufferQueue: outputBuffer -- buffers from old generation to 1866076 , diff: 1 , slot: 15
+05-21 16:36:07.475  1822 27270 W CCodecBufferChannel: no present fence for frame 2
+05-21 16:36:07.492  1822  1836 W cky.projengmenu: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~hlQP1gFu6rpqP1GtsX0YCQ==/com.skyretro.iptv-6cHVc8b82amtJzRVGIHUlg==/base.apk' with 1 weak references
+05-21 16:36:09.786   700  1770 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+05-21 16:36:11.932   512 27276 W C2MtkComponent: [0xE91C1230] processQueue: queue is empty.
+05-21 16:36:11.932   512 27277 W C2MtkComponent: [0xE91C1230] processPreQueue: queue is empty.
+05-21 16:36:11.932   512 27278 W C2MtkComponent: [0xE91C1230] processPostQueue: queue is empty.
+05-21 16:36:11.932   512 27279 W C2MtkComponent: [0xE91C1230] preprocessPostQueue: queue is empty.
+05-21 16:36:11.941  1822 27270 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:36:11.941  1822 27270 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:36:11.942  1822 27270 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:36:12.132   512 27276 W C2MtkComponent: [0xE91C1230] processQueue: queue is empty.
+05-21 16:36:12.132   512 27277 W C2MtkComponent: [0xE91C1230] processPreQueue: queue is empty.
+05-21 16:36:12.132   512 27279 W C2MtkComponent: [0xE91C1230] preprocessPostQueue: queue is empty.
+05-21 16:36:12.132   512 27278 W C2MtkComponent: [0xE91C1230] processPostQueue: queue is empty.
+05-21 16:36:12.134  1822 27270 W Codec2Client: query -- param skipped: index = 1342179345.
+05-21 16:36:12.134  1822 27270 W Codec2Client: query -- param skipped: index = 2415921170.
+05-21 16:36:12.134  1822 27270 W Codec2Client: query -- param skipped: index = 1610614798.
+05-21 16:36:12.812  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.813  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.813  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.813  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.814  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.814  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.814  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.814  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.815  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.815  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.815  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.815  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.815  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.815  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.815  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.816  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.816  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.816  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.816  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.817  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.817  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.817  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.817  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.817  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.817  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.817  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.818  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.818  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.818  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.819  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.820  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.820  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.820  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.820  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.821  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.821  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.821  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.821  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.821  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.822  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.822  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.822  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.822  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.822  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.822  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.823  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.823  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.823  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.823  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.824  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.824  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.825  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.825  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.825  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.825  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.825  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.825  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.825  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.825  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.826  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.827  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.827  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.827  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.827  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.827  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.830  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.831  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.831  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.831  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.831  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.831  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.831  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.831  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.832  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.832  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.832  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.832  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.832  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.832  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.832  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.832  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.833  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.834  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.834  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.834  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.834  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.834  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.834  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.834  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.834  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.835  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.835  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.835  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.835  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.835  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.835  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.835  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.836  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.836  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.836  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.836  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.836  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.836  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.836  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.836  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.837  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.837  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.837  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.837  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.837  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.837  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.837  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.838  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.838  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.838  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.838  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.839  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.839  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.839  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.839  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.839  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.839  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.839  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.840  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.840  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.840  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.841  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.841  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.841  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.842  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.842  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.842  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.842  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.842  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.842  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.842  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.843  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.843  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.843  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.843  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.844  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.844  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.845  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.845  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.845  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.845  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.845  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.845  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.845  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.846  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.846  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.846  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.846  3825  3839 W System  : A resource failed to call close. 
+05-21 16:36:12.846  3825  3839 W System  : A resource failed to call close. 

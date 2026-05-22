@@ -1,0 +1,21 @@
+# Build outputs
+build/
+app/build/
+.gradle/
+
+# Android Studio
+.idea/
+*.iml
+local.properties
+
+# Keystore — never commit credentials
+*.jks
+*.keystore
+
+# Temp / misc
+temp_mpv/
+*.txt
+
+# OS
+.DS_Store
+Thumbs.db

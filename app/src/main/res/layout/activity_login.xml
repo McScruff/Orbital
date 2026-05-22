@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/sky_dark_blue">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <!-- SkyRetro Logo Area -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sky"
+                android:textColor="@color/sky_cyan"
+                android:textSize="40sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="retro"
+                android:textColor="@color/sky_white"
+                android:textSize="40sp"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="0.02" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="300dp"
+            android:layout_height="2dp"
+            android:background="@color/sky_cyan"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Login Card -->
+        <LinearLayout
+            android:layout_width="400dp"
+            android:layout_height="wrap_content"
+            android:background="@color/sky_mid_blue"
+            android:orientation="vertical"
+            android:padding="0dp"
+            android:elevation="8dp">
+
+            <!-- Header bar -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/sky_yellow"
+                android:text="  XTREAM CODES LOGIN"
+                android:textColor="@color/sky_dark_blue"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="0.05"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SERVER URL"
+                    android:textColor="@color/sky_cyan"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1" />
+
+                <EditText
+                    android:id="@+id/et_server_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_input_field"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="monospace"
+                    android:hint="http://yourserver.com:8080"
+                    android:textColorHint="#88AAAAAA"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:inputType="textUri"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="14dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="USERNAME"
+                    android:textColor="@color/sky_cyan"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/et_username"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@color/sky_input_bg"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="monospace"
+                    android:hint="username"
+                    android:textColorHint="#88AAAAAA"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:inputType="text"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="14dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PASSWORD"
+                    android:textColor="@color/sky_cyan"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/et_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@color/sky_input_bg"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="monospace"
+                    android:hint="password"
+                    android:textColorHint="#88AAAAAA"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:inputType="textPassword"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="20dp" />
+
+                <TextView
+                    android:id="@+id/tv_error"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFF4444"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    android:layout_marginBottom="10dp" />
+
+                <ProgressBar
+                    android:id="@+id/progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_marginBottom="10dp"
+                    android:indeterminateTint="@color/sky_cyan" />
+
+                <TextView
+                    android:id="@+id/tv_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="READY TO CONNECT"
+                    android:textColor="#88AAAAAA"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btn_connect"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:background="@color/sky_yellow"
+                    android:text="CONNECT"
+                    android:textColor="@color/sky_dark_blue"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.12"
+                    android:stateListAnimator="@null" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SKY DIGITAL  •  INTERACTIVE TV"
+            android:textColor="#44FFFFFF"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif-condensed"
+            android:layout_marginTop="24dp"
+            android:letterSpacing="0.15" />
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/sky_dark_blue"
+    android:orientation="vertical">
+
+    <!-- Top bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/sky_header_blue"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:background="@color/sky_dark_blue"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sky"
+                android:textColor="@color/sky_cyan"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="&#9664; BOX OFFICE"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:background="@color/sky_header_blue"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="FAVOURITES"
+            android:textColor="@color/sky_yellow"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:background="@color/sky_tab_selected" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/sky_cyan" />
+
+    <!-- Section header: continue watching (hidden when empty) -->
+    <TextView
+        android:id="@+id/header_continue"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:background="@color/sky_mid_blue"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:text="CONTINUE WATCHING"
+        android:textColor="@color/sky_yellow"
+        android:textSize="11sp"
+        android:fontFamily="sans-serif-condensed"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_continue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/divider_sections"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/sky_cyan"
+        android:visibility="gone" />
+
+    <!-- Section header: saved favourites -->
+    <TextView
+        android:id="@+id/header_favourites"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:background="@color/sky_mid_blue"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:text="MY FAVOURITES"
+        android:textColor="@color/sky_yellow"
+        android:textSize="11sp"
+        android:fontFamily="sans-serif-condensed"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_favourites"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/tv_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="NO FAVOURITES YET&#10;&#10;ADD MOVIES OR SERIES FROM THE&#10;BOX OFFICE SECTION"
+        android:textColor="#668899"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-condensed"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Bottom bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:background="#0D1A2E"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SKY DIGITAL  •  BOX OFFICE  •  LONG PRESS TO MANAGE"
+            android:textColor="#668899"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif-condensed" />
+        <TextView
+            android:id="@+id/tv_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/sky_cyan"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif-condensed" />
+    </LinearLayout>
+
+</LinearLayout>

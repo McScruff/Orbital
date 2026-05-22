@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Background stars -->
+    <path android:fillColor="#88CCFF" android:fillAlpha="0.9"
+          android:pathData="M14,11 L15.8,16.6 L21.7,16.6 L17,20 L18.8,25.6 L14,22.2 L9.2,25.6 L11,20 L6.3,16.6 L12.2,16.6 Z"/>
+    <path android:fillColor="#AADDFF"
+          android:pathData="M92,14 A2,2 0 1,0 96,14 A2,2 0 1,0 92,14 Z"/>
+    <path android:fillColor="#AADDFF" android:fillAlpha="0.7"
+          android:pathData="M97.5,40 A1.5,1.5 0 1,0 100.5,40 A1.5,1.5 0 1,0 97.5,40 Z"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.6"
+          android:pathData="M7,54 A1.5,1.5 0 1,0 10,54 A1.5,1.5 0 1,0 7,54 Z"/>
+    <path android:fillColor="#88CCFF" android:fillAlpha="0.5"
+          android:pathData="M99,71 A1,1 0 1,0 101,71 A1,1 0 1,0 99,71 Z"/>
+
+    <!-- Antenna lines -->
+    <path android:strokeColor="#8AB4E8" android:strokeWidth="3" android:strokeLineCap="round"
+          android:pathData="M40,17 L25,4"/>
+    <path android:strokeColor="#8AB4E8" android:strokeWidth="3" android:strokeLineCap="round"
+          android:pathData="M68,17 L83,4"/>
+    <!-- Antenna tips -->
+    <path android:fillColor="#00CCCC"
+          android:pathData="M21.5,4 A3.5,3.5 0 1,0 28.5,4 A3.5,3.5 0 1,0 21.5,4 Z"/>
+    <path android:fillColor="#00CCCC"
+          android:pathData="M79.5,4 A3.5,3.5 0 1,0 86.5,4 A3.5,3.5 0 1,0 79.5,4 Z"/>
+
+    <!-- TV body -->
+    <path android:fillColor="#1E4A9E"
+          android:pathData="M22,12 L86,12 A5,5 0 0,1 91,17 L91,82 A5,5 0 0,1 86,87 L22,87 A5,5 0 0,1 17,82 L17,17 A5,5 0 0,1 22,12 Z"/>
+
+    <!-- Right control panel -->
+    <path android:fillColor="#163880"
+          android:pathData="M83,20 L88,20 A3,3 0 0,1 91,23 L91,76 A3,3 0 0,1 88,79 L83,79 Z"/>
+
+    <!-- TV screen -->
+    <path android:fillColor="#040C1E"
+          android:pathData="M24,19 L82,19 L82,74 L24,74 Z"/>
+
+    <!-- Signal source: yellow satellite dot -->
+    <path android:fillColor="#FFCC00"
+          android:pathData="M30,28 A5,5 0 1,0 40,28 A5,5 0 1,0 30,28 Z"/>
+    <!-- Signal arcs -->
+    <path android:strokeColor="#FFCC00" android:strokeWidth="2.5" android:fillColor="#00000000"
+          android:strokeLineCap="round" android:fillAlpha="0.85"
+          android:pathData="M25,35 Q35,20 50,32"/>
+    <path android:strokeColor="#FFCC00" android:strokeWidth="1.8" android:fillColor="#00000000"
+          android:strokeLineCap="round" android:fillAlpha="0.45"
+          android:pathData="M21,41 Q35,14 55,29"/>
+
+    <!-- Satellite dish bowl -->
+    <path android:strokeColor="#00CCCC" android:strokeWidth="3.5" android:fillColor="#00000000"
+          android:strokeLineCap="round"
+          android:pathData="M33,67 C30,50 46,38 54,38 C62,38 76,40 79,58"/>
+    <!-- Dish arm -->
+    <path android:strokeColor="#00CCCC" android:strokeWidth="2.5" android:strokeLineCap="round"
+          android:pathData="M54,38 L63,57"/>
+    <!-- Feed horn -->
+    <path android:fillColor="#009999"
+          android:pathData="M60,54 L68,59 L64,67 L56,62 Z"/>
+    <!-- Stand pole -->
+    <path android:strokeColor="#2A5A9E" android:strokeWidth="3" android:strokeLineCap="round"
+          android:pathData="M54,67 L54,73"/>
+
+    <!-- Stars in screen sky -->
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.7"
+          android:pathData="M70,23 A2,2 0 1,0 74,23 A2,2 0 1,0 70,23 Z"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.5"
+          android:pathData="M77.5,32 A1.5,1.5 0 1,0 80.5,32 A1.5,1.5 0 1,0 77.5,32 Z"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.4"
+          android:pathData="M63.5,26 A1.5,1.5 0 1,0 66.5,26 A1.5,1.5 0 1,0 63.5,26 Z"/>
+
+    <!-- Control knobs -->
+    <path android:fillColor="#00CCCC"
+          android:pathData="M84,31 A3,3 0 1,0 90,31 A3,3 0 1,0 84,31 Z"/>
+    <path android:fillColor="#2A6AB0"
+          android:pathData="M84.5,45 A2.5,2.5 0 1,0 89.5,45 A2.5,2.5 0 1,0 84.5,45 Z"/>
+    <path android:fillColor="#2A6AB0"
+          android:pathData="M84.5,57 A2.5,2.5 0 1,0 89.5,57 A2.5,2.5 0 1,0 84.5,57 Z"/>
+
+    <!-- TV stand legs -->
+    <path android:fillColor="#163880"
+          android:pathData="M31,87 L25,101 L40,101 L43,87 Z"/>
+    <path android:fillColor="#163880"
+          android:pathData="M77,87 L83,101 L68,101 L65,87 Z"/>
+    <!-- Leg base bar -->
+    <path android:fillColor="#0F2860"
+          android:pathData="M23,98 L85,98 L85,102 L23,102 Z"/>
+
+    <!-- Top sheen -->
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.05"
+          android:pathData="M22,12 L86,12 A5,5 0 0,1 91,17 L91,40 L17,40 L17,17 A5,5 0 0,1 22,12 Z"/>
+
+</vector>

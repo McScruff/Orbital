@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/sky_dark_blue"
+    android:orientation="vertical">
+
+    <!-- ═══ TOP NAV BAR ═══ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/sky_header_blue"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Sky Logo -->
+        <LinearLayout
+            android:layout_width="110dp"
+            android:layout_height="match_parent"
+            android:background="@color/sky_dark_blue"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sky"
+                android:textColor="@color/sky_cyan"
+                android:textSize="26sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.05" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="retro"
+                android:textColor="@color/sky_white"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="0.1" />
+        </LinearLayout>
+
+        <!-- 2dp separator -->
+        <View
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="#22FFFFFF" />
+
+        <!-- Top Nav Tabs -->
+        <TextView
+            android:id="@+id/tab_tv_guide"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="TV GUIDE"
+            android:textColor="@color/sky_yellow"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:background="@drawable/bg_tab_selected"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusDown="@id/cat_entertainment" />
+
+        <TextView
+            android:id="@+id/tab_box_office"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="BOX OFFICE"
+            android:textColor="@color/sky_white"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.05"
+            android:background="@color/sky_header_blue"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusDown="@id/cat_entertainment" />
+
+        <TextView
+            android:id="@+id/tab_services"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="SERVICES"
+            android:textColor="@color/sky_white"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.05"
+            android:background="@color/sky_header_blue"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusDown="@id/cat_entertainment" />
+
+        <TextView
+            android:id="@+id/tab_interactive"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="INTERACTIVE"
+            android:textColor="@color/sky_white"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.05"
+            android:background="@color/sky_header_blue"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusDown="@id/cat_entertainment" />
+    </LinearLayout>
+
+    <!-- ═══ CYAN SEPARATOR ═══ -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/sky_cyan" />
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <!-- LEFT: Category Menu -->
+        <ScrollView
+            android:layout_width="260dp"
+            android:layout_height="match_parent"
+            android:background="@color/sky_dark_blue"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="4dp">
+
+                <!-- Category heading -->
+                <TextView
+                    android:id="@+id/header_tv_listings"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@color/sky_yellow"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="  1  TV GUIDE LISTINGS"
+                    android:textColor="@color/sky_dark_blue"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:nextFocusUp="@id/tab_tv_guide"
+                    android:nextFocusDown="@id/cat_entertainment"
+                    android:nextFocusRight="@id/rv_channels" />
+
+                <TextView
+                    android:id="@+id/cat_entertainment"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@color/sky_mid_blue"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="  2  ENTERTAINMENT"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/header_tv_listings"
+                    android:nextFocusDown="@id/cat_movies"
+                    android:nextFocusRight="@id/rv_channels" />
+
+                <TextView
+                    android:id="@+id/cat_movies"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@color/sky_dark_blue"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="  3  MOVIES"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/cat_entertainment"
+                    android:nextFocusDown="@id/cat_sports"
+                    android:nextFocusRight="@id/rv_channels" />
+
+                <TextView
+                    android:id="@+id/cat_sports"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@color/sky_mid_blue"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="  4  SPORTS"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/cat_movies"
+                    android:nextFocusDown="@id/cat_news"
+                    android:nextFocusRight="@id/rv_channels" />
+
+                <TextView
+                    android:id="@+id/cat_news"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@color/sky_dark_blue"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="  5  NEWS &amp; DOCUMENTARIES"
+                    android:textColor="@color/sky_white"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/cat_sports"
+                    android:nextFocusDown="@id/cat_children"
+                    android:nextFocusRight="@id/rv_channels" />
+
+                <TextView
+                    android:id="@+id/cat_children"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@color/sky_mid_blue"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="  6  CHILDREN"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/cat_news"
+                    android:nextFocusDown="@id/cat_music"
+                    android:nextFocusRight="@id/rv_channels" />
+
+                <TextView
+                    android:id="@+id/cat_music"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@color/sky_dark_blue"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="  7  MUSIC &amp; SPECIALIST"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/cat_children"
+                    android:nextFocusDown="@id/cat_other"
+                    android:nextFocusRight="@id/rv_channels" />
+
+                <TextView
+                    android:id="@+id/cat_other"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@color/sky_mid_blue"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="  8  OTHER CHANNELS"
+                    android:textColor="@color/sky_white"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/cat_music"
+                    android:nextFocusRight="@id/rv_channels" />
+
+                <!-- Container for original/provider categories (shown instead of Sky categories) -->
+                <LinearLayout
+                    android:id="@+id/original_cat_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
+                <!-- Bottom info panel -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#0D1A2E"
+                    android:orientation="vertical"
+                    android:padding="10dp"
+                    android:layout_marginTop="20dp">
+
+                    <TextView
+                        android:id="@+id/tv_channel_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 CHANNELS"
+                        android:textColor="@color/sky_cyan"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-condensed"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- VERTICAL DIVIDER -->
+        <View
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="@color/sky_cyan" />
+
+        <!-- RIGHT: Channel List -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@color/sky_dark_blue">
+
+            <!-- Category title bar -->
+            <TextView
+                android:id="@+id/tv_current_category"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@color/sky_mid_blue"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:text="ENTERTAINMENT"
+                android:textColor="@color/sky_yellow"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold" />
+
+            <!-- Loading / Error -->
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:indeterminateTint="@color/sky_cyan"
+                android:layout_margin="20dp" />
+
+            <TextView
+                android:id="@+id/tv_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFF4444"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:padding="16dp" />
+
+            <!-- Channel List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_channels"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scrollbars="vertical"
+                android:nextFocusLeft="@id/cat_entertainment"
+                android:nextFocusDown="@id/rv_channels" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ═══ BOTTOM STATUS BAR ═══ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:background="#070F1E"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SKYRETRO  •  SELECT A CHANNEL TO WATCH"
+            android:textColor="#556677"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.05" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_time"
+            android:text="LIVE TV"
+            android:textColor="@color/sky_cyan"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+    </LinearLayout>
+
+</LinearLayout>

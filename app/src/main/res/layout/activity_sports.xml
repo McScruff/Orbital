@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/sky_dark_blue"
+    android:orientation="vertical">
+
+    <!-- Top bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/sky_header_blue"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:background="@color/sky_dark_blue"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sky"
+                android:textColor="@color/sky_cyan"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="&#9664; INTERACTIVE"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:background="@color/sky_header_blue"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/tv_league_name"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="SPORTS"
+            android:textColor="@color/sky_yellow"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:background="@color/sky_tab_selected" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/sky_cyan" />
+
+    <!-- League tabs -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:scrollbars="none"
+        android:background="#0D1A2E">
+
+        <LinearLayout
+            android:id="@+id/league_tab_container"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp" />
+
+    </HorizontalScrollView>
+
+    <!-- Games / Table toggle + date nav -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:background="#071225"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tab_games"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="GAMES"
+            android:textColor="@color/sky_white"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:background="#1E4A9E"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/tab_standings"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="TABLE"
+            android:textColor="@color/sky_white"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:background="#0D1A2E"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <!-- Date navigation (hidden when TABLE tab is active) -->
+        <LinearLayout
+            android:id="@+id/date_nav"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/btn_date_prev"
+                android:layout_width="44dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="&#9664;"
+                android:textColor="@color/sky_white"
+                android:textSize="16sp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/tv_date"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/sky_white"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btn_date_next"
+                android:layout_width="44dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="&#9654;"
+                android:textColor="@color/sky_white"
+                android:textSize="16sp"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/sky_mid_blue" />
+
+    <!-- Standings column headers (shown only in TABLE mode) -->
+    <LinearLayout
+        android:id="@+id/standings_header"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#071225"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone">
+
+        <TextView android:layout_width="32dp" android:layout_height="wrap_content" android:text="#" android:textColor="#555555" android:textSize="11sp" android:fontFamily="sans-serif-condensed" android:gravity="center" />
+        <View android:layout_width="36dp" android:layout_height="1dp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="TEAM" android:textColor="#555555" android:textSize="11sp" android:fontFamily="sans-serif-condensed" />
+        <TextView android:layout_width="30dp" android:layout_height="wrap_content" android:text="P"  android:textColor="#555555" android:textSize="11sp" android:fontFamily="sans-serif-condensed" android:gravity="center" />
+        <TextView android:layout_width="30dp" android:layout_height="wrap_content" android:text="W"  android:textColor="#555555" android:textSize="11sp" android:fontFamily="sans-serif-condensed" android:gravity="center" />
+        <TextView android:layout_width="30dp" android:layout_height="wrap_content" android:text="D"  android:textColor="#555555" android:textSize="11sp" android:fontFamily="sans-serif-condensed" android:gravity="center" />
+        <TextView android:layout_width="30dp" android:layout_height="wrap_content" android:text="L"  android:textColor="#555555" android:textSize="11sp" android:fontFamily="sans-serif-condensed" android:gravity="center" />
+        <TextView android:layout_width="40dp" android:layout_height="wrap_content" android:text="GD" android:textColor="#555555" android:textSize="11sp" android:fontFamily="sans-serif-condensed" android:gravity="center" />
+        <TextView android:layout_width="36dp" android:layout_height="wrap_content" android:text="PTS" android:textColor="#555555" android:textSize="11sp" android:fontFamily="sans-serif-condensed" android:gravity="center" />
+
+    </LinearLayout>
+
+    <!-- Content area -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:descendantFocusability="afterDescendants" />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/sky_cyan"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-condensed"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- Bottom bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:background="#0D1A2E"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SKY DIGITAL  •  SPORTS"
+            android:textColor="#668899"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif-condensed" />
+    </LinearLayout>
+
+</LinearLayout>

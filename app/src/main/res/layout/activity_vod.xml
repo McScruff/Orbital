@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/sky_dark_blue"
+    android:orientation="vertical">
+
+    <!-- Top nav bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/sky_header_blue"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:background="@color/sky_dark_blue"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sky"
+                android:textColor="@color/sky_cyan"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="◀ TV GUIDE"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:background="@color/sky_header_blue"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="BOX OFFICE"
+            android:textColor="@color/sky_yellow"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:background="@color/sky_tab_selected" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/sky_cyan" />
+
+    <!-- Main content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <!-- Left: search + category menu -->
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@color/sky_dark_blue">
+
+            <EditText
+                android:id="@+id/et_search"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:background="#0D2545"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#4488AA"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-condensed"
+                android:hint="  🔍 SEARCH..."
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:singleLine="true" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/cat_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/header_movies"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@color/sky_yellow"
+                    android:gravity="center_vertical"
+                    android:paddingStart="10dp"
+                    android:text="  MOVIES"
+                    android:textColor="@color/sky_dark_blue"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+            </ScrollView>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/sky_cyan" />
+
+        <!-- Right: movie grid -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <TextView
+                android:id="@+id/tv_current_category"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:background="@color/sky_mid_blue"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:text="MOVIES"
+                android:textColor="@color/sky_yellow"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:indeterminateTint="@color/sky_cyan"
+                android:layout_margin="16dp" />
+
+            <TextView
+                android:id="@+id/tv_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFF4444"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-condensed"
+                android:visibility="gone"
+                android:padding="16dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_movies"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipChildren="false"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Bottom bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:background="#0D1A2E"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SKY DIGITAL  •  BOX OFFICE"
+            android:textColor="#668899"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif-condensed" />
+        <TextView
+            android:id="@+id/tv_movie_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 TITLES"
+            android:textColor="@color/sky_cyan"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif-condensed" />
+    </LinearLayout>
+
+</LinearLayout>

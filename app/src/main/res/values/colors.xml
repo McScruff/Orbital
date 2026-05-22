@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sky UK 1990s Palette -->
+    <color name="sky_dark_blue">#0D1B35</color>
+    <color name="sky_mid_blue">#1A3560</color>
+    <color name="sky_header_blue">#1E3D72</color>
+    <color name="sky_tab_selected">#132B55</color>
+    <color name="sky_cyan">#00CCFF</color>
+    <color name="sky_yellow">#FFCC00</color>
+    <color name="sky_white">#FFFFFF</color>
+    <color name="sky_input_bg">#0A1525</color>
+    <color name="sky_red">#FF2222</color>
+    <color name="sky_light_blue">#4488CC</color>
+</resources>

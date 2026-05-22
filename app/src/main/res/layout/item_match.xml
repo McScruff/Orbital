@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:clickable="true"
+    android:focusable="true"
+    android:layout_marginBottom="1dp">
+
+    <!-- Left selection stripe -->
+    <View
+        android:id="@+id/selection_bar"
+        android:layout_width="5dp"
+        android:layout_height="match_parent"
+        android:background="#1A2A3A" />
+
+    <!-- Tick / checkmark -->
+    <TextView
+        android:id="@+id/tv_tick"
+        android:layout_width="32dp"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text=""
+        android:textSize="18sp"
+        android:textColor="#444444"
+        android:fontFamily="sans-serif-condensed"
+        android:textStyle="bold" />
+
+    <!-- Home team -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="4dp">
+
+        <ImageView
+            android:id="@+id/iv_home_logo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:layout_marginEnd="10dp" />
+
+        <TextView
+            android:id="@+id/tv_home_team"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/sky_white"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
+    <!-- Score / kickoff time -->
+    <LinearLayout
+        android:layout_width="100dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tv_score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/sky_yellow"
+            android:textSize="22sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:gravity="center"
+            android:layout_marginTop="2dp" />
+
+    </LinearLayout>
+
+    <!-- Away team -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical|end"
+        android:paddingEnd="4dp">
+
+        <TextView
+            android:id="@+id/tv_away_team"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/sky_white"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:gravity="end"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <ImageView
+            android:id="@+id/iv_away_logo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:layout_marginStart="10dp" />
+
+    </LinearLayout>
+
+    <!-- Right spacer to balance tick area -->
+    <View
+        android:layout_width="37dp"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

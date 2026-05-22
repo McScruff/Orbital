@@ -1,0 +1,85 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.skyretro.iptv'
+    compileSdk 34
+
+    signingConfigs {
+        release {
+            storeFile file('../skyretro-release.jks')
+            storePassword "2QVZ'M0XY=,&AO1\\V*|3E774V7QC.I\$%"
+            keyAlias 'skyretro'
+            keyPassword "2QVZ'M0XY=,&AO1\\V*|3E774V7QC.I\$%"
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.skyretro.iptv"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "0.1"
+
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+
+    // Networking
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+
+    // Image loading
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+
+    // ExoPlayer (Media3) — handles AC3/EAC3 via HDMI passthrough, excellent A/V sync
+    implementation 'androidx.media3:media3-exoplayer:1.3.1'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.3.1'
+    implementation 'androidx.media3:media3-common:1.3.1'
+
+    // MPV player (FFmpeg-backed, all codecs)
+    implementation 'io.github.abdallahmehiz:mpv-android-lib:0.1.12'
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+
+    // ViewModel + LiveData
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
+
+    // SharedPreferences encrypted
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+}

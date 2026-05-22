@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+    <TextView
+        android:id="@+id/tv_pos"
+        android:layout_width="32dp"
+        android:layout_height="wrap_content"
+        android:textColor="#888888"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center" />
+
+    <ImageView
+        android:id="@+id/iv_logo"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:scaleType="fitCenter"
+        android:layout_marginEnd="8dp" />
+
+    <TextView
+        android:id="@+id/tv_team"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@color/sky_white"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-condensed"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/tv_played"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tv_won"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tv_drawn"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tv_lost"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tv_gd"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tv_points"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/sky_yellow"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-condensed"
+        android:textStyle="bold"
+        android:gravity="center" />
+
+</LinearLayout>
