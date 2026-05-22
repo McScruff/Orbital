@@ -22,6 +22,8 @@ import com.skyretro.iptv.utils.ContentCache
 import com.skyretro.iptv.utils.EpgCache
 import com.skyretro.iptv.utils.PlayerType
 import com.skyretro.iptv.utils.PrefsManager
+import com.skyretro.iptv.utils.UpdateChecker
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,6 +46,7 @@ class HomeActivity : AppCompatActivity() {
         setupTabButtons()
         observeViewModel()
         loadData()
+        checkForUpdates()
     }
 
     private fun setupTabButtons() {
@@ -311,6 +314,20 @@ class HomeActivity : AppCompatActivity() {
                 setOnClickListener { viewModel.selectXtreamCategory(category) }
             }
             binding.originalCatContainer?.addView(tv)
+        }
+    }
+
+    private fun checkForUpdates() {
+        lifecycleScope.launch {
+            val update = UpdateChecker.check(this@HomeActivity) ?: return@launch
+            androidx.appcompat.app.AlertDialog.Builder(this@HomeActivity, R.style.Theme_SkyRetro_Dialog)
+                .setTitle("UPDATE AVAILABLE — v${update.versionName}")
+                .setMessage(update.releaseNotes.uppercase().ifEmpty { "A NEW VERSION OF SKYRETRO IS AVAILABLE." })
+                .setPositiveButton("DOWNLOAD & INSTALL") { _, _ ->
+                    UpdateChecker.downloadAndInstall(this@HomeActivity, update.downloadUrl)
+                }
+                .setNegativeButton("LATER", null)
+                .show()
         }
     }
 
