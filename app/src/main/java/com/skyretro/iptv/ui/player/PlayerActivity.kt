@@ -28,6 +28,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import org.xmlpull.v1.XmlPullParser
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -150,6 +151,14 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private val newsHandler = Handler(Looper.getMainLooper())
+    private val newsRunnable = object : Runnable {
+        override fun run() {
+            fetchNewsHeadlines()
+            newsHandler.postDelayed(this, 300_000L)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
@@ -182,6 +191,7 @@ class PlayerActivity : AppCompatActivity() {
         binding.btnAudio.setOnClickListener { showAudioPicker() }
         binding.btnSubs.setOnClickListener { showSubtitlePicker() }
         binding.btnScores.setOnClickListener { toggleTicker() }
+        binding.btnNews.setOnClickListener { toggleNewsTicker() }
         binding.btnOpenIn.setOnClickListener { launchExternalPlayer() }
         binding.root.setOnClickListener {
             showOverlay()
@@ -201,6 +211,8 @@ class PlayerActivity : AppCompatActivity() {
 
         updateScoresButton()
         if (TickerManager.tickerEnabled) startTicker()
+        updateNewsButton()
+        if (TickerManager.newsTickerEnabled) startNewsTicker()
 
         if (!isLive) {
             binding.btnSeekBack.setOnClickListener { seekBy(-SEEK_STEP_MS) }
@@ -604,6 +616,80 @@ class PlayerActivity : AppCompatActivity() {
         if (!TickerManager.tickerEnabled) return
         binding.tvTicker.text = TickerManager.buildTickerText()
         binding.tvTicker.isSelected = true
+    }
+
+    // ── News ticker ───────────────────────────────────────────────────────────
+
+    private fun toggleNewsTicker() {
+        TickerManager.newsTickerEnabled = !TickerManager.newsTickerEnabled
+        updateNewsButton()
+        if (TickerManager.newsTickerEnabled) startNewsTicker() else stopNewsTicker()
+    }
+
+    private fun updateNewsButton() {
+        val on = TickerManager.newsTickerEnabled
+        binding.btnNews.text = if (on) "NEWS ON" else "NEWS"
+        binding.btnNews.setBackgroundResource(
+            if (on) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
+        )
+    }
+
+    private fun startNewsTicker() {
+        binding.tvNewsTicker.visibility = View.VISIBLE
+        binding.tvNewsTicker.isSelected = true
+        newsHandler.removeCallbacks(newsRunnable)
+        newsHandler.post(newsRunnable)
+    }
+
+    private fun stopNewsTicker() {
+        newsHandler.removeCallbacks(newsRunnable)
+        binding.tvNewsTicker.visibility = View.GONE
+    }
+
+    private fun fetchNewsHeadlines() {
+        lifecycleScope.launch {
+            try {
+                val xml = withContext(Dispatchers.IO) {
+                    tickerHttp.newCall(
+                        Request.Builder()
+                            .url("https://feeds.bbci.co.uk/sport/rss.xml")
+                            .header("User-Agent", "Mozilla/5.0")
+                            .build()
+                    ).execute().use { it.body?.string() ?: "" }
+                }
+                val titles = parseRssTitles(xml)
+                if (titles.isNotEmpty()) {
+                    TickerManager.newsHeadlines = titles
+                    updateNewsTickerText()
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun parseRssTitles(xml: String): List<String> {
+        val titles = mutableListOf<String>()
+        try {
+            val parser = android.util.Xml.newPullParser()
+            parser.setInput(xml.reader())
+            var inItem = false
+            var event = parser.eventType
+            while (event != XmlPullParser.END_DOCUMENT && titles.size < 12) {
+                when {
+                    event == XmlPullParser.START_TAG && parser.name == "item" -> inItem = true
+                    event == XmlPullParser.END_TAG   && parser.name == "item" -> inItem = false
+                    inItem && event == XmlPullParser.START_TAG && parser.name == "title" ->
+                        titles.add(parser.nextText().trim())
+                }
+                event = parser.next()
+            }
+        } catch (_: Exception) {}
+        return titles
+    }
+
+    private fun updateNewsTickerText() {
+        if (!TickerManager.newsTickerEnabled) return
+        binding.tvNewsTicker.text = TickerManager.buildNewsText()
+        binding.tvNewsTicker.isSelected = true
     }
 
     // ── MPV player (VOD) ─────────────────────────────────────────────────────
@@ -1010,6 +1096,7 @@ class PlayerActivity : AppCompatActivity() {
         positionHandler.removeCallbacks(positionRunnable)
         seekHandler.removeCallbacksAndMessages(null)
         tickerHandler.removeCallbacksAndMessages(null)
+        newsHandler.removeCallbacksAndMessages(null)
         mpvHandler.removeCallbacksAndMessages(null)
         if (mpvReady) {
             binding.mpvView.release()

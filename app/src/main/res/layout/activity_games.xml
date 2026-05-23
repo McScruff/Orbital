@@ -158,6 +158,78 @@
 
             </LinearLayout>
 
+            <!-- Sky Sports News Ticker tile -->
+            <LinearLayout
+                android:id="@+id/tile_news_ticker"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:orientation="horizontal"
+                android:background="@color/sky_mid_blue"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="#00112A"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="&#128240;"
+                        android:textSize="28sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SPORTS NEWS TICKER"
+                        android:textColor="@color/sky_yellow"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-condensed"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_news_ticker_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Show latest sports headlines while watching"
+                        android:textColor="@color/sky_white"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-condensed"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/btn_news_ticker_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OFF"
+                    android:textColor="@color/sky_dark_blue"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:background="@color/sky_yellow"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+
+            </LinearLayout>
+
             <!-- Beehive Bedlam tile -->
             <LinearLayout
                 android:id="@+id/tile_beehive"

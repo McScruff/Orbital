@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.skyretro.iptv.databinding.ActivityGamesBinding
 import com.skyretro.iptv.ui.sports.SportsActivity
+import com.skyretro.iptv.utils.TickerManager
 
 class GamesActivity : AppCompatActivity() {
 
@@ -34,5 +35,29 @@ class GamesActivity : AppCompatActivity() {
         binding.tileBeehive.setOnFocusChangeListener { _, hasFocus ->
             binding.tileBeehive.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1A3560.toInt())
         }
+
+        updateNewsTickerTile()
+        binding.tileNewsTicker.setOnClickListener {
+            TickerManager.newsTickerEnabled = !TickerManager.newsTickerEnabled
+            updateNewsTickerTile()
+        }
+        binding.tileNewsTicker.setOnFocusChangeListener { _, hasFocus ->
+            binding.tileNewsTicker.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1A3560.toInt())
+        }
+    }
+
+    private fun updateNewsTickerTile() {
+        val on = TickerManager.newsTickerEnabled
+        binding.btnNewsTickerToggle.text = if (on) "ON" else "OFF"
+        binding.btnNewsTickerToggle.setBackgroundColor(
+            if (on) 0xFF00AA44.toInt() else 0xFFFFCC00.toInt()
+        )
+        binding.btnNewsTickerToggle.setTextColor(
+            if (on) 0xFFFFFFFF.toInt() else 0xFF000080.toInt()
+        )
+        binding.tvNewsTickerStatus.text = if (on)
+            "Active — headlines scrolling during playback"
+        else
+            "Show latest sports headlines while watching"
     }
 }

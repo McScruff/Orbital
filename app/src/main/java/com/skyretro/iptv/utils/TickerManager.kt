@@ -26,6 +26,9 @@ object TickerManager {
     var tickerEnabled = false
     var liveScores: List<LiveScore> = emptyList()
 
+    var newsTickerEnabled = false
+    var newsHeadlines: List<String> = emptyList()
+
     private const val PREF = "ticker_prefs"
     private const val KEY_GAMES = "selected_games"
 
@@ -62,6 +65,11 @@ object TickerManager {
         }
         context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
             .edit().putString(KEY_GAMES, arr.toString()).apply()
+    }
+
+    fun buildNewsText(): String {
+        if (newsHeadlines.isEmpty()) return "  LOADING SPORTS NEWS...  "
+        return "  " + newsHeadlines.joinToString("    ●    ") + "  "
     }
 
     fun buildTickerText(): String {
