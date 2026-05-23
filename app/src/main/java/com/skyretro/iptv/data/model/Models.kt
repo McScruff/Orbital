@@ -8,6 +8,16 @@ data class XtreamCredentials(
     val password: String
 )
 
+data class ServerProfile(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val name: String,
+    val serverUrl: String,
+    val username: String,
+    val password: String
+) {
+    fun toCredentials() = XtreamCredentials(serverUrl, username, password)
+}
+
 data class ServerInfo(
     @SerializedName("user_info") val userInfo: UserInfo?,
     @SerializedName("server_info") val serverInfo: ServerDetails?

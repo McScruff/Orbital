@@ -78,4 +78,22 @@ object ApiClient {
         val base = if (serverUrl.endsWith("/")) serverUrl else "$serverUrl/"
         return "${base}series/$username/$password/$episodeId.$ext"
     }
+
+    fun buildCatchupUrl(
+        serverUrl: String, username: String, password: String,
+        streamId: Int, startTimestamp: Long, durationMinutes: Int
+    ): String {
+        val base = if (serverUrl.endsWith("/")) serverUrl else "$serverUrl/"
+        val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+            timeInMillis = startTimestamp * 1000
+        }
+        val date = "%04d-%02d-%02d".format(
+            cal.get(java.util.Calendar.YEAR),
+            cal.get(java.util.Calendar.MONTH) + 1,
+            cal.get(java.util.Calendar.DAY_OF_MONTH)
+        )
+        val hh = cal.get(java.util.Calendar.HOUR_OF_DAY)
+        val mm = cal.get(java.util.Calendar.MINUTE)
+        return "${base}timeshift/$username/$password/$durationMinutes/$date:$hh-$mm/$streamId.ts"
+    }
 }

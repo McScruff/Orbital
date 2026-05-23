@@ -647,22 +647,28 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun fetchNewsHeadlines() {
+        val selectedSports = TickerManager.getSelectedSports(this)
+        if (selectedSports.isEmpty()) return
         lifecycleScope.launch {
-            try {
-                val xml = withContext(Dispatchers.IO) {
-                    tickerHttp.newCall(
-                        Request.Builder()
-                            .url("https://feeds.bbci.co.uk/sport/rss.xml")
-                            .header("User-Agent", "Mozilla/5.0")
-                            .build()
-                    ).execute().use { it.body?.string() ?: "" }
-                }
-                val titles = parseRssTitles(xml)
-                if (titles.isNotEmpty()) {
-                    TickerManager.newsHeadlines = titles
-                    updateNewsTickerText()
-                }
-            } catch (_: Exception) {}
+            val results = LinkedHashMap<String, List<String>>()
+            selectedSports.forEach { feed ->
+                try {
+                    val xml = withContext(Dispatchers.IO) {
+                        tickerHttp.newCall(
+                            Request.Builder()
+                                .url(feed.rssUrl)
+                                .header("User-Agent", "Mozilla/5.0")
+                                .build()
+                        ).execute().use { it.body?.string() ?: "" }
+                    }
+                    val titles = parseRssTitles(xml)
+                    if (titles.isNotEmpty()) results[feed.id] = titles
+                } catch (_: Exception) {}
+            }
+            if (results.isNotEmpty()) {
+                TickerManager.sportHeadlines = results
+                updateNewsTickerText()
+            }
         }
     }
 

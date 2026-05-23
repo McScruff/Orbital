@@ -124,4 +124,20 @@ class XtreamRepository {
     fun buildSeriesEpisodeUrl(serverUrl: String, username: String, password: String, episodeId: String, ext: String): String {
         return ApiClient.buildSeriesEpisodeUrl(serverUrl, username, password, episodeId, ext)
     }
+
+    suspend fun getCatchupEpg(serverUrl: String, username: String, password: String, streamId: Int): Result<EpgResponse> {
+        return try {
+            // get_simple_data_table returns multi-day EPG history with real show titles
+            Result.success(ApiClient.getService(serverUrl).getSimpleDataTable(username, password, streamId = streamId))
+        } catch (e: Exception) {
+            // fall back to short EPG if the endpoint isn't supported
+            try {
+                Result.success(ApiClient.getService(serverUrl).getShortEpgWithLimit(username, password, streamId = streamId, limit = 300))
+            } catch (e2: Exception) { Result.failure(e2) }
+        }
+    }
+
+    fun buildCatchupUrl(serverUrl: String, username: String, password: String, streamId: Int, startTimestamp: Long, durationMinutes: Int): String {
+        return ApiClient.buildCatchupUrl(serverUrl, username, password, streamId, startTimestamp, durationMinutes)
+    }
 }

@@ -38,7 +38,7 @@ class HomeViewModel : ViewModel() {
     private var allCategories: List<LiveCategory> = emptyList()
     private var credentials: Triple<String, String, String>? = null
 
-    fun loadData(serverUrl: String, username: String, password: String, useOriginal: Boolean = false) {
+    fun loadData(serverUrl: String, username: String, password: String, useOriginal: Boolean = false, customMapping: Map<String, SkyCategory> = emptyMap()) {
         credentials = Triple(serverUrl, username, password)
         _uiState.value = _uiState.value?.copy(isLoading = true, error = null, useOriginalCategories = useOriginal)
 
@@ -54,7 +54,7 @@ class HomeViewModel : ViewModel() {
                     streamsResult.fold(
                         onSuccess = { streams ->
                             allStreams = streams
-                            val skyGroups = buildSkyCategoryGroups(categories)
+                            val skyGroups = buildSkyCategoryGroups(categories, customMapping)
                             _uiState.value = _uiState.value?.copy(
                                 isLoading = false,
                                 skyCategories = skyGroups,
@@ -85,12 +85,12 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    private fun buildSkyCategoryGroups(categories: List<LiveCategory>): List<SkyCategoryGroup> {
+    private fun buildSkyCategoryGroups(categories: List<LiveCategory>, customMapping: Map<String, SkyCategory> = emptyMap()): List<SkyCategoryGroup> {
         val skyCatMap = mutableMapOf<SkyCategory, MutableList<String>>()
         SkyCategory.values().forEach { skyCatMap[it] = mutableListOf() }
 
         categories.forEach { cat ->
-            val skyCategory = mapCategoryToSky(cat.categoryName)
+            val skyCategory = customMapping[cat.categoryId] ?: mapCategoryToSky(cat.categoryName)
             skyCatMap[skyCategory]?.add(cat.categoryId)
         }
 

@@ -47,18 +47,13 @@ class VodAdapter(
             b.root.setOnClickListener { onClick(movie) }
             b.root.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    b.root.scaleX = 1.07f
-                    b.root.scaleY = 1.07f
-                    b.root.elevation = 8f
+                    b.root.scaleX = 1.07f; b.root.scaleY = 1.07f; b.root.elevation = 8f
                     b.tvTitle.setTextColor(0xFF00CCFF.toInt())
                     val bg = android.graphics.drawable.GradientDrawable()
-                    bg.setColor(0xFF0D1B35.toInt())
-                    bg.setStroke(4, 0xFF00CCFF.toInt())
+                    bg.setColor(0xFF0D1B35.toInt()); bg.setStroke(4, 0xFF00CCFF.toInt())
                     b.root.background = bg
                 } else {
-                    b.root.scaleX = 1.0f
-                    b.root.scaleY = 1.0f
-                    b.root.elevation = 0f
+                    b.root.scaleX = 1.0f; b.root.scaleY = 1.0f; b.root.elevation = 0f
                     b.tvTitle.setTextColor(0xFFFFFFFF.toInt())
                     b.root.setBackgroundColor(0xFF0D1B35.toInt())
                 }
@@ -66,9 +61,8 @@ class VodAdapter(
 
             job?.cancel()
             val iconUrl = movie.streamIcon?.takeIf { it.isNotEmpty() } ?: return
-            val id = movie.streamId
             job = scope.launch {
-                val bmp = PosterCache.getBitmap(context, id, iconUrl, sampleSize = 2)
+                val bmp = PosterCache.getBitmap(context, movie.streamId, iconUrl, sampleSize = 2)
                 if (bmp != null && isActive) {
                     b.ivPoster.setImageBitmap(bmp)
                     b.ivPoster.setBackgroundColor(Color.TRANSPARENT)

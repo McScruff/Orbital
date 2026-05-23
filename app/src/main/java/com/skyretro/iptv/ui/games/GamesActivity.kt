@@ -29,6 +29,13 @@ class GamesActivity : AppCompatActivity() {
             binding.tileSports.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1A3560.toInt())
         }
 
+        binding.tileTeletext.setOnClickListener {
+            startActivity(Intent(this, TeletextActivity::class.java))
+        }
+        binding.tileTeletext.setOnFocusChangeListener { _, hasFocus ->
+            binding.tileTeletext.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1A3560.toInt())
+        }
+
         binding.tileBeehive.setOnClickListener {
             startActivity(Intent(this, BeehiveBedlamActivity::class.java))
         }
@@ -37,7 +44,8 @@ class GamesActivity : AppCompatActivity() {
         }
 
         updateNewsTickerTile()
-        binding.tileNewsTicker.setOnClickListener {
+        binding.tileNewsTicker.setOnClickListener { showSportPicker() }
+        binding.btnNewsTickerToggle.setOnClickListener {
             TickerManager.newsTickerEnabled = !TickerManager.newsTickerEnabled
             updateNewsTickerTile()
         }
@@ -46,8 +54,33 @@ class GamesActivity : AppCompatActivity() {
         }
     }
 
+    private fun showSportPicker() {
+        val feeds = TickerManager.SPORT_FEEDS
+        val selectedIds = TickerManager.getSelectedSportIds(this).toMutableSet()
+        val checked = feeds.map { it.id in selectedIds }.toBooleanArray()
+        val labels = feeds.map { "${it.emoji} ${it.name}" }.toTypedArray()
+
+        androidx.appcompat.app.AlertDialog.Builder(this, com.skyretro.iptv.R.style.Theme_SkyRetro_Dialog)
+            .setTitle("SELECT SPORTS FOR NEWS TICKER")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                if (isChecked) selectedIds.add(feeds[which].id)
+                else selectedIds.remove(feeds[which].id)
+            }
+            .setPositiveButton("DONE") { _, _ ->
+                TickerManager.setSelectedSportIds(this, selectedIds)
+                if (selectedIds.isNotEmpty()) TickerManager.newsTickerEnabled = true
+                TickerManager.sportHeadlines.clear()
+                updateNewsTickerTile()
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
     private fun updateNewsTickerTile() {
         val on = TickerManager.newsTickerEnabled
+        val count = TickerManager.getSelectedSportIds(this).size
+        val selectedFeeds = TickerManager.getSelectedSports(this)
+
         binding.btnNewsTickerToggle.text = if (on) "ON" else "OFF"
         binding.btnNewsTickerToggle.setBackgroundColor(
             if (on) 0xFF00AA44.toInt() else 0xFFFFCC00.toInt()
@@ -55,9 +88,11 @@ class GamesActivity : AppCompatActivity() {
         binding.btnNewsTickerToggle.setTextColor(
             if (on) 0xFFFFFFFF.toInt() else 0xFF000080.toInt()
         )
-        binding.tvNewsTickerStatus.text = if (on)
-            "Active — headlines scrolling during playback"
-        else
-            "Show latest sports headlines while watching"
+
+        binding.tvNewsTickerStatus.text = when {
+            count == 0  -> "No sports selected — tap to choose"
+            !on         -> "${selectedFeeds.joinToString(", ") { it.emoji + " " + it.name }} — ticker OFF"
+            else        -> "${selectedFeeds.joinToString(", ") { it.emoji + " " + it.name }} — scrolling during playback"
+        }
     }
 }

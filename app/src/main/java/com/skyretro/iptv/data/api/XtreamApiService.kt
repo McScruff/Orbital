@@ -53,6 +53,23 @@ interface XtreamApiService {
     ): EpgResponse
 
     @GET("player_api.php")
+    suspend fun getShortEpgWithLimit(
+        @Query("username") username: String,
+        @Query("password") password: String,
+        @Query("action") action: String = "get_short_epg",
+        @Query("stream_id") streamId: Int,
+        @Query("limit") limit: Int
+    ): EpgResponse
+
+    @GET("player_api.php")
+    suspend fun getSimpleDataTable(
+        @Query("username") username: String,
+        @Query("password") password: String,
+        @Query("action") action: String = "get_simple_data_table",
+        @Query("stream_id") streamId: Int
+    ): EpgResponse
+
+    @GET("player_api.php")
     suspend fun getVodCategories(
         @Query("username") username: String,
         @Query("password") password: String,

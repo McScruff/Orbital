@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical">
+
+    <!-- Teletext header row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#000088"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <TextView
+            android:id="@+id/tv_page_num"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:text="P300"
+            android:textColor="#FFFF00"
+            android:textSize="18sp"
+            android:typeface="monospace"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="SPORTS TELETEXT"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:typeface="monospace"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_datetime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textColor="#00FFFF"
+            android:textSize="13sp"
+            android:typeface="monospace" />
+    </LinearLayout>
+
+    <!-- Cyan accent line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#00FFFF" />
+
+    <!-- Page title bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:background="#CC0000"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <TextView
+            android:id="@+id/tv_page_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SPORTS NEWS INDEX"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:typeface="monospace"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="LOADING..."
+            android:textColor="#FFFF00"
+            android:textSize="11sp"
+            android:typeface="monospace"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Content area -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#000000"
+        android:scrollbars="none">
+
+        <TextView
+            android:id="@+id/tv_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:typeface="monospace"
+            android:lineSpacingExtra="4dp" />
+
+    </ScrollView>
+
+    <!-- Navigation bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#000044"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btn_prev"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="&#9668; PREV"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:typeface="monospace"
+            android:background="#000088"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#333366" />
+
+        <TextView
+            android:id="@+id/btn_next"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="NEXT &#9658;"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:typeface="monospace"
+            android:background="#000088"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#333366" />
+
+        <TextView
+            android:id="@+id/btn_close"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="&#10005; CLOSE"
+            android:textColor="#FFFF00"
+            android:textSize="13sp"
+            android:typeface="monospace"
+            android:background="#003300"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Classic teletext color buttons row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="34dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btn_red"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="&#9917; FOOTBALL"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:typeface="monospace"
+            android:background="#CC0000"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btn_green"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="CRICKET"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:typeface="monospace"
+            android:background="#006600"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btn_yellow"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="&#9971; GOLF"
+            android:textColor="#000000"
+            android:textSize="11sp"
+            android:typeface="monospace"
+            android:background="#CCCC00"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btn_blue"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="FORMULA 1"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:typeface="monospace"
+            android:background="#000099"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+</LinearLayout>

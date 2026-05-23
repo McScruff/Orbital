@@ -2,84 +2,144 @@ package com.skyretro.iptv.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.skyretro.iptv.data.model.ServerProfile
 import com.skyretro.iptv.data.model.XtreamCredentials
 
 enum class PlayerType { EXOPLAYER, EXTERNAL }
 
 object PrefsManager {
     private const val PREFS_NAME = "sky_retro_prefs"
-    private const val KEY_SERVER_URL = "server_url"
-    private const val KEY_USERNAME = "username"
-    private const val KEY_PASSWORD = "password"
-    private const val KEY_SAVED_SERVERS = "saved_servers"
-    private const val KEY_USE_ORIGINAL_CATEGORIES = "use_original_categories"
-    private const val KEY_PLAYER_TYPE = "player_type"
 
-    private fun getPrefs(context: Context): SharedPreferences {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // Legacy single-server keys (kept for migration)
+    private const val KEY_SERVER_URL = "server_url"
+    private const val KEY_USERNAME   = "username"
+    private const val KEY_PASSWORD   = "password"
+
+    // Multi-server keys
+    private const val KEY_PROFILES          = "server_profiles"
+    private const val KEY_ACTIVE_PROFILE_ID = "active_profile_id"
+
+    // Settings
+    private const val KEY_USE_ORIGINAL_CATEGORIES = "use_original_categories"
+    private const val KEY_PLAYER_TYPE             = "player_type"
+    private const val KEY_TMDB_API_KEY            = "tmdb_api_key"
+
+    private fun prefs(context: Context): SharedPreferences =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    // ── Profiles ─────────────────────────────────────────────────────────────
+
+    fun getProfiles(context: Context): List<ServerProfile> {
+        val json = prefs(context).getString(KEY_PROFILES, null)
+        if (json != null) {
+            return try {
+                Gson().fromJson(json, object : TypeToken<List<ServerProfile>>() {}.type)
+            } catch (_: Exception) { emptyList() }
+        }
+        // Migrate old single-server data on first run
+        return migrateLegacy(context)
     }
+
+    private fun migrateLegacy(context: Context): List<ServerProfile> {
+        val p = prefs(context)
+        val url  = p.getString(KEY_SERVER_URL, null) ?: return emptyList()
+        val user = p.getString(KEY_USERNAME,   null) ?: return emptyList()
+        val pass = p.getString(KEY_PASSWORD,   null) ?: return emptyList()
+        val profile = ServerProfile(name = "Server 1", serverUrl = url, username = user, password = pass)
+        saveProfileList(context, listOf(profile))
+        p.edit().putString(KEY_ACTIVE_PROFILE_ID, profile.id).apply()
+        return listOf(profile)
+    }
+
+    private fun saveProfileList(context: Context, profiles: List<ServerProfile>) {
+        prefs(context).edit().putString(KEY_PROFILES, Gson().toJson(profiles)).apply()
+    }
+
+    fun saveProfile(context: Context, profile: ServerProfile) {
+        val list = getProfiles(context).toMutableList()
+        val idx = list.indexOfFirst { it.id == profile.id }
+        if (idx >= 0) list[idx] = profile else list.add(profile)
+        saveProfileList(context, list)
+    }
+
+    fun deleteProfile(context: Context, id: String) {
+        saveProfileList(context, getProfiles(context).filter { it.id != id })
+    }
+
+    fun getActiveProfileId(context: Context): String? =
+        prefs(context).getString(KEY_ACTIVE_PROFILE_ID, null)
+
+    fun setActiveProfile(context: Context, id: String) {
+        val profile = getProfiles(context).find { it.id == id } ?: return
+        prefs(context).edit()
+            .putString(KEY_ACTIVE_PROFILE_ID, id)
+            // Keep legacy keys in sync so old code paths still work
+            .putString(KEY_SERVER_URL, profile.serverUrl)
+            .putString(KEY_USERNAME,   profile.username)
+            .putString(KEY_PASSWORD,   profile.password)
+            .apply()
+    }
+
+    fun getActiveProfile(context: Context): ServerProfile? {
+        val profiles = getProfiles(context)
+        if (profiles.isEmpty()) return null
+        val activeId = getActiveProfileId(context)
+        return (profiles.find { it.id == activeId } ?: profiles.first()).also {
+            if (it.id != activeId) setActiveProfile(context, it.id)
+        }
+    }
+
+    // ── Legacy shim ───────────────────────────────────────────────────────────
+
+    fun getCredentials(context: Context): XtreamCredentials? =
+        getActiveProfile(context)?.toCredentials()
 
     fun saveCredentials(context: Context, credentials: XtreamCredentials) {
-        getPrefs(context).edit().apply {
-            putString(KEY_SERVER_URL, credentials.serverUrl)
-            putString(KEY_USERNAME, credentials.username)
-            putString(KEY_PASSWORD, credentials.password)
-            apply()
-        }
-        addSavedServer(context, credentials)
+        // Called only from old paths; new path uses saveProfile directly
+        prefs(context).edit()
+            .putString(KEY_SERVER_URL, credentials.serverUrl)
+            .putString(KEY_USERNAME,   credentials.username)
+            .putString(KEY_PASSWORD,   credentials.password)
+            .apply()
     }
 
-    private fun addSavedServer(context: Context, credentials: XtreamCredentials) {
-        val servers = getSavedServers(context).toMutableList()
-        if (servers.none { it.serverUrl == credentials.serverUrl && it.username == credentials.username }) {
-            servers.add(credentials)
-            saveServerList(context, servers)
-        }
-    }
+    fun hasCredentials(context: Context): Boolean = getActiveProfile(context) != null
 
-    private fun saveServerList(context: Context, servers: List<XtreamCredentials>) {
-        val json = com.google.gson.Gson().toJson(servers)
-        getPrefs(context).edit().putString(KEY_SAVED_SERVERS, json).apply()
-    }
-
-    fun getSavedServers(context: Context): List<XtreamCredentials> {
-        val json = getPrefs(context).getString(KEY_SAVED_SERVERS, null) ?: return emptyList()
-        val type = object : com.google.gson.reflect.TypeToken<List<XtreamCredentials>>() {}.type
-        return try {
-            com.google.gson.Gson().fromJson(json, type)
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    fun getCredentials(context: Context): XtreamCredentials? {
-        val prefs = getPrefs(context)
-        val url = prefs.getString(KEY_SERVER_URL, null) ?: return null
-        val user = prefs.getString(KEY_USERNAME, null) ?: return null
-        val pass = prefs.getString(KEY_PASSWORD, null) ?: return null
-        return XtreamCredentials(url, user, pass)
-    }
+    // ── Settings ──────────────────────────────────────────────────────────────
 
     fun setUseOriginalCategories(context: Context, useOriginal: Boolean) {
-        getPrefs(context).edit().putBoolean(KEY_USE_ORIGINAL_CATEGORIES, useOriginal).apply()
+        prefs(context).edit().putBoolean(KEY_USE_ORIGINAL_CATEGORIES, useOriginal).apply()
     }
 
-    fun useOriginalCategories(context: Context): Boolean {
-        return getPrefs(context).getBoolean(KEY_USE_ORIGINAL_CATEGORIES, false)
-    }
+    fun useOriginalCategories(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_USE_ORIGINAL_CATEGORIES, false)
 
     fun setPlayerType(context: Context, type: PlayerType) {
-        getPrefs(context).edit().putString(KEY_PLAYER_TYPE, type.name).apply()
+        prefs(context).edit().putString(KEY_PLAYER_TYPE, type.name).apply()
     }
 
     fun getPlayerType(context: Context): PlayerType {
-        val name = getPrefs(context).getString(KEY_PLAYER_TYPE, PlayerType.EXOPLAYER.name)
-        return try { PlayerType.valueOf(name!!) } catch (e: Exception) { PlayerType.EXOPLAYER }
+        val name = prefs(context).getString(KEY_PLAYER_TYPE, PlayerType.EXOPLAYER.name)
+        return try { PlayerType.valueOf(name!!) } catch (_: Exception) { PlayerType.EXOPLAYER }
     }
 
     fun clearCredentials(context: Context) {
-        getPrefs(context).edit().clear().apply()
+        prefs(context).edit().clear().apply()
     }
 
-    fun hasCredentials(context: Context): Boolean = getCredentials(context) != null
+    fun setTmdbApiKey(context: Context, key: String) {
+        prefs(context).edit().putString(KEY_TMDB_API_KEY, key.trim()).apply()
+    }
+
+    fun getTmdbApiKey(context: Context): String? =
+        prefs(context).getString(KEY_TMDB_API_KEY, null)?.takeIf { it.isNotBlank() }
+
+    fun getTheme(context: Context): String =
+        prefs(context).getString("app_theme", "CLASSIC") ?: "CLASSIC"
+
+    fun setTheme(context: Context, themeName: String) {
+        prefs(context).edit().putString("app_theme", themeName).apply()
+    }
 }

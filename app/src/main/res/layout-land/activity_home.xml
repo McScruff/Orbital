@@ -7,6 +7,7 @@
 
     <!-- ═══ TOP NAV BAR ═══ -->
     <LinearLayout
+        android:id="@+id/layout_nav_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:background="@color/sky_header_blue"
@@ -63,12 +64,12 @@
             android:nextFocusDown="@id/cat_entertainment" />
 
         <TextView
-            android:id="@+id/tab_services"
+            android:id="@+id/tab_radio"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="SERVICES"
+            android:text="RADIO"
             android:textColor="@color/sky_white"
             android:textSize="11sp"
             android:fontFamily="sans-serif-condensed"
@@ -91,9 +92,25 @@
             android:focusable="true"
             android:clickable="true"
             android:nextFocusDown="@id/cat_entertainment" />
+
+        <TextView
+            android:id="@+id/tab_services"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="SETTINGS"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:background="@color/sky_header_blue"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusDown="@id/cat_entertainment" />
     </LinearLayout>
 
     <View
+        android:id="@+id/view_top_accent"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/sky_cyan" />
@@ -264,6 +281,7 @@
         </ScrollView>
 
         <View
+            android:id="@+id/view_vertical_divider"
             android:layout_width="1dp"
             android:layout_height="match_parent"
             android:background="@color/sky_cyan" />
@@ -295,6 +313,17 @@
                 android:layout_gravity="center"
                 android:visibility="gone"
                 android:layout_margin="10dp" />
+
+            <TextView
+                android:id="@+id/tv_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFF4444"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:padding="12dp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_channels"

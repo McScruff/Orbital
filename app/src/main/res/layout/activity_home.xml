@@ -7,6 +7,7 @@
 
     <!-- ═══ TOP NAV BAR ═══ -->
     <LinearLayout
+        android:id="@+id/layout_nav_bar"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="@color/sky_header_blue"
@@ -82,12 +83,12 @@
             android:nextFocusDown="@id/cat_entertainment" />
 
         <TextView
-            android:id="@+id/tab_services"
+            android:id="@+id/tab_radio"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="SERVICES"
+            android:text="RADIO"
             android:textColor="@color/sky_white"
             android:textSize="12sp"
             android:fontFamily="sans-serif-condensed"
@@ -112,10 +113,27 @@
             android:focusable="true"
             android:clickable="true"
             android:nextFocusDown="@id/cat_entertainment" />
+
+        <TextView
+            android:id="@+id/tab_services"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="SETTINGS"
+            android:textColor="@color/sky_white"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.05"
+            android:background="@color/sky_header_blue"
+            android:focusable="true"
+            android:clickable="true"
+            android:nextFocusDown="@id/cat_entertainment" />
     </LinearLayout>
 
     <!-- ═══ CYAN SEPARATOR ═══ -->
     <View
+        android:id="@+id/view_top_accent"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/sky_cyan" />
@@ -309,6 +327,7 @@
 
         <!-- VERTICAL DIVIDER -->
         <View
+            android:id="@+id/view_vertical_divider"
             android:layout_width="2dp"
             android:layout_height="match_parent"
             android:background="@color/sky_cyan" />

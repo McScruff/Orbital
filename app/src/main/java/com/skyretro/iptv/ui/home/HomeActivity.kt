@@ -3,12 +3,14 @@ package com.skyretro.iptv.ui.home
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.skyretro.iptv.R
 import com.skyretro.iptv.data.model.LiveCategory
 import com.skyretro.iptv.data.model.LiveStream
+import com.skyretro.iptv.data.model.ServerProfile
 import com.skyretro.iptv.data.model.SkyCategory
 import com.skyretro.iptv.databinding.ActivityHomeBinding
 import com.skyretro.iptv.ui.login.LoginActivity
@@ -18,10 +20,13 @@ import com.skyretro.iptv.ui.games.GamesActivity
 import com.skyretro.iptv.ui.series.SeriesActivity
 import com.skyretro.iptv.ui.favourites.FavouritesActivity
 import com.skyretro.iptv.ui.vod.VodActivity
+import com.skyretro.iptv.ui.settings.CategoryEditorActivity
+import com.skyretro.iptv.utils.CategoryPrefs
 import com.skyretro.iptv.utils.ContentCache
 import com.skyretro.iptv.utils.EpgCache
 import com.skyretro.iptv.utils.PlayerType
 import com.skyretro.iptv.utils.PrefsManager
+import com.skyretro.iptv.utils.ThemeManager
 import com.skyretro.iptv.utils.UpdateChecker
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
@@ -34,89 +39,209 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var viewModel: HomeViewModel
     private lateinit var channelAdapter: ChannelAdapter
 
+    private val categoryEditorLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            refreshCategoryLabels()
+            loadData()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        ThemeManager.load(this)
         viewModel = ViewModelProvider(this)[HomeViewModel::class.java]
         setupRecyclerView()
         setupCategoryButtons()
         setupTabButtons()
+        applyTheme()
+        refreshCategoryLabels()
         observeViewModel()
         loadData()
         checkForUpdates()
     }
 
     private fun setupTabButtons() {
-        binding.tabServices?.setOnClickListener { showServicesMenu() }
+        binding.tabServices?.setOnClickListener { showSettingsMenu() }
         binding.tabBoxOffice?.setOnClickListener { showBoxOfficeMenu() }
         binding.tabInteractive?.setOnClickListener { startActivity(Intent(this, GamesActivity::class.java)) }
+        binding.tabRadio?.setOnClickListener { startActivity(Intent(this, com.skyretro.iptv.ui.radio.RadioActivity::class.java)) }
 
-        val focusBlue = 0xFF2D6090.toInt()
-        // TV GUIDE stays on sky_tab_selected when not focused; others stay on sky_header_blue
+        val p = ThemeManager.palette()
         binding.tabTvGuide?.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) binding.tabTvGuide?.setBackgroundColor(focusBlue)
-            else binding.tabTvGuide?.setBackgroundResource(R.drawable.bg_tab_selected)
+            if (hasFocus) binding.tabTvGuide?.setBackgroundColor(p.focus)
+            else binding.tabTvGuide?.setBackgroundColor(p.tabSelected)
         }
-        binding.tabBoxOffice?.setOnFocusChangeListener { _, hasFocus ->
-            binding.tabBoxOffice?.setBackgroundColor(if (hasFocus) focusBlue else 0xFF1E3D72.toInt())
-        }
-        binding.tabServices?.setOnFocusChangeListener { _, hasFocus ->
-            binding.tabServices?.setBackgroundColor(if (hasFocus) focusBlue else 0xFF1E3D72.toInt())
-        }
-        binding.tabInteractive?.setOnFocusChangeListener { _, hasFocus ->
-            binding.tabInteractive?.setBackgroundColor(if (hasFocus) focusBlue else 0xFF1E3D72.toInt())
+        listOf(binding.tabBoxOffice, binding.tabRadio, binding.tabInteractive, binding.tabServices).forEach { tab ->
+            tab?.setOnFocusChangeListener { _, hasFocus ->
+                tab.setBackgroundColor(if (hasFocus) p.focus else p.bgHeader)
+            }
         }
     }
 
     private fun showBoxOfficeMenu() {
-        val options = arrayOf("MOVIES", "SERIES", "FAVOURITES")
+        val options = arrayOf("MOVIES", "SERIES", "CATCHUP", "FAVOURITES")
         androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
             .setTitle("BOX OFFICE")
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> startActivity(Intent(this, VodActivity::class.java))
                     1 -> startActivity(Intent(this, SeriesActivity::class.java))
-                    2 -> startActivity(Intent(this, FavouritesActivity::class.java))
+                    2 -> startActivity(Intent(this, com.skyretro.iptv.ui.catchup.CatchupActivity::class.java))
+                    3 -> startActivity(Intent(this, FavouritesActivity::class.java))
                 }
             }
             .show()
     }
 
-    private fun showServicesMenu() {
+    private fun showSettingsMenu() {
         val useOriginal = PrefsManager.useOriginalCategories(this)
         val toggleText = if (useOriginal) "CATEGORIES: SERVER — TAP TO USE SKY" else "CATEGORIES: SKY — TAP TO USE SERVER"
         val currentPlayer = PrefsManager.getPlayerType(this)
         val playerLabel = "PLAYER: ${if (currentPlayer == PlayerType.EXTERNAL) "EXTERNAL APP" else "EXOPLAYER (BUILT-IN)"}"
-
+        val serverCount = PrefsManager.getProfiles(this).size
         val cachedCount = EpgCache.getCachedCount(this)
         val cacheLabel = "REFRESH CACHE ($cachedCount CHANNELS CACHED)"
-        val options = arrayOf("CHANGE SERVER / ADD NEW", toggleText, playerLabel, cacheLabel, "CLEAR ALL SAVED DATA", "CANCEL")
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
-        builder.setTitle("SERVICES")
-        builder.setItems(options) { _, which ->
-            when (which) {
-                0 -> {
-                    val intent = Intent(this, LoginActivity::class.java)
-                    intent.putExtra("skip_auto", true)
-                    startActivity(intent)
-                    finish()
-                }
-                1 -> {
-                    PrefsManager.setUseOriginalCategories(this, !useOriginal)
-                    loadData()
-                }
-                2 -> showPlayerPicker()
-                3 -> refreshAllCaches()
-                4 -> {
-                    PrefsManager.clearCredentials(this)
-                    finish()
+        val themeLabel = "THEME: ${ThemeManager.current.label}"
+
+        val options = arrayOf(
+            "SERVERS ($serverCount SAVED)",
+            toggleText,
+            playerLabel,
+            cacheLabel,
+            "CATEGORY EDITOR",
+            themeLabel,
+            "CHECK FOR UPDATES",
+            "CLEAR ALL SAVED DATA",
+            "CANCEL"
+        )
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
+            .setTitle("SETTINGS")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showServerManager()
+                    1 -> { PrefsManager.setUseOriginalCategories(this, !useOriginal); loadData() }
+                    2 -> showPlayerPicker()
+                    3 -> refreshAllCaches()
+                    4 -> launchCategoryEditor()
+                    5 -> showThemePicker()
+                    6 -> checkForUpdatesManually()
+                    7 -> { PrefsManager.clearCredentials(this); finish() }
                 }
             }
+            .show()
+    }
+
+    private fun launchCategoryEditor() {
+        val categories = viewModel.uiState.value?.xtreamCategories ?: emptyList()
+        val intent = Intent(this, CategoryEditorActivity::class.java).apply {
+            putStringArrayListExtra(CategoryEditorActivity.EXTRA_CAT_IDS,   ArrayList(categories.map { it.categoryId }))
+            putStringArrayListExtra(CategoryEditorActivity.EXTRA_CAT_NAMES, ArrayList(categories.map { it.categoryName }))
         }
-        builder.show()
+        categoryEditorLauncher.launch(intent)
+    }
+
+    private fun refreshCategoryLabels() {
+        val catViews = listOf(
+            SkyCategory.ENTERTAINMENT      to binding.catEntertainment,
+            SkyCategory.MOVIES             to binding.catMovies,
+            SkyCategory.SPORTS             to binding.catSports,
+            SkyCategory.NEWS_DOCUMENTARIES to binding.catNews,
+            SkyCategory.CHILDREN           to binding.catChildren,
+            SkyCategory.MUSIC_SPECIALIST   to binding.catMusic,
+            SkyCategory.OTHER_CHANNELS     to binding.catOther
+        )
+        catViews.forEach { (sky, view) ->
+            view?.text = "  ${sky.number}  ${CategoryPrefs.getCategoryName(this, sky)}"
+        }
+    }
+
+    private fun showThemePicker() {
+        val themes = ThemeManager.allThemes
+        val labels = themes.map { t ->
+            if (t == ThemeManager.current) "● ${t.label}" else "○ ${t.label}"
+        }.toTypedArray()
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
+            .setTitle("SELECT THEME")
+            .setItems(labels) { _, which ->
+                ThemeManager.set(this, themes[which])
+                recreate()
+            }
+            .show()
+    }
+
+    private fun showServerManager() {
+        val profiles = PrefsManager.getProfiles(this)
+        val activeId = PrefsManager.getActiveProfileId(this)
+
+        val labels = profiles.map { p ->
+            "${if (p.id == activeId) "●" else "○"}  ${p.name.uppercase()}  —  ${p.serverUrl}"
+        }.toMutableList<String>()
+        labels.add("＋  ADD NEW SERVER")
+        labels.add("✕  REMOVE A SERVER")
+
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
+            .setTitle("SERVERS")
+            .setItems(labels.toTypedArray()) { _, which ->
+                when (which) {
+                    profiles.size -> {
+                        val intent = Intent(this, LoginActivity::class.java)
+                        intent.putExtra("skip_auto", true)
+                        startActivity(intent)
+                        finish()
+                    }
+                    profiles.size + 1 -> showDeleteServerPicker(profiles, activeId)
+                    else -> {
+                        val selected = profiles[which]
+                        if (selected.id != activeId) {
+                            PrefsManager.setActiveProfile(this, selected.id)
+                            PrefsManager.setUseOriginalCategories(this, false)
+                            lifecycleScope.launch {
+                                EpgCache.clearAll(this@HomeActivity)
+                                ContentCache.clearAll(this@HomeActivity)
+                                loadData()
+                            }
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun showDeleteServerPicker(profiles: List<ServerProfile>, activeId: String?) {
+        if (profiles.isEmpty()) return
+        val labels = profiles.map { "✕  ${it.name.uppercase()}" }.toTypedArray()
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
+            .setTitle("REMOVE SERVER")
+            .setItems(labels) { _, which ->
+                val toDelete = profiles[which]
+                androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
+                    .setTitle("REMOVE ${toDelete.name.uppercase()}?")
+                    .setMessage("THIS CANNOT BE UNDONE.")
+                    .setPositiveButton("REMOVE") { _, _ ->
+                        PrefsManager.deleteProfile(this, toDelete.id)
+                        val remaining = PrefsManager.getProfiles(this)
+                        if (remaining.isEmpty()) {
+                            PrefsManager.clearCredentials(this)
+                            finish()
+                        } else if (toDelete.id == activeId) {
+                            PrefsManager.setActiveProfile(this, remaining.first().id)
+                            lifecycleScope.launch {
+                                EpgCache.clearAll(this@HomeActivity)
+                                ContentCache.clearAll(this@HomeActivity)
+                                loadData()
+                            }
+                        }
+                    }
+                    .setNegativeButton("CANCEL", null)
+                    .show()
+            }
+            .show()
     }
 
     private fun refreshAllCaches() {
@@ -160,13 +285,30 @@ class HomeActivity : AppCompatActivity() {
         })
     }
 
+    private fun applyTheme() {
+        val p = ThemeManager.palette()
+        binding.root.setBackgroundColor(p.bgPrimary)
+        binding.layoutNavBar?.setBackgroundColor(p.bgHeader)
+        binding.viewTopAccent?.setBackgroundColor(p.accent)
+        binding.viewVerticalDivider?.setBackgroundColor(p.accent)
+        binding.tabTvGuide?.setBackgroundColor(p.tabSelected)
+        listOf(binding.tabBoxOffice, binding.tabRadio, binding.tabInteractive, binding.tabServices).forEach {
+            it?.setBackgroundColor(p.bgHeader)
+        }
+        binding.headerTvListings.setBackgroundColor(p.highlight)
+        listOf(binding.catEntertainment, binding.catMovies, binding.catSports,
+               binding.catNews, binding.catChildren, binding.catMusic, binding.catOther)
+            .forEachIndexed { i, v ->
+                v?.setBackgroundColor(if (i % 2 == 0) p.bgMid else p.bgPrimary)
+            }
+    }
+
     private fun setupCategoryButtons() {
-        val focusBlue = 0xFF2D6090.toInt()
-        val normalBlue = 0xFF1A3A6A.toInt()
+        val p = ThemeManager.palette()
 
         binding.headerTvListings.setOnClickListener { launchEpgGuide() }
         binding.headerTvListings.setOnFocusChangeListener { _, hasFocus ->
-            binding.headerTvListings.setBackgroundColor(if (hasFocus) focusBlue else 0xFFFFCC00.toInt())
+            binding.headerTvListings.setBackgroundColor(if (hasFocus) p.focus else p.highlight)
         }
 
         val categoryViews = listOf(
@@ -179,22 +321,21 @@ class HomeActivity : AppCompatActivity() {
             binding.catOther to SkyCategory.OTHER_CHANNELS
         )
 
-        categoryViews.forEach { (view, category) ->
+        categoryViews.forEachIndexed { idx, (view, category) ->
+            val normalBg = if (idx % 2 == 0) p.bgMid else p.bgPrimary
             view?.setOnClickListener {
                 viewModel.selectCategory(category)
                 updateCategoryHighlight(category)
             }
             view?.setOnFocusChangeListener { _, hasFocus ->
                 val isSelected = viewModel.uiState.value?.selectedSkyCategory == category
-                if (!isSelected) {
-                    view.setBackgroundColor(if (hasFocus) focusBlue else normalBlue)
-                }
+                if (!isSelected) view.setBackgroundColor(if (hasFocus) p.focus else normalBg)
             }
         }
     }
 
     private fun updateCategoryHighlight(selected: SkyCategory) {
-        // Restore Sky category buttons and hide original categories container
+        val p = ThemeManager.palette()
         binding.headerTvListings.visibility = View.VISIBLE
         binding.headerTvListings.text = "  1  TV GUIDE LISTINGS"
         binding.catEntertainment.visibility = View.VISIBLE
@@ -207,22 +348,22 @@ class HomeActivity : AppCompatActivity() {
         binding.originalCatContainer?.visibility = View.GONE
         binding.originalCatContainer?.removeAllViews()
 
-        val allCatViews = mapOf(
+        val allCatViews = listOf(
             SkyCategory.ENTERTAINMENT to binding.catEntertainment,
-            SkyCategory.MOVIES to binding.catMovies,
-            SkyCategory.SPORTS to binding.catSports,
+            SkyCategory.MOVIES        to binding.catMovies,
+            SkyCategory.SPORTS        to binding.catSports,
             SkyCategory.NEWS_DOCUMENTARIES to binding.catNews,
-            SkyCategory.CHILDREN to binding.catChildren,
-            SkyCategory.MUSIC_SPECIALIST to binding.catMusic,
-            SkyCategory.OTHER_CHANNELS to binding.catOther
+            SkyCategory.CHILDREN      to binding.catChildren,
+            SkyCategory.MUSIC_SPECIALIST   to binding.catMusic,
+            SkyCategory.OTHER_CHANNELS     to binding.catOther
         )
 
-        allCatViews.forEach { (cat, view) ->
+        allCatViews.forEachIndexed { idx, (cat, view) ->
             if (cat == selected) {
-                view.setBackgroundColor(0xFFFFCC00.toInt())
-                view.setTextColor(0xFF000080.toInt())
+                view.setBackgroundColor(p.highlight)
+                view.setTextColor(0xFF000000.toInt())
             } else {
-                view.setBackgroundColor(0xFF1A3A6A.toInt())
+                view.setBackgroundColor(if (idx % 2 == 0) p.bgMid else p.bgPrimary)
                 view.setTextColor(0xFFFFFFFF.toInt())
             }
         }
@@ -252,7 +393,7 @@ class HomeActivity : AppCompatActivity() {
                 setupOriginalCategoryMenu(state.xtreamCategories, state.selectedXtreamCategory)
             } else {
                 updateCategoryHighlight(state.selectedSkyCategory)
-                binding.tvCurrentCategory?.text = state.selectedSkyCategory.displayName
+                binding.tvCurrentCategory?.text = CategoryPrefs.getCategoryName(this, state.selectedSkyCategory)
             }
         }
     }
@@ -279,7 +420,9 @@ class HomeActivity : AppCompatActivity() {
             android.util.TypedValue.COMPLEX_UNIT_DIP, 12f, resources.displayMetrics
         ).toInt()
 
+        val p = ThemeManager.palette()
         categories.forEachIndexed { index, category ->
+            val normalBg = if (index % 2 == 0) p.bgMid else p.bgPrimary
             val tv = android.widget.TextView(this).apply {
                 layoutParams = android.widget.LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT, rowHeightPx
@@ -294,21 +437,16 @@ class HomeActivity : AppCompatActivity() {
 
                 val isSelected = category.categoryId == selected?.categoryId
                 if (isSelected) {
-                    setBackgroundColor(0xFFFFCC00.toInt())
-                    setTextColor(0xFF000080.toInt())
+                    setBackgroundColor(p.highlight)
+                    setTextColor(0xFF000000.toInt())
                     binding.tvCurrentCategory?.text = category.categoryName.uppercase()
                 } else {
-                    setBackgroundColor(if (index % 2 == 0) 0xFF1A3A6A.toInt() else 0xFF0D1B35.toInt())
+                    setBackgroundColor(normalBg)
                     setTextColor(0xFFFFFFFF.toInt())
                 }
 
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSelected) {
-                        setBackgroundColor(
-                            if (hasFocus) 0xFF2D6090.toInt()
-                            else if (index % 2 == 0) 0xFF1A3A6A.toInt() else 0xFF0D1B35.toInt()
-                        )
-                    }
+                    if (!isSelected) setBackgroundColor(if (hasFocus) p.focus else normalBg)
                 }
 
                 setOnClickListener { viewModel.selectXtreamCategory(category) }
@@ -320,15 +458,31 @@ class HomeActivity : AppCompatActivity() {
     private fun checkForUpdates() {
         lifecycleScope.launch {
             val update = UpdateChecker.check(this@HomeActivity) ?: return@launch
-            androidx.appcompat.app.AlertDialog.Builder(this@HomeActivity, R.style.Theme_SkyRetro_Dialog)
-                .setTitle("UPDATE AVAILABLE — v${update.versionName}")
-                .setMessage(update.releaseNotes.uppercase().ifEmpty { "A NEW VERSION OF SKYRETRO IS AVAILABLE." })
-                .setPositiveButton("DOWNLOAD & INSTALL") { _, _ ->
-                    UpdateChecker.downloadAndInstall(this@HomeActivity, update.downloadUrl)
-                }
-                .setNegativeButton("LATER", null)
-                .show()
+            showUpdateDialog(update)
         }
+    }
+
+    private fun checkForUpdatesManually() {
+        android.widget.Toast.makeText(this, "CHECKING FOR UPDATES...", android.widget.Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val update = UpdateChecker.check(this@HomeActivity)
+            if (update != null) {
+                showUpdateDialog(update)
+            } else {
+                android.widget.Toast.makeText(this@HomeActivity, "SKYRETRO IS UP TO DATE", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun showUpdateDialog(update: com.skyretro.iptv.utils.UpdateInfo) {
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
+            .setTitle("UPDATE AVAILABLE — v${update.versionName}")
+            .setMessage(update.releaseNotes.uppercase().ifEmpty { "A NEW VERSION OF SKYRETRO IS AVAILABLE." })
+            .setPositiveButton("DOWNLOAD & INSTALL") { _, _ ->
+                UpdateChecker.downloadAndInstall(this, update.downloadUrl)
+            }
+            .setNegativeButton("LATER", null)
+            .show()
     }
 
     private fun loadData() {
@@ -337,7 +491,8 @@ class HomeActivity : AppCompatActivity() {
             return
         }
         val useOriginal = PrefsManager.useOriginalCategories(this)
-        viewModel.loadData(credentials.serverUrl, credentials.username, credentials.password, useOriginal)
+        val customMapping = CategoryPrefs.getCustomMapping(this)
+        viewModel.loadData(credentials.serverUrl, credentials.username, credentials.password, useOriginal, customMapping)
     }
 
     private fun onChannelSelected(stream: LiveStream) {

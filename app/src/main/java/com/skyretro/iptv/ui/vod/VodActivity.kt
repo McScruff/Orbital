@@ -30,7 +30,6 @@ class VodActivity : AppCompatActivity() {
     private lateinit var adapter: VodAdapter
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    // Full content cache for cross-category search
     private var allMovies: List<VodStream> = emptyList()
     private var isSearchActive = false
 
@@ -71,7 +70,6 @@ class VodActivity : AppCompatActivity() {
         val creds = PrefsManager.getCredentials(this) ?: run { finish(); return }
         viewModel.loadCategories(creds.serverUrl, creds.username, creds.password)
 
-        // Populate content cache in background
         scope.launch {
             val cached = ContentCache.getMovies(this@VodActivity, creds.serverUrl)
             if (cached != null) {
