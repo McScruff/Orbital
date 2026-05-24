@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/sky_dark_blue"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="20dp">
+
+        <!-- Logo bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@color/sky_header_blue"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="80dp"
+                android:layout_height="match_parent"
+                android:background="@color/sky_dark_blue"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="sky"
+                    android:textColor="@color/sky_cyan"
+                    android:textSize="18sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="EMBY — SIGN IN"
+                android:textColor="@color/sky_yellow"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Form card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/sky_mid_blue"
+            android:padding="20dp">
+
+            <!-- Tab row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
+
+                <TextView
+                    android:id="@+id/tab_direct"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="DIRECT"
+                    android:textColor="@color/sky_dark_blue"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:background="@color/sky_yellow"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/tab_connect"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="LINK WITH PIN"
+                    android:textColor="#AABBCC"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:background="#1A2E4A"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+            </LinearLayout>
+
+            <!-- ── DIRECT form ── -->
+            <LinearLayout
+                android:id="@+id/form_direct"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SERVER URL"
+                    android:textColor="@color/sky_yellow"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <EditText
+                    android:id="@+id/et_server_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:inputType="textUri"
+                    android:hint="http://192.168.1.100:8096"
+                    android:textColor="@color/sky_white"
+                    android:textColorHint="#88AABBCC"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:background="#1A2E4A"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:singleLine="true"
+                    android:imeOptions="actionNext"
+                    android:layout_marginBottom="14dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="USERNAME"
+                    android:textColor="@color/sky_yellow"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <EditText
+                    android:id="@+id/et_username"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:inputType="text"
+                    android:hint="Username"
+                    android:textColor="@color/sky_white"
+                    android:textColorHint="#88AABBCC"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:background="#1A2E4A"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:singleLine="true"
+                    android:imeOptions="actionNext"
+                    android:layout_marginBottom="14dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PASSWORD"
+                    android:textColor="@color/sky_yellow"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <EditText
+                    android:id="@+id/et_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:inputType="textPassword"
+                    android:hint="Password (leave blank if none)"
+                    android:textColor="@color/sky_white"
+                    android:textColorHint="#88AABBCC"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:background="#1A2E4A"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:singleLine="true"
+                    android:imeOptions="actionDone"
+                    android:layout_marginBottom="18dp" />
+
+            </LinearLayout>
+
+            <!-- ── LINK WITH PIN form ── -->
+            <LinearLayout
+                android:id="@+id/form_connect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:visibility="gone">
+
+                <!-- Instructions -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="On your phone or computer, open a browser and go to:"
+                    android:textColor="#AABBCC"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="emby.media/pin.html"
+                    android:textColor="@color/sky_cyan"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="20dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Then enter this code:"
+                    android:textColor="#AABBCC"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:layout_marginBottom="10dp" />
+
+                <!-- PIN display box -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:gravity="center"
+                    android:background="#0A1628"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_pin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="——"
+                        android:textColor="@color/sky_yellow"
+                        android:textSize="40sp"
+                        android:typeface="monospace"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.25" />
+
+                </LinearLayout>
+
+                <!-- Status row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <ProgressBar
+                        android:id="@+id/progress_pin"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:indeterminate="true"
+                        android:visibility="gone"
+                        android:layout_marginEnd="10dp" />
+
+                    <TextView
+                        android:id="@+id/tv_pin_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Requesting PIN…"
+                        android:textColor="#AABBCC"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-condensed" />
+
+                </LinearLayout>
+
+                <!-- Refresh button -->
+                <TextView
+                    android:id="@+id/btn_refresh_pin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="GET NEW PIN"
+                    android:textColor="#AABBCC"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:background="#0A1628"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_marginBottom="10dp" />
+
+            </LinearLayout>
+
+            <!-- Error (shared) -->
+            <TextView
+                android:id="@+id/tv_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FF5555"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-condensed"
+                android:gravity="center"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Direct login button + spinner (hidden for PIN tab) -->
+            <LinearLayout
+                android:id="@+id/row_direct_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end">
+
+                <ProgressBar
+                    android:id="@+id/progress_login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:indeterminate="true"
+                    android:visibility="gone"
+                    android:layout_marginEnd="16dp" />
+
+                <TextView
+                    android:id="@+id/btn_login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:gravity="center"
+                    android:text="SIGN IN ▶"
+                    android:textColor="@color/sky_dark_blue"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:background="@color/sky_yellow"
+                    android:paddingStart="28dp"
+                    android:paddingEnd="28dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

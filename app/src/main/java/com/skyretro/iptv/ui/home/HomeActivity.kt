@@ -22,6 +22,7 @@ import com.skyretro.iptv.ui.favourites.FavouritesActivity
 import com.skyretro.iptv.ui.vod.VodActivity
 import com.skyretro.iptv.ui.settings.CategoryEditorActivity
 import com.skyretro.iptv.utils.CategoryPrefs
+import com.skyretro.iptv.utils.ChannelQueue
 import com.skyretro.iptv.utils.ContentCache
 import com.skyretro.iptv.utils.EpgCache
 import com.skyretro.iptv.utils.PlayerType
@@ -109,31 +110,47 @@ class HomeActivity : AppCompatActivity() {
         val cacheLabel = "REFRESH CACHE ($cachedCount CHANNELS CACHED)"
         val themeLabel = "THEME: ${ThemeManager.current.label}"
 
-        val options = arrayOf(
-            "SERVERS ($serverCount SAVED)",
-            toggleText,
-            playerLabel,
-            cacheLabel,
-            "CATEGORY EDITOR",
-            themeLabel,
-            "CHECK FOR UPDATES",
-            "CLEAR ALL SAVED DATA",
-            "CANCEL"
-        )
+        data class Item(val label: String, val action: () -> Unit)
+        val items = mutableListOf<Item>()
+        items += Item("SERVERS ($serverCount SAVED)")         { showServerManager() }
+        items += Item(toggleText)                             { PrefsManager.setUseOriginalCategories(this, !useOriginal); loadData() }
+        items += Item(playerLabel)                            { showPlayerPicker() }
+        items += Item(cacheLabel)                             { refreshAllCaches() }
+        if (useOriginal)
+            items += Item("MANAGE VISIBLE CATEGORIES")        { showManageServerCategoriesDialog() }
+        items += Item("CATEGORY EDITOR")                      { launchCategoryEditor() }
+        items += Item(themeLabel)                             { showThemePicker() }
+        items += Item("CHECK FOR UPDATES")                    { checkForUpdatesManually() }
+        items += Item("CLEAR ALL SAVED DATA")                 { PrefsManager.clearCredentials(this); finish() }
+
+        val labels = items.map { it.label }.toTypedArray()
         androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
             .setTitle("SETTINGS")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> showServerManager()
-                    1 -> { PrefsManager.setUseOriginalCategories(this, !useOriginal); loadData() }
-                    2 -> showPlayerPicker()
-                    3 -> refreshAllCaches()
-                    4 -> launchCategoryEditor()
-                    5 -> showThemePicker()
-                    6 -> checkForUpdatesManually()
-                    7 -> { PrefsManager.clearCredentials(this); finish() }
-                }
+            .setItems(labels) { _, which -> items[which].action() }
+            .show()
+    }
+
+    private fun showManageServerCategoriesDialog() {
+        val categories = viewModel.uiState.value?.xtreamCategories ?: emptyList()
+        if (categories.isEmpty()) {
+            android.widget.Toast.makeText(this, "NO SERVER CATEGORIES LOADED", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        val hiddenIds = CategoryPrefs.getHiddenServerCatIds(this).toMutableSet()
+        val labels  = categories.map { it.categoryName.uppercase() }.toTypedArray()
+        val checked = categories.map { it.categoryId !in hiddenIds }.toBooleanArray()
+
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
+            .setTitle("SHOW / HIDE CATEGORIES")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                if (isChecked) hiddenIds.remove(categories[which].categoryId)
+                else           hiddenIds.add(categories[which].categoryId)
             }
+            .setPositiveButton("SAVE") { _, _ ->
+                CategoryPrefs.setHiddenServerCatIds(this, hiddenIds)
+                loadData()
+            }
+            .setNegativeButton("CANCEL", null)
             .show()
     }
 
@@ -399,8 +416,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupOriginalCategoryMenu(categories: List<LiveCategory>, selected: LiveCategory?) {
-        // Hide Sky-specific category buttons (keeps them in hierarchy so they can be restored)
-        binding.headerTvListings.text = "  1  CATEGORIES"
+        val hiddenIds = CategoryPrefs.getHiddenServerCatIds(this)
+        val visibleCategories = categories.filter { it.categoryId !in hiddenIds }
+
+        binding.headerTvListings.text = "  1  TV GUIDE"
         binding.catEntertainment.visibility = View.GONE
         binding.catMovies.visibility = View.GONE
         binding.catSports.visibility = View.GONE
@@ -421,7 +440,7 @@ class HomeActivity : AppCompatActivity() {
         ).toInt()
 
         val p = ThemeManager.palette()
-        categories.forEachIndexed { index, category ->
+        visibleCategories.forEachIndexed { index, category ->
             val normalBg = if (index % 2 == 0) p.bgMid else p.bgPrimary
             val tv = android.widget.TextView(this).apply {
                 layoutParams = android.widget.LinearLayout.LayoutParams(
@@ -478,12 +497,82 @@ class HomeActivity : AppCompatActivity() {
         androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
             .setTitle("UPDATE AVAILABLE — v${update.versionName}")
             .setMessage(update.releaseNotes.uppercase().ifEmpty { "A NEW VERSION OF SKYRETRO IS AVAILABLE." })
-            .setPositiveButton("DOWNLOAD & INSTALL") { _, _ ->
-                UpdateChecker.downloadAndInstall(this, update.downloadUrl)
-            }
+            .setPositiveButton("DOWNLOAD & INSTALL") { _, _ -> startUpdateDownload(update) }
             .setNegativeButton("LATER", null)
             .show()
     }
+
+    private fun startUpdateDownload(update: com.skyretro.iptv.utils.UpdateInfo) {
+        // Build progress dialog programmatically
+        val ctx = this
+        val container = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(64, 32, 64, 16)
+        }
+        val tvStatus = android.widget.TextView(ctx).apply {
+            text = "CONNECTING..."
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 12f
+            typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)
+        }
+        val progressBar = android.widget.ProgressBar(ctx, null, android.R.attr.progressBarStyleHorizontal).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            ).also { it.topMargin = 24 }
+            max = 100
+            progress = 0
+        }
+        val tvBytes = android.widget.TextView(ctx).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            ).also { it.topMargin = 8 }
+            text = ""
+            setTextColor(0xFFAABBCC.toInt())
+            textSize = 10f
+            typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL)
+            gravity = android.view.Gravity.END
+        }
+        container.addView(tvStatus)
+        container.addView(progressBar)
+        container.addView(tvBytes)
+
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_SkyRetro_Dialog)
+            .setTitle("DOWNLOADING v${update.versionName}")
+            .setView(container)
+            .setCancelable(false)
+            .create()
+        dialog.show()
+
+        lifecycleScope.launch {
+            val file = UpdateChecker.downloadWithProgress(this@HomeActivity, update.downloadUrl) { pct, done, total ->
+                if (pct >= 0) {
+                    progressBar.progress = pct
+                    tvStatus.text = "DOWNLOADING...  $pct%"
+                } else {
+                    tvStatus.text = "DOWNLOADING..."
+                }
+                if (total > 0) {
+                    tvBytes.text = "${formatMb(done)} / ${formatMb(total)} MB"
+                }
+            }
+
+            dialog.dismiss()
+
+            if (file != null) {
+                tvStatus.text = "INSTALLING..."
+                UpdateChecker.installApk(this@HomeActivity, file)
+                finish()
+            } else {
+                android.widget.Toast.makeText(
+                    this@HomeActivity, "DOWNLOAD FAILED — CHECK CONNECTION", android.widget.Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun formatMb(bytes: Long) = "%.1f".format(bytes / 1_048_576.0)
 
     private fun loadData() {
         val credentials = PrefsManager.getCredentials(this) ?: run {
@@ -492,10 +581,17 @@ class HomeActivity : AppCompatActivity() {
         }
         val useOriginal = PrefsManager.useOriginalCategories(this)
         val customMapping = CategoryPrefs.getCustomMapping(this)
-        viewModel.loadData(credentials.serverUrl, credentials.username, credentials.password, useOriginal, customMapping)
+        val hiddenIds = CategoryPrefs.getHiddenServerCatIds(this)
+        viewModel.loadData(credentials.serverUrl, credentials.username, credentials.password, useOriginal, customMapping, hiddenIds)
     }
 
     private fun onChannelSelected(stream: LiveStream) {
+        val channels = viewModel.uiState.value?.channels ?: emptyList()
+        ChannelQueue.entries = channels.map { ch ->
+            ChannelQueue.Entry(streamId = ch.streamId, name = ch.name, num = ch.num ?: -1)
+        }
+        ChannelQueue.currentIndex = channels.indexOf(stream).coerceAtLeast(0)
+
         val streamUrl = viewModel.buildStreamUrl(stream.streamId)
         if (PrefsManager.getPlayerType(this) == PlayerType.EXTERNAL) {
             val intent = Intent(Intent.ACTION_VIEW).apply {

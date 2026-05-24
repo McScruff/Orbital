@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.skyretro.iptv.databinding.ActivityGamesBinding
+import com.skyretro.iptv.ui.emby.EmbyBrowserActivity
+import com.skyretro.iptv.ui.emby.EmbyLoginActivity
 import com.skyretro.iptv.ui.sports.SportsActivity
+import com.skyretro.iptv.utils.EmbyPrefsManager
 import com.skyretro.iptv.utils.TickerManager
 
 class GamesActivity : AppCompatActivity() {
@@ -34,6 +37,15 @@ class GamesActivity : AppCompatActivity() {
         }
         binding.tileTeletext.setOnFocusChangeListener { _, hasFocus ->
             binding.tileTeletext.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1A3560.toInt())
+        }
+
+        binding.tileEmby.setOnClickListener {
+            val dest = if (EmbyPrefsManager.getSession(this) != null) EmbyBrowserActivity::class.java
+                       else EmbyLoginActivity::class.java
+            startActivity(Intent(this, dest))
+        }
+        binding.tileEmby.setOnFocusChangeListener { _, hasFocus ->
+            binding.tileEmby.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1A3560.toInt())
         }
 
         binding.tileBeehive.setOnClickListener {

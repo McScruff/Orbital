@@ -2,12 +2,14 @@ package com.skyretro.iptv.utils
 
 import android.content.Context
 import com.skyretro.iptv.data.model.SkyCategory
+import org.json.JSONArray
 import org.json.JSONObject
 
 object CategoryPrefs {
     private const val PREF        = "category_prefs"
     private const val KEY_NAMES   = "custom_names"
     private const val KEY_MAPPING = "custom_mapping"
+    private const val KEY_HIDDEN  = "hidden_server_cats"
 
     fun getCategoryName(context: Context, sky: SkyCategory): String {
         val json = prefs(context).getString(KEY_NAMES, "{}") ?: "{}"
@@ -37,6 +39,19 @@ object CategoryPrefs {
         val obj = loadJson(context, KEY_MAPPING)
         if (sky == null) obj.remove(serverCategoryId) else obj.put(serverCategoryId, sky.name)
         prefs(context).edit().putString(KEY_MAPPING, obj.toString()).apply()
+    }
+
+    fun getHiddenServerCatIds(context: Context): Set<String> {
+        val json = prefs(context).getString(KEY_HIDDEN, "[]") ?: "[]"
+        return try {
+            val arr = JSONArray(json)
+            (0 until arr.length()).map { arr.getString(it) }.toSet()
+        } catch (_: Exception) { emptySet() }
+    }
+
+    fun setHiddenServerCatIds(context: Context, ids: Set<String>) {
+        val arr = JSONArray(ids.toList())
+        prefs(context).edit().putString(KEY_HIDDEN, arr.toString()).apply()
     }
 
     private fun prefs(context: Context) =

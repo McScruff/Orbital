@@ -18,7 +18,10 @@ import com.skyretro.iptv.data.model.FavouriteItem
 import com.skyretro.iptv.data.model.getDecodedTitle
 import com.skyretro.iptv.data.repository.XtreamRepository
 import com.skyretro.iptv.databinding.ActivityPlayerBinding
+import com.skyretro.iptv.data.emby.EmbyRepository
+import com.skyretro.iptv.utils.ChannelQueue
 import com.skyretro.iptv.utils.EpgCache
+import com.skyretro.iptv.utils.EmbyPrefsManager
 import com.skyretro.iptv.utils.FavouritesManager
 import com.skyretro.iptv.utils.PrefsManager
 import com.skyretro.iptv.utils.TickerManager
@@ -64,6 +67,7 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_NEXT_EP_NUM    = "next_ep_num"
         const val EXTRA_NEXT_EP_SEASON = "next_ep_season"
         const val EXTRA_NEXT_EP_ID     = "next_ep_id"
+        const val EXTRA_EMBY_ITEM_ID   = "emby_item_id"
 
         private const val OVERLAY_HIDE_DELAY_MS  = 5000L
         private const val SEEK_STEP_MS           = 30_000L
@@ -103,6 +107,8 @@ class PlayerActivity : AppCompatActivity() {
     private var episodeCompleted = false
     private var hasError = false
     private var audioRecoveryAttempted = false
+    private var embyItemId = ""
+    private val embyRepo = EmbyRepository()
 
     // MPV
     private var mpvReady = false
@@ -184,6 +190,7 @@ class PlayerActivity : AppCompatActivity() {
         nextEpNum    = intent.getIntExtra(EXTRA_NEXT_EP_NUM, 0)
         nextEpSeason = intent.getStringExtra(EXTRA_NEXT_EP_SEASON) ?: ""
         nextEpId     = intent.getStringExtra(EXTRA_NEXT_EP_ID) ?: ""
+        embyItemId   = intent.getStringExtra(EXTRA_EMBY_ITEM_ID) ?: ""
 
         binding.tvPlayerTitle.text = channelName.uppercase()
 
@@ -244,6 +251,7 @@ class PlayerActivity : AppCompatActivity() {
         showOverlay()
         initPlayer()
         if (isLive) loadEpg()
+        if (embyItemId.isNotEmpty()) reportEmbyStart()
     }
 
     private fun setStatus(text: String, color: Int) {
@@ -285,12 +293,20 @@ class PlayerActivity : AppCompatActivity() {
                     if (!isLive && !isOverlayFocused()) { seekBy(SEEK_STEP_MS); return true }
                 }
 
-                KeyEvent.KEYCODE_DPAD_UP,
-                KeyEvent.KEYCODE_DPAD_DOWN,
-                KeyEvent.KEYCODE_MENU -> {
+                KeyEvent.KEYCODE_DPAD_UP -> {
                     if (binding.hudOverlay.visibility != View.VISIBLE) {
-                        showOverlay(); return true
+                        if (isLive && ChannelQueue.entries.size > 1) { changeChannel(-1); return true }
+                        else { showOverlay(); return true }
                     }
+                }
+                KeyEvent.KEYCODE_DPAD_DOWN -> {
+                    if (binding.hudOverlay.visibility != View.VISIBLE) {
+                        if (isLive && ChannelQueue.entries.size > 1) { changeChannel(+1); return true }
+                        else { showOverlay(); return true }
+                    }
+                }
+                KeyEvent.KEYCODE_MENU -> {
+                    if (binding.hudOverlay.visibility != View.VISIBLE) { showOverlay(); return true }
                 }
 
                 KeyEvent.KEYCODE_DPAD_CENTER,
@@ -837,6 +853,44 @@ class PlayerActivity : AppCompatActivity() {
         setStatus("CONNECTING...", COLOR_BUFFERING)
     }
 
+    // ── Channel navigation ────────────────────────────────────────────────────
+
+    private fun changeChannel(delta: Int) {
+        val queue = ChannelQueue.entries
+        if (queue.isEmpty()) return
+        val newIdx = (ChannelQueue.currentIndex + delta + queue.size) % queue.size
+        ChannelQueue.currentIndex = newIdx
+        val entry = queue[newIdx]
+
+        val creds = PrefsManager.getCredentials(this) ?: return
+        streamUrl   = repository.buildStreamUrl(creds.serverUrl, creds.username, creds.password, entry.streamId)
+        channelName = entry.name
+        streamId    = entry.streamId
+        hasError    = false
+        audioRecoveryAttempted = false
+
+        binding.tvPlayerTitle.text = channelName.uppercase()
+        val displayName = if (entry.num > 0) "${entry.num}  ${channelName.uppercase()}" else channelName.uppercase()
+        binding.tvChannelInfo.text = displayName
+        binding.tvNowTitle.text  = ""
+        binding.tvNextTitle.text = ""
+        binding.tvNextTime.text  = ""
+
+        binding.progressBar.visibility = View.VISIBLE
+        setStatus("LOADING...", COLOR_BUFFERING)
+        showOverlay()
+
+        if (mpvReady) {
+            mpvStartedPlayingOnce = false
+            mpvLoadStartMs = System.currentTimeMillis()
+            binding.mpvView.loadUrl(streamUrl, 0L)
+        } else {
+            playMedia()
+        }
+
+        loadEpg()
+    }
+
     // ── EPG ───────────────────────────────────────────────────────────────────
 
     private fun loadEpg() {
@@ -1063,6 +1117,27 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    // ── Emby reporting ───────────────────────────────────────────────────────────
+
+    private fun reportEmbyStart() {
+        val session = EmbyPrefsManager.getSession(this) ?: return
+        lifecycleScope.launch(Dispatchers.IO) {
+            embyRepo.reportStart(session.serverUrl, session.token, embyItemId, resumeMs)
+        }
+    }
+
+    private fun reportEmbyStop() {
+        val session = EmbyPrefsManager.getSession(this) ?: return
+        val posMs: Long = when {
+            mpvReady              -> binding.mpvView.getCurrentPositionMs()
+            ::player.isInitialized -> player.currentPosition
+            else                  -> 0L
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            embyRepo.reportStop(session.serverUrl, session.token, embyItemId, posMs)
+        }
+    }
+
     // ── Clock ─────────────────────────────────────────────────────────────────
 
     private fun updateClock() {
@@ -1080,6 +1155,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         saveResumePosition()
+        if (embyItemId.isNotEmpty()) reportEmbyStop()
     }
 
     override fun onResume() {

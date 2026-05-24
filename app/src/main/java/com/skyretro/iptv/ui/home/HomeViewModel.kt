@@ -37,8 +37,10 @@ class HomeViewModel : ViewModel() {
     private var allStreams: List<LiveStream> = emptyList()
     private var allCategories: List<LiveCategory> = emptyList()
     private var credentials: Triple<String, String, String>? = null
+    private var hiddenCategoryIds: Set<String> = emptySet()
 
-    fun loadData(serverUrl: String, username: String, password: String, useOriginal: Boolean = false, customMapping: Map<String, SkyCategory> = emptyMap()) {
+    fun loadData(serverUrl: String, username: String, password: String, useOriginal: Boolean = false, customMapping: Map<String, SkyCategory> = emptyMap(), hiddenCategoryIds: Set<String> = emptySet()) {
+        this.hiddenCategoryIds = hiddenCategoryIds
         credentials = Triple(serverUrl, username, password)
         _uiState.value = _uiState.value?.copy(isLoading = true, error = null, useOriginalCategories = useOriginal)
 
@@ -54,7 +56,7 @@ class HomeViewModel : ViewModel() {
                     streamsResult.fold(
                         onSuccess = { streams ->
                             allStreams = streams
-                            val skyGroups = buildSkyCategoryGroups(categories, customMapping)
+                            val skyGroups = buildSkyCategoryGroups(categories, customMapping, hiddenCategoryIds)
                             _uiState.value = _uiState.value?.copy(
                                 isLoading = false,
                                 skyCategories = skyGroups,
@@ -85,11 +87,12 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    private fun buildSkyCategoryGroups(categories: List<LiveCategory>, customMapping: Map<String, SkyCategory> = emptyMap()): List<SkyCategoryGroup> {
+    private fun buildSkyCategoryGroups(categories: List<LiveCategory>, customMapping: Map<String, SkyCategory> = emptyMap(), hiddenIds: Set<String> = emptySet()): List<SkyCategoryGroup> {
         val skyCatMap = mutableMapOf<SkyCategory, MutableList<String>>()
         SkyCategory.values().forEach { skyCatMap[it] = mutableListOf() }
 
         categories.forEach { cat ->
+            if (cat.categoryId in hiddenIds) return@forEach
             val skyCategory = customMapping[cat.categoryId] ?: mapCategoryToSky(cat.categoryName)
             skyCatMap[skyCategory]?.add(cat.categoryId)
         }
@@ -107,7 +110,7 @@ class HomeViewModel : ViewModel() {
             val matchedIds = state.skyCategories
                 .filter { it.skyCategory != SkyCategory.OTHER_CHANNELS }
                 .flatMap { it.xtreamCategoryIds }
-            allStreams.filter { it.categoryId !in matchedIds }
+            allStreams.filter { it.categoryId !in matchedIds && it.categoryId !in hiddenCategoryIds }
         } else {
             allStreams.filter { it.categoryId in group.xtreamCategoryIds }
         }
