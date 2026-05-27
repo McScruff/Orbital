@@ -96,10 +96,8 @@ class SkyMpvView @JvmOverloads constructor(
 
     override fun initOptions() {
         mpv.setOptionString("profile", "fast")
-        setVo("gpu")
-        mpv.setOptionString("gpu-context", "android")
-        mpv.setOptionString("opengl-es", "yes")
-        mpv.setOptionString("hwdec", "auto-safe")
+        setVo("mediacodec_embed")
+        mpv.setOptionString("hwdec", "mediacodec")
         mpv.setOptionString("hwdec-codecs", "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1")
         mpv.setOptionString("ao", "audiotrack,opensles")
         mpv.setOptionString("audio-set-media-role", "yes")
@@ -109,8 +107,6 @@ class SkyMpvView @JvmOverloads constructor(
         mpv.setOptionString("cache-pause", "no")
         mpv.setOptionString("demuxer-max-bytes", "${32 * 1024 * 1024}")
         mpv.setOptionString("demuxer-max-back-bytes", "${32 * 1024 * 1024}")
-        mpv.setOptionString("sub-font-size", "55")
-        mpv.setOptionString("sub-use-margins", "yes")
     }
 
     override fun postInitOptions() {}

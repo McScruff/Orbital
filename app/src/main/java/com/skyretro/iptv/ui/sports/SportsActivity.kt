@@ -29,8 +29,8 @@ class SportsActivity : AppCompatActivity() {
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    // (tab label, ESPN league id, display name, SofaScore tournament id)
-    private data class League(val tab: String, val espnId: String, val name: String, val sofaId: Int)
+    // (tab label, ESPN league id, display name, SofaScore tournament id, whether standings are group-based)
+    private data class League(val tab: String, val espnId: String, val name: String, val sofaId: Int, val hasGroups: Boolean = false)
     private val leagues = listOf(
         League("PL",       "eng.1",          "PREMIER LEAGUE",    17),
         League("CHAMP",    "eng.2",          "CHAMPIONSHIP",      18),
@@ -38,7 +38,8 @@ class SportsActivity : AppCompatActivity() {
         League("FA CUP",   "eng.fa",         "FA CUP",            21),
         League("LA LIGA",  "esp.1",          "LA LIGA",           8),
         League("SERIE A",  "ita.1",          "SERIE A",           23),
-        League("BUNDESL",  "ger.1",          "BUNDESLIGA",        35)
+        League("BUNDESL",  "ger.1",          "BUNDESLIGA",        35),
+        League("WC",       "fifa.world",     "WORLD CUP 2026",    16, hasGroups = true)
     )
     private var leagueIdx = 0
     private val date = Calendar.getInstance()
@@ -123,7 +124,8 @@ class SportsActivity : AppCompatActivity() {
     private fun selectLeague(idx: Int) {
         leagueIdx = idx
         highlightLeagueTab(idx)
-        binding.tvLeagueName.text = leagues[idx].name
+        binding.tvLeagueName.text  = leagues[idx].name
+        binding.tabStandings.text  = if (leagues[idx].hasGroups) "GROUPS" else "TABLE"
         fetchData()
     }
 
@@ -235,28 +237,27 @@ class SportsActivity : AppCompatActivity() {
     private fun fetchStandings() {
         binding.progressBar.visibility = View.VISIBLE
         binding.tvEmpty.visibility = View.GONE
-        val sofaId = leagues[leagueIdx].sofaId
+        val league = leagues[leagueIdx]
 
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val entries = withContext(Dispatchers.IO) {
-                    // Step 1: find the current season id
-                    val seasonsJson = get("https://api.sofascore.com/api/v1/unique-tournament/$sofaId/seasons")
+                    val seasonsJson = get("https://api.sofascore.com/api/v1/unique-tournament/${league.sofaId}/seasons")
                     val seasons = JSONObject(seasonsJson).optJSONArray("seasons")
                         ?: return@withContext emptyList()
                     val seasonId = seasons.getJSONObject(0).optInt("id", -1)
                     if (seasonId == -1) return@withContext emptyList()
 
-                    // Step 2: fetch the full standings table
                     val standingsJson = get(
-                        "https://api.sofascore.com/api/v1/unique-tournament/$sofaId/season/$seasonId/standings/total"
+                        "https://api.sofascore.com/api/v1/unique-tournament/${league.sofaId}/season/$seasonId/standings/total"
                     )
-                    parseSofascoreStandings(standingsJson)
+                    if (league.hasGroups) parseGroupStandings(standingsJson)
+                    else parseSofascoreStandings(standingsJson)
                 }
                 binding.progressBar.visibility = View.GONE
                 standingAdapter.submitList(entries)
                 if (entries.isEmpty()) {
-                    binding.tvEmpty.text = "NO TABLE AVAILABLE FOR THIS COMPETITION"
+                    binding.tvEmpty.text = if (league.hasGroups) "NO GROUPS AVAILABLE YET" else "NO TABLE AVAILABLE FOR THIS COMPETITION"
                     binding.tvEmpty.visibility = View.VISIBLE
                 } else {
                     binding.tvEmpty.visibility = View.GONE
@@ -267,6 +268,36 @@ class SportsActivity : AppCompatActivity() {
                 binding.tvEmpty.visibility = View.VISIBLE
             }
         }
+    }
+
+    private fun parseGroupStandings(json: String): List<StandingEntry> {
+        val out = mutableListOf<StandingEntry>()
+        try {
+            val standings = JSONObject(json).optJSONArray("standings") ?: return out
+            for (g in 0 until standings.length()) {
+                val group = standings.getJSONObject(g)
+                val groupName = group.optString("name").ifEmpty { "Group ${('A' + g)}" }
+                out.add(StandingEntry(0, "", "", 0, 0, 0, 0, "", 0, isGroupHeader = true, groupName = groupName))
+                val rows = group.optJSONArray("rows") ?: continue
+                for (i in 0 until rows.length()) {
+                    val row = rows.getJSONObject(i)
+                    val team = row.optJSONObject("team") ?: continue
+                    val teamId = team.optInt("id", -1)
+                    out.add(StandingEntry(
+                        pos     = row.optInt("position", i + 1),
+                        team    = team.optString("shortName").ifEmpty { team.optString("name") },
+                        logoUrl = if (teamId > 0) "https://api.sofascore.app/api/v1/team/$teamId/image" else "",
+                        played  = row.optInt("matches", 0),
+                        won     = row.optInt("wins", 0),
+                        drawn   = row.optInt("draws", 0),
+                        lost    = row.optInt("losses", 0),
+                        gd      = row.optString("scoreDiffFormatted", "0"),
+                        points  = row.optInt("points", 0)
+                    ))
+                }
+            }
+        } catch (_: Exception) {}
+        return out
     }
 
     private fun get(url: String): String {

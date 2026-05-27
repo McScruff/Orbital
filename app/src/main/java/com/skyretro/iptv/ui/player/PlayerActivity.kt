@@ -1,9 +1,13 @@
 package com.skyretro.iptv.ui.player
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.animation.LinearInterpolator
 import android.view.KeyEvent
 import android.view.SurfaceHolder
 import android.view.View
@@ -164,6 +168,13 @@ class PlayerActivity : AppCompatActivity() {
             newsHandler.postDelayed(this, 300_000L)
         }
     }
+
+    private var pendingTickerText: String? = null
+    private var pendingNewsText: String? = null
+    private var tickerScrollAnim: ValueAnimator? = null
+    private var newsScrollAnim: ValueAnimator? = null
+    private var tickerShowingPlaceholder = false
+    private var newsShowingPlaceholder = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -553,15 +564,50 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun startTicker() {
-        binding.tvTicker.visibility = View.VISIBLE
-        binding.tvTicker.isSelected = true
+        binding.tickerRow.visibility = View.VISIBLE
+        val hasSelected = TickerManager.getSelected(this).isNotEmpty()
+        if (TickerManager.liveScores.isEmpty() && hasSelected) {
+            tickerShowingPlaceholder = true
+            binding.tvTicker.text = "  LOADING SCORES...  "
+        } else {
+            tickerShowingPlaceholder = false
+            binding.tvTicker.text = TickerManager.buildTickerText()
+        }
         tickerHandler.removeCallbacks(tickerRunnable)
         tickerHandler.post(tickerRunnable)
+        binding.tvTicker.post { loopTickerScroll() }
     }
 
     private fun stopTicker() {
         tickerHandler.removeCallbacks(tickerRunnable)
-        binding.tvTicker.visibility = View.GONE
+        tickerScrollAnim?.cancel()
+        tickerScrollAnim = null
+        pendingTickerText = null
+        binding.tickerRow.visibility = View.GONE
+    }
+
+    private fun loopTickerScroll() {
+        val tv = binding.tvTicker
+        if (binding.tickerRow.visibility != View.VISIBLE || !TickerManager.tickerEnabled) return
+        pendingTickerText?.let { tv.text = it; pendingTickerText = null }
+        val containerWidth = (tv.parent as View).width.toFloat()
+        tv.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val textWidth = tv.measuredWidth.toFloat()
+        if (containerWidth <= 0f || textWidth <= 0f) { tv.post { loopTickerScroll() }; return }
+        val pxPerSec = 60f * resources.displayMetrics.density
+        val duration = ((containerWidth + textWidth) / pxPerSec * 1000f).toLong()
+        tv.translationX = containerWidth
+        tickerScrollAnim = ValueAnimator.ofFloat(containerWidth, -textWidth).apply {
+            this.duration = duration
+            interpolator = LinearInterpolator()
+            addUpdateListener { tv.translationX = it.animatedValue as Float }
+            addListener(object : AnimatorListenerAdapter() {
+                private var cancelled = false
+                override fun onAnimationCancel(a: Animator) { cancelled = true }
+                override fun onAnimationEnd(a: Animator) { if (!cancelled) loopTickerScroll() }
+            })
+            start()
+        }
     }
 
     private fun fetchTickerScores() {
@@ -630,8 +676,16 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun updateTickerText() {
         if (!TickerManager.tickerEnabled) return
-        binding.tvTicker.text = TickerManager.buildTickerText()
-        binding.tvTicker.isSelected = true
+        val newText = TickerManager.buildTickerText()
+        if (tickerShowingPlaceholder) {
+            tickerShowingPlaceholder = false
+            tickerScrollAnim?.cancel()
+            tickerScrollAnim = null
+            binding.tvTicker.text = newText
+            loopTickerScroll()
+        } else {
+            pendingTickerText = newText
+        }
     }
 
     // ── News ticker ───────────────────────────────────────────────────────────
@@ -651,15 +705,44 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun startNewsTicker() {
-        binding.tvNewsTicker.visibility = View.VISIBLE
-        binding.tvNewsTicker.isSelected = true
+        binding.newsTickerRow.visibility = View.VISIBLE
+        newsShowingPlaceholder = TickerManager.sportHeadlines.isEmpty()
+        binding.tvNewsTicker.text = TickerManager.buildNewsText()
         newsHandler.removeCallbacks(newsRunnable)
         newsHandler.post(newsRunnable)
+        binding.tvNewsTicker.post { loopNewsScroll() }
     }
 
     private fun stopNewsTicker() {
         newsHandler.removeCallbacks(newsRunnable)
-        binding.tvNewsTicker.visibility = View.GONE
+        newsScrollAnim?.cancel()
+        newsScrollAnim = null
+        pendingNewsText = null
+        binding.newsTickerRow.visibility = View.GONE
+    }
+
+    private fun loopNewsScroll() {
+        val tv = binding.tvNewsTicker
+        if (binding.newsTickerRow.visibility != View.VISIBLE || !TickerManager.newsTickerEnabled) return
+        pendingNewsText?.let { tv.text = it; pendingNewsText = null }
+        val containerWidth = (tv.parent as View).width.toFloat()
+        tv.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val textWidth = tv.measuredWidth.toFloat()
+        if (containerWidth <= 0f || textWidth <= 0f) { tv.post { loopNewsScroll() }; return }
+        val pxPerSec = 60f * resources.displayMetrics.density
+        val duration = ((containerWidth + textWidth) / pxPerSec * 1000f).toLong()
+        tv.translationX = containerWidth
+        newsScrollAnim = ValueAnimator.ofFloat(containerWidth, -textWidth).apply {
+            this.duration = duration
+            interpolator = LinearInterpolator()
+            addUpdateListener { tv.translationX = it.animatedValue as Float }
+            addListener(object : AnimatorListenerAdapter() {
+                private var cancelled = false
+                override fun onAnimationCancel(a: Animator) { cancelled = true }
+                override fun onAnimationEnd(a: Animator) { if (!cancelled) loopNewsScroll() }
+            })
+            start()
+        }
     }
 
     private fun fetchNewsHeadlines() {
@@ -710,8 +793,16 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun updateNewsTickerText() {
         if (!TickerManager.newsTickerEnabled) return
-        binding.tvNewsTicker.text = TickerManager.buildNewsText()
-        binding.tvNewsTicker.isSelected = true
+        val newText = TickerManager.buildNewsText()
+        if (newsShowingPlaceholder) {
+            newsShowingPlaceholder = false
+            newsScrollAnim?.cancel()
+            newsScrollAnim = null
+            binding.tvNewsTicker.text = newText
+            loopNewsScroll()
+        } else {
+            pendingNewsText = newText
+        }
     }
 
     // ── MPV player (VOD) ─────────────────────────────────────────────────────

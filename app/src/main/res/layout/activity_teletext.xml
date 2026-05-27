@@ -83,25 +83,57 @@
             android:visibility="gone" />
     </LinearLayout>
 
-    <!-- Content area -->
-    <ScrollView
+    <!-- Content area — three mutually exclusive children, shown one at a time -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#000000"
-        android:scrollbars="none">
+        android:background="#000000">
 
-        <TextView
-            android:id="@+id/tv_content"
+        <!-- Index page / loading / empty text -->
+        <ScrollView
+            android:id="@+id/scroll_index"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:typeface="monospace"
-            android:lineSpacingExtra="4dp" />
+            android:layout_height="match_parent"
+            android:scrollbars="none"
+            android:visibility="visible">
+            <TextView
+                android:id="@+id/tv_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:typeface="monospace"
+                android:lineSpacingExtra="4dp" />
+        </ScrollView>
 
-    </ScrollView>
+        <!-- Sport page — focusable headline list for D-pad navigation -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_headlines"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <!-- Article detail view -->
+        <ScrollView
+            android:id="@+id/scroll_article"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="none"
+            android:visibility="gone">
+            <TextView
+                android:id="@+id/tv_article"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:typeface="monospace"
+                android:lineSpacingExtra="4dp" />
+        </ScrollView>
+
+    </FrameLayout>
 
     <!-- Navigation bar -->
     <LinearLayout

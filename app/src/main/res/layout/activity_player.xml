@@ -410,43 +410,49 @@
         android:layout_gravity="bottom"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_news_ticker"
+        <FrameLayout
+            android:id="@+id/news_ticker_row"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:background="#DD001008"
-            android:textColor="#FFCC00"
-            android:textSize="12sp"
-            android:fontFamily="sans-serif-condensed"
-            android:textStyle="bold"
-            android:singleLine="true"
-            android:ellipsize="marquee"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:scrollHorizontally="true"
-            android:focusable="false"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:gravity="center_vertical"
-            android:visibility="gone" />
+            android:clipChildren="true"
+            android:visibility="gone">
+            <TextView
+                android:id="@+id/tv_news_ticker"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:textColor="#FFCC00"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:focusable="false"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:gravity="center_vertical" />
+        </FrameLayout>
 
-        <TextView
-            android:id="@+id/tv_ticker"
+        <FrameLayout
+            android:id="@+id/ticker_row"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:background="#DD000A1A"
-            android:textColor="#00CCCC"
-            android:textSize="13sp"
-            android:fontFamily="sans-serif-condensed"
-            android:textStyle="bold"
-            android:singleLine="true"
-            android:ellipsize="marquee"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:scrollHorizontally="true"
-            android:focusable="false"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:gravity="center_vertical"
-            android:visibility="gone" />
+            android:clipChildren="true"
+            android:visibility="gone">
+            <TextView
+                android:id="@+id/tv_ticker"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:textColor="#00CCCC"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:focusable="false"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:gravity="center_vertical" />
+        </FrameLayout>
 
     </LinearLayout>
 
