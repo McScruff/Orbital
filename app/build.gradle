@@ -1,27 +1,32 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
 }
 
+def localProps = new Properties()
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) localProps.load(localPropsFile.newInputStream())
+
 android {
-    namespace 'com.skyretro.iptv'
+    namespace 'com.orbital.iptv'
     compileSdk 34
 
     signingConfigs {
         release {
-            storeFile file('../skyretro-release.jks')
-            storePassword "2QVZ'M0XY=,&AO1\\V*|3E774V7QC.I\$%"
-            keyAlias 'skyretro'
-            keyPassword "2QVZ'M0XY=,&AO1\\V*|3E774V7QC.I\$%"
+            storeFile file('../orbital-release.jks')
+            storePassword localProps.getProperty("ORBITAL_STORE_PASS", "")
+            keyAlias 'orbital'
+            keyPassword localProps.getProperty("ORBITAL_KEY_PASS", "")
         }
     }
 
     defaultConfig {
-        applicationId "com.skyretro.iptv"
+        applicationId "com.orbital.iptv"
         minSdk 21
         targetSdk 34
-        versionCode 7
-        versionName "1.6"
+        versionCode 8
+        versionName "1.0.7"
 
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
@@ -81,5 +86,11 @@ dependencies {
 
     // SharedPreferences encrypted
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // Recording: Room, WorkManager (stream recording uses OkHttp already in project)
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    ksp 'androidx.room:room-compiler:2.6.1'
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
 
 }
