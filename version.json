@@ -1,6 +1,6 @@
 {
-  "version_code": 6,
-  "version_name": "1.0.5",
+  "version_code": 7,
+  "version_name": "1.0.6",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "Fixed: Emby series search bar now reachable via D-pad on Firestick and other TV remotes"
+  "release_notes": "Fixed: Search now builds its index on first use with a progress message, then searches instantly from cache"
 }
