@@ -1,6 +1,6 @@
 {
-  "version_code": 4,
-  "version_name": "1.0.3",
+  "version_code": 5,
+  "version_name": "1.0.4",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "Fixed: Search no longer crashes on low-memory devices like Chromecast"
+  "release_notes": "Fixed: Movies and series now appear in search results"
 }
