@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SkyRetro</string>
-    <string name="connect">CONNECT TO SKYRETRO</string>
+    <string name="app_name">Orbital</string>
+    <string name="connect">CONNECT TO ORBITAL</string>
     <string name="connecting">CONNECTING...</string>
     <string name="error_fill_fields">PLEASE FILL IN ALL FIELDS</string>
     <string name="live">● LIVE</string>

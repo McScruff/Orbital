@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="4dp"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:clickable="true"
     android:focusable="true">
 

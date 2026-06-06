@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:fillViewport="true">
 
     <LinearLayout
@@ -14,6 +14,7 @@
 
         <!-- Logo bar -->
         <LinearLayout
+        android:id="@+id/layout_header"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@color/sky_header_blue"
@@ -24,17 +25,32 @@
             <LinearLayout
                 android:layout_width="80dp"
                 android:layout_height="match_parent"
-                android:background="@color/sky_dark_blue"
-                android:gravity="center">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="sky"
-                    android:textColor="@color/sky_cyan"
-                    android:textSize="18sp"
-                    android:fontFamily="sans-serif-condensed"
-                    android:textStyle="bold" />
+                android:background="@color/orbital_dark_blue"
+                android:gravity="center"
+                android:focusable="false">
+                <ImageView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:src="@drawable/orbital_logo"
+                    android:scaleType="fitCenter"
+                    android:focusable="false"
+                    android:contentDescription="Orbital" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="&#9664; BACK"
+                android:textColor="@color/sky_white"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-condensed"
+                android:background="@color/sky_header_blue"
+                android:clickable="true"
+                android:focusable="true" />
 
             <TextView
                 android:layout_width="0dp"
@@ -70,7 +86,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="DIRECT"
-                    android:textColor="@color/sky_dark_blue"
+                    android:textColor="@color/orbital_dark_blue"
                     android:textSize="13sp"
                     android:fontFamily="sans-serif-condensed"
                     android:textStyle="bold"
@@ -325,7 +341,7 @@
                     android:layout_height="48dp"
                     android:gravity="center"
                     android:text="SIGN IN ▶"
-                    android:textColor="@color/sky_dark_blue"
+                    android:textColor="@color/orbital_dark_blue"
                     android:textSize="14sp"
                     android:fontFamily="sans-serif-condensed"
                     android:textStyle="bold"

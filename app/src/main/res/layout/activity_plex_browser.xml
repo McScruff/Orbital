@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/orbital_dark_blue"
+    android:orientation="vertical">
+
+    <!-- Top bar -->
+    <LinearLayout
+        android:id="@+id/layout_header"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/sky_header_blue"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:background="@color/orbital_dark_blue"
+            android:gravity="center"
+            android:focusable="false">
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/orbital_logo"
+                android:scaleType="fitCenter"
+                android:focusable="false"
+                android:contentDescription="Orbital" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="&#9664; BACK"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:background="@color/sky_header_blue"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/tv_breadcrumb"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="PLEX"
+            android:textColor="#E5A00D"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:background="@color/sky_tab_selected" />
+
+        <TextView
+            android:id="@+id/tv_username"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#88AABBCC"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif-condensed" />
+
+        <TextView
+            android:id="@+id/btn_logout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="SIGN OUT"
+            android:textColor="#FF8888"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif-condensed"
+            android:background="@color/sky_header_blue"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#E5A00D" />
+
+    <!-- Tab bar -->
+    <LinearLayout
+        android:id="@+id/tab_bar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/sky_mid_blue"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tab_continue"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="CONTINUE"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/tab_movies"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="MOVIES"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/tab_tv"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="TV SHOWS"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/tab_music"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="MUSIC"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <!-- Search bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#0A1628"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="&#128269;"
+            android:textSize="14sp"
+            android:textColor="#E5A00D"
+            android:paddingEnd="8dp" />
+
+        <EditText
+            android:id="@+id/et_search"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Search…"
+            android:textColorHint="#446688"
+            android:textColor="@color/sky_white"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-condensed"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:singleLine="true"
+            android:maxLines="1" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1A2E4A" />
+
+    <!-- Loading bar -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        android:progressTint="#E5A00D"
+        android:indeterminateTint="#E5A00D" />
+
+    <!-- Content area: optional category sidebar + grid -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <ScrollView
+            android:id="@+id/category_scroll"
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:background="#0A1220"
+            android:visibility="gone">
+            <LinearLayout
+                android:id="@+id/category_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+        </ScrollView>
+
+        <View
+            android:id="@+id/category_divider"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#1A2E4A"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/tv_empty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="NOTHING HERE YET"
+                android:textColor="#446688"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="8dp"
+                android:scrollbars="vertical" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

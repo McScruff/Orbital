@@ -54,14 +54,16 @@
     </LinearLayout>
 
     <View
+        android:id="@+id/view_accent"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/sky_cyan" />
 
-    <com.skyretro.iptv.ui.epg.EpgView
+    <com.orbital.iptv.ui.epg.EpgView
         android:id="@+id/epg_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:focusable="true" />
 
 </LinearLayout>

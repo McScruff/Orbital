@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:orientation="vertical">
 
     <!-- Top nav bar -->
@@ -17,17 +17,15 @@
         <LinearLayout
             android:layout_width="80dp"
             android:layout_height="match_parent"
-            android:background="@color/sky_dark_blue"
+            android:background="@color/orbital_dark_blue"
             android:gravity="center"
             android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="sky"
-                android:textColor="@color/sky_cyan"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-condensed"
-                android:textStyle="bold" />
+<ImageView
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/orbital_logo"
+                android:scaleType="fitCenter"
+                android:contentDescription="Orbital" />
         </LinearLayout>
 
         <TextView
@@ -77,7 +75,7 @@
             android:layout_width="200dp"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:background="@color/sky_dark_blue">
+            android:background="@color/orbital_dark_blue">
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -158,7 +156,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="SKY DIGITAL  •  CATCHUP TV"
+            android:text="ORBITAL  •  CATCHUP TV"
             android:textColor="#668899"
             android:textSize="9sp"
             android:fontFamily="sans-serif-condensed" />

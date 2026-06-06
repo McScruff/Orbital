@@ -1,25 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
     <application
+        android:name=".OrbitalApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:banner="@drawable/tv_banner"
-        android:label="SkyRetro"
-        android:theme="@style/Theme.SkyRetro"
+        android:label="Orbital"
+        android:theme="@style/Theme.Orbital"
         android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true">
 
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true"
+            android:banner="@drawable/tv_banner"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,7 +48,8 @@
             android:name=".ui.player.PlayerActivity"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
+            android:supportsPictureInPicture="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" />
 
         <activity
             android:name=".ui.epg.EpgActivity"
@@ -74,7 +83,7 @@
             android:screenOrientation="landscape" />
 
         <activity
-            android:name=".ui.games.BeehiveBedlamActivity"
+            android:name=".ui.games.BubbleShooterActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
 
@@ -109,11 +118,6 @@
             android:screenOrientation="landscape" />
 
         <activity
-            android:name=".ui.settings.CategoryEditorActivity"
-            android:exported="false"
-            android:screenOrientation="landscape" />
-
-        <activity
             android:name=".ui.emby.EmbyLoginActivity"
             android:exported="false"
             android:screenOrientation="landscape"
@@ -123,6 +127,40 @@
             android:name=".ui.emby.EmbyBrowserActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".ui.plex.PlexLoginActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.plex.PlexBrowserActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".ui.search.GlobalSearchActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateAlwaysVisible|adjustPan" />
+
+        <activity
+            android:name=".recording.RecordingsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".ui.tv.TvModeActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <service
+            android:name=".recording.RecordingService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
 
         <provider
             android:name="androidx.core.content.FileProvider"

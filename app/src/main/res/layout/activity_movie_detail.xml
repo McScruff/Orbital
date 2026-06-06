@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:orientation="vertical">
 
     <!-- Top bar -->
@@ -110,7 +110,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="@color/sky_dark_blue">
+            android:background="@color/orbital_dark_blue">
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -216,7 +216,7 @@
                 android:layout_height="52dp"
                 android:gravity="center"
                 android:text="&#9654;  PLAY MOVIE"
-                android:textColor="@color/sky_dark_blue"
+                android:textColor="@color/orbital_dark_blue"
                 android:textSize="15sp"
                 android:fontFamily="sans-serif-condensed"
                 android:textStyle="bold"
@@ -224,6 +224,20 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:focusedByDefault="true" />
+
+            <TextView
+                android:id="@+id/btn_subs"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="CC  ADD SUBTITLES"
+                android:textColor="@color/sky_white"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:background="@color/sky_mid_blue"
+                android:clickable="true"
+                android:focusable="true" />
 
             <TextView
                 android:id="@+id/btn_fav"

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.SkyRetro" parent="Theme.AppCompat.NoActionBar">
-        <item name="colorPrimary">@color/sky_dark_blue</item>
-        <item name="colorPrimaryDark">@color/sky_dark_blue</item>
+    <style name="Theme.Orbital" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/orbital_dark_blue</item>
+        <item name="colorPrimaryDark">@color/orbital_dark_blue</item>
         <item name="colorAccent">@color/sky_cyan</item>
-        <item name="android:windowBackground">@color/sky_dark_blue</item>
-        <item name="android:statusBarColor">@color/sky_dark_blue</item>
-        <item name="android:navigationBarColor">@color/sky_dark_blue</item>
+        <item name="android:windowBackground">@color/orbital_dark_blue</item>
+        <item name="android:statusBarColor">@color/orbital_dark_blue</item>
+        <item name="android:navigationBarColor">@color/orbital_dark_blue</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
     </style>
 
-    <style name="Theme.SkyRetro.Dialog" parent="Theme.AppCompat.Dialog.Alert">
+    <style name="Theme.Orbital.Dialog" parent="Theme.AppCompat.Dialog.Alert">
         <item name="android:windowBackground">@drawable/bg_dialog</item>
         <item name="android:textColorPrimary">@color/sky_white</item>
         <item name="android:colorAccent">@color/sky_cyan</item>

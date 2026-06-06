@@ -2,11 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:orientation="vertical">
 
     <!-- Top bar -->
     <LinearLayout
+        android:id="@+id/layout_header"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:background="@color/sky_header_blue"
@@ -16,16 +17,16 @@
         <LinearLayout
             android:layout_width="80dp"
             android:layout_height="match_parent"
-            android:background="@color/sky_dark_blue"
-            android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="sky"
-                android:textColor="@color/sky_cyan"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-condensed"
-                android:textStyle="bold" />
+            android:background="@color/orbital_dark_blue"
+            android:gravity="center"
+            android:focusable="false">
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/orbital_logo"
+                android:scaleType="fitCenter"
+                android:focusable="false"
+                android:contentDescription="Orbital" />
         </LinearLayout>
 
         <TextView
@@ -87,6 +88,7 @@
     </LinearLayout>
 
     <View
+        android:id="@+id/view_accent"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/sky_cyan" />
@@ -189,7 +191,9 @@
             android:inputType="text"
             android:imeOptions="actionSearch"
             android:singleLine="true"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
 
     </LinearLayout>
 
@@ -209,27 +213,61 @@
         android:progressTint="@color/sky_cyan"
         android:indeterminateTint="@color/sky_cyan" />
 
-    <!-- Empty state -->
-    <TextView
-        android:id="@+id/tv_empty"
+    <!-- Content area: optional category sidebar + grid -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:gravity="center"
-        android:text="NOTHING HERE YET"
-        android:textColor="#446688"
-        android:textSize="14sp"
-        android:fontFamily="sans-serif-condensed"
-        android:visibility="gone" />
+        android:orientation="horizontal">
 
-    <!-- Content -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:padding="8dp"
-        android:scrollbars="vertical" />
+        <ScrollView
+            android:id="@+id/category_scroll"
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:background="#0A1220"
+            android:visibility="gone">
+            <LinearLayout
+                android:id="@+id/category_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+        </ScrollView>
+
+        <View
+            android:id="@+id/category_divider"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#1A2E4A"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/tv_empty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="NOTHING HERE YET"
+                android:textColor="#446688"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="8dp"
+                android:scrollbars="vertical" />
+
+        </FrameLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

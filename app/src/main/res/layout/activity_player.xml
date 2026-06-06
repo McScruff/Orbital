@@ -11,7 +11,7 @@
         android:layout_height="match_parent" />
 
     <!-- MPV surface (movies and series — all codecs) -->
-    <com.skyretro.iptv.ui.player.SkyMpvView
+    <com.orbital.iptv.ui.player.SkyMpvView
         android:id="@+id/mpv_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -178,7 +178,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:background="@color/sky_dark_blue"
+        android:background="@color/orbital_dark_blue"
         android:visibility="gone">
 
         <!-- Thin cyan top accent line -->
@@ -255,6 +255,25 @@
                 android:textStyle="bold"
                 android:maxLines="1"
                 android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/btn_record"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:gravity="center"
+                android:text="● REC"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:background="#8B0000"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginStart="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone" />
 
         </LinearLayout>
 

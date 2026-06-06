@@ -1,4 +1,4 @@
-# 📺 Sky Retro IPTV — Android App
+# 📺 Orbital — Android App
 
 A faithful recreation of the **Sky Digital Guide UI from the 1990s**, built as a fully functional Android IPTV app using **Xtream Codes** for live TV streaming.
 
@@ -11,7 +11,7 @@ Inspired by the original Sky Digital EPG (Electronic Programme Guide) interface:
 - **Deep navy blue** background (`#0D1B35`)
 - **Cyan** (`#00CCFF`) and **gold/yellow** (`#FFCC00`) accent colours
 - `sans-serif-condensed` font throughout — matching the 90s Sky aesthetic
-- Numbered category menu (1–8) exactly matching the original SkyRetro layout
+- Numbered category menu (1–8) exactly matching the original Orbital layout
 - Top navigation bar with TV GUIDE / BOX OFFICE / SERVICES / INTERACTIVE tabs
 
 ---
@@ -19,10 +19,10 @@ Inspired by the original Sky Digital EPG (Electronic Programme Guide) interface:
 ## 📂 Project Structure
 
 ```
-SkyRetroIPTV/
+Orbital/
 ├── app/src/main/
 │   ├── AndroidManifest.xml
-│   ├── java/com/skyretro/iptv/
+│   ├── java/com/orbital/iptv/
 │   │   ├── data/
 │   │   │   ├── api/
 │   │   │   │   ├── ApiClient.kt          # Retrofit setup
@@ -35,7 +35,7 @@ SkyRetroIPTV/
 │   │   │   ├── login/
 │   │   │   │   └── LoginActivity.kt      # Xtream login screen
 │   │   │   ├── home/
-│   │   │   │   ├── HomeActivity.kt       # Main SkyRetro UI
+│   │   │   │   ├── HomeActivity.kt       # Main Orbital UI
 │   │   │   │   ├── HomeViewModel.kt      # Category + channel logic
 │   │   │   │   └── ChannelAdapter.kt     # RecyclerView adapter
 │   │   │   └── player/
@@ -45,7 +45,7 @@ SkyRetroIPTV/
 │   └── res/
 │       ├── layout/
 │       │   ├── activity_login.xml        # Login screen
-│       │   ├── activity_home.xml         # SkyRetro main screen
+│       │   ├── activity_home.xml         # Orbital main screen
 │       │   ├── activity_player.xml       # Full-screen player
 │       │   └── item_channel.xml          # Channel list row
 │       └── values/
@@ -68,7 +68,7 @@ SkyRetroIPTV/
 
 1. **Open in Android Studio**
    ```
-   File → Open → Select the SkyRetroIPTV folder
+   File → Open → Select the Orbital folder
    ```
 
 2. **Sync Gradle**
@@ -102,7 +102,7 @@ Stream URLs are built as:
 
 ---
 
-## 📺 SkyRetro Category Mapping
+## 📺 Orbital Category Mapping
 
 The app automatically maps your provider's categories to Sky's iconic 8-slot menu:
 

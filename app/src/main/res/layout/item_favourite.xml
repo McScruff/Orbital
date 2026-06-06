@@ -6,7 +6,7 @@
     android:gravity="center_vertical"
     android:clickable="true"
     android:focusable="true"
-    android:background="@color/sky_dark_blue">
+    android:background="@color/orbital_dark_blue">
 
     <!-- Art thumbnail -->
     <ImageView
@@ -90,7 +90,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="&#9654;"
-        android:textColor="@color/sky_dark_blue"
+        android:textColor="@color/orbital_dark_blue"
         android:textSize="12sp"
         android:fontFamily="sans-serif-condensed"
         android:textStyle="bold"

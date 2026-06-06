@@ -15,6 +15,9 @@ local.properties
 # Temp / misc
 temp_mpv/
 *.txt
+*.apk
+"orbital logo.png"
+UsersMcScrDesktopOrbitalPublic/
 
 # OS
 .DS_Store

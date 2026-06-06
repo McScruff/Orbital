@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:orientation="vertical">
 
     <!-- ═══ TOP NAV BAR ═══ -->
@@ -14,21 +14,19 @@
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <!-- Sky Logo -->
+        <!-- Orbital Logo -->
         <LinearLayout
             android:layout_width="80dp"
             android:layout_height="match_parent"
-            android:background="@color/sky_dark_blue"
+            android:background="@color/orbital_dark_blue"
             android:gravity="center"
             android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="sky"
-                android:textColor="@color/sky_cyan"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-condensed"
-                android:textStyle="bold" />
+            <ImageView
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/orbital_logo"
+                android:scaleType="fitCenter"
+                android:contentDescription="Orbital" />
         </LinearLayout>
 
         <!-- Top Nav Tabs -->
@@ -126,7 +124,7 @@
         <ScrollView
             android:layout_width="200dp"
             android:layout_height="match_parent"
-            android:background="@color/sky_dark_blue"
+            android:background="@color/orbital_dark_blue"
             android:scrollbars="none">
 
             <LinearLayout
@@ -142,7 +140,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="8dp"
                     android:text="  1  TV GUIDE"
-                    android:textColor="@color/sky_dark_blue"
+                    android:textColor="@color/orbital_dark_blue"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-condensed"
                     android:textStyle="bold"
@@ -173,7 +171,7 @@
                     android:id="@+id/cat_movies"
                     android:layout_width="match_parent"
                     android:layout_height="34dp"
-                    android:background="@color/sky_dark_blue"
+                    android:background="@color/orbital_dark_blue"
                     android:gravity="center_vertical"
                     android:paddingStart="8dp"
                     android:text="  3  MOVIES"
@@ -207,7 +205,7 @@
                     android:id="@+id/cat_news"
                     android:layout_width="match_parent"
                     android:layout_height="34dp"
-                    android:background="@color/sky_dark_blue"
+                    android:background="@color/orbital_dark_blue"
                     android:gravity="center_vertical"
                     android:paddingStart="8dp"
                     android:text="  5  NEWS"
@@ -241,7 +239,7 @@
                     android:id="@+id/cat_music"
                     android:layout_width="match_parent"
                     android:layout_height="34dp"
-                    android:background="@color/sky_dark_blue"
+                    android:background="@color/orbital_dark_blue"
                     android:gravity="center_vertical"
                     android:paddingStart="8dp"
                     android:text="  7  MUSIC"
@@ -346,7 +344,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="SKY DIGITAL  •  USE ARROWS TO NAVIGATE"
+            android:text="ORBITAL  •  USE ARROWS TO NAVIGATE"
             android:textColor="#668899"
             android:textSize="9sp"
             android:fontFamily="sans-serif-condensed" />

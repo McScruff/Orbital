@@ -2,11 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:orientation="vertical">
 
     <!-- Top bar -->
     <LinearLayout
+        android:id="@+id/layout_header"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:background="@color/sky_header_blue"
@@ -16,16 +17,14 @@
         <LinearLayout
             android:layout_width="80dp"
             android:layout_height="match_parent"
-            android:background="@color/sky_dark_blue"
+            android:background="@color/orbital_dark_blue"
             android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="sky"
-                android:textColor="@color/sky_cyan"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-condensed"
-                android:textStyle="bold" />
+<ImageView
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/orbital_logo"
+                android:scaleType="fitCenter"
+                android:contentDescription="Orbital" />
         </LinearLayout>
 
         <TextView
@@ -59,6 +58,7 @@
     </LinearLayout>
 
     <View
+        android:id="@+id/view_accent"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/sky_cyan" />
@@ -238,7 +238,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SKY DIGITAL  •  SPORTS"
+            android:text="ORBITAL  •  SPORTS"
             android:textColor="#668899"
             android:textSize="9sp"
             android:fontFamily="sans-serif-condensed" />

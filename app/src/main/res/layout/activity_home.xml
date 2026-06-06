@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:orientation="vertical">
 
     <!-- ═══ TOP NAV BAR ═══ -->
@@ -14,32 +14,20 @@
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <!-- Sky Logo -->
+        <!-- Orbital Logo -->
         <LinearLayout
             android:layout_width="110dp"
             android:layout_height="match_parent"
-            android:background="@color/sky_dark_blue"
+            android:background="@color/orbital_dark_blue"
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="sky"
-                android:textColor="@color/sky_cyan"
-                android:textSize="26sp"
-                android:fontFamily="sans-serif-condensed"
-                android:textStyle="bold"
-                android:letterSpacing="0.05" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="retro"
-                android:textColor="@color/sky_white"
-                android:textSize="11sp"
-                android:fontFamily="sans-serif-condensed"
-                android:letterSpacing="0.1" />
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:src="@drawable/orbital_logo"
+                android:scaleType="fitCenter"
+                android:contentDescription="Orbital" />
         </LinearLayout>
 
         <!-- 2dp separator -->
@@ -149,7 +137,7 @@
         <ScrollView
             android:layout_width="260dp"
             android:layout_height="match_parent"
-            android:background="@color/sky_dark_blue"
+            android:background="@color/orbital_dark_blue"
             android:scrollbars="none">
 
             <LinearLayout
@@ -167,7 +155,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="12dp"
                     android:text="  1  TV GUIDE LISTINGS"
-                    android:textColor="@color/sky_dark_blue"
+                    android:textColor="@color/orbital_dark_blue"
                     android:textSize="13sp"
                     android:fontFamily="sans-serif-condensed"
                     android:textStyle="bold"
@@ -198,7 +186,7 @@
                     android:id="@+id/cat_movies"
                     android:layout_width="match_parent"
                     android:layout_height="38dp"
-                    android:background="@color/sky_dark_blue"
+                    android:background="@color/orbital_dark_blue"
                     android:gravity="center_vertical"
                     android:paddingStart="12dp"
                     android:text="  3  MOVIES"
@@ -232,7 +220,7 @@
                     android:id="@+id/cat_news"
                     android:layout_width="match_parent"
                     android:layout_height="38dp"
-                    android:background="@color/sky_dark_blue"
+                    android:background="@color/orbital_dark_blue"
                     android:gravity="center_vertical"
                     android:paddingStart="12dp"
                     android:text="  5  NEWS &amp; DOCUMENTARIES"
@@ -266,7 +254,7 @@
                     android:id="@+id/cat_music"
                     android:layout_width="match_parent"
                     android:layout_height="38dp"
-                    android:background="@color/sky_dark_blue"
+                    android:background="@color/orbital_dark_blue"
                     android:gravity="center_vertical"
                     android:paddingStart="12dp"
                     android:text="  7  MUSIC &amp; SPECIALIST"
@@ -338,7 +326,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="@color/sky_dark_blue">
+            android:background="@color/orbital_dark_blue">
 
             <!-- Category title bar -->
             <TextView
@@ -401,7 +389,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="SKYRETRO  •  SELECT A CHANNEL TO WATCH"
+            android:text="ORBITAL  •  SELECT A CHANNEL TO WATCH"
             android:textColor="#556677"
             android:textSize="10sp"
             android:fontFamily="sans-serif-condensed"

@@ -19,6 +19,23 @@
             android:scaleType="centerCrop"
             android:background="#0D1B35" />
 
+        <!-- Resolution badge: top-right corner of poster -->
+        <TextView
+            android:id="@+id/tv_resolution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:background="#CC000000"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:textColor="#E5A00D"
+            android:textSize="8sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
         <!-- Watch progress strip at bottom of poster -->
         <ProgressBar
             android:id="@+id/progress_watched"

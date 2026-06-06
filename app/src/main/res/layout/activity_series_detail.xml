@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:orientation="vertical">
 
     <!-- Top bar -->
@@ -109,7 +109,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:scrollbars="none"
-                android:background="@color/sky_dark_blue">
+                android:background="@color/orbital_dark_blue">
 
                 <LinearLayout
                     android:layout_width="match_parent"

@@ -6,7 +6,7 @@
     android:gravity="center_vertical"
     android:paddingStart="12dp"
     android:paddingEnd="8dp"
-    android:background="@color/sky_dark_blue"
+    android:background="@color/orbital_dark_blue"
     android:clickable="true"
     android:focusable="true">
 
@@ -53,7 +53,7 @@
         android:layout_height="32dp"
         android:gravity="center"
         android:text="&#9654; PLAY"
-        android:textColor="@color/sky_dark_blue"
+        android:textColor="@color/orbital_dark_blue"
         android:textSize="10sp"
         android:fontFamily="sans-serif-condensed"
         android:textStyle="bold"
