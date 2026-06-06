@@ -1,7 +1,7 @@
 🛰️ Orbital v1.0 — First Release
 
 Features
-📺 Live TV with full EPG grid\n
+📺 Live TV with full EPG grid
 ⏮️ Catch-up / Time-shift support
 🎬 Movies with artwork & metadata
 📂 Series with season/episode browsing
