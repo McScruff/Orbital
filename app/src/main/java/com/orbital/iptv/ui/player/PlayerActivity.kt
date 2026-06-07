@@ -37,8 +37,12 @@ import com.orbital.iptv.utils.EpgCache
 import com.orbital.iptv.utils.EmbyPrefsManager
 import com.orbital.iptv.utils.PlexPrefsManager
 import com.orbital.iptv.utils.FavouritesManager
+import com.orbital.iptv.utils.PlayerEngine
 import com.orbital.iptv.utils.PrefsManager
 import com.orbital.iptv.utils.TickerManager
+import org.videolan.libvlc.LibVLC
+import org.videolan.libvlc.Media
+import org.videolan.libvlc.MediaPlayer as VLCMediaPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -132,6 +136,8 @@ class PlayerActivity : AppCompatActivity() {
     private var enteringPip = false
     private var subtitlePath = ""
 
+    private var currentEngine = PlayerEngine.MPV
+
     // MPV
     private var mpvReady = false
     private var mpvStartedPlayingOnce = false
@@ -187,6 +193,10 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    // VLC
+    private var vlcLibrary: LibVLC? = null
+    private var vlcPlayer: VLCMediaPlayer? = null
+
     private var pendingTickerText: String? = null
     private var pendingNewsText: String? = null
     private var tickerScrollAnim: ValueAnimator? = null
@@ -224,6 +234,12 @@ class PlayerActivity : AppCompatActivity() {
         plexDurationMs  = intent.getLongExtra(EXTRA_PLEX_DURATION_MS, 0L)
         subtitlePath    = intent.getStringExtra(EXTRA_SUBTITLE_PATH) ?: ""
 
+        currentEngine = when {
+            isLive       -> PrefsManager.getLivePlayer(this)
+            seriesId >= 0 -> PrefsManager.getSeriesPlayer(this)
+            else          -> PrefsManager.getMoviePlayer(this)
+        }
+
         binding.tvPlayerTitle.text = channelName.uppercase()
 
         binding.btnBack.setOnClickListener { finish() }
@@ -235,14 +251,16 @@ class PlayerActivity : AppCompatActivity() {
         binding.root.setOnClickListener {
             if (hasError) {
                 hasError = false
-                if (mpvReady) {
-                    mpvStartedPlayingOnce = false
-                    mpvLoadStartMs = System.currentTimeMillis()
-                    binding.mpvView.loadUrl(streamUrl, 0L)
-                    binding.progressBar.visibility = View.VISIBLE
-                    setStatus("CONNECTING...", COLOR_BUFFERING)
-                } else {
-                    playMedia()
+                when {
+                    mpvReady -> {
+                        mpvStartedPlayingOnce = false
+                        mpvLoadStartMs = System.currentTimeMillis()
+                        binding.mpvView.loadUrl(streamUrl, 0L)
+                        binding.progressBar.visibility = View.VISIBLE
+                        setStatus("CONNECTING...", COLOR_BUFFERING)
+                    }
+                    vlcPlayer != null -> retryVlc()
+                    else -> playMedia()
                 }
             } else {
                 showOverlay()
@@ -465,41 +483,59 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun togglePause() {
         if (isLive) return
-        if (mpvReady) {
-            val paused = binding.mpvView.isPaused()
-            binding.mpvView.setPaused(!paused)
-            showOverlay()
-            if (!paused) overlayHandler.removeCallbacks(hideOverlayRunnable)
-        } else if (::player.isInitialized) {
-            if (player.isPlaying) {
-                player.pause()
+        when {
+            mpvReady -> {
+                val paused = binding.mpvView.isPaused()
+                binding.mpvView.setPaused(!paused)
                 showOverlay()
-                overlayHandler.removeCallbacks(hideOverlayRunnable)
-            } else {
-                player.play()
-                showOverlay()
+                if (!paused) overlayHandler.removeCallbacks(hideOverlayRunnable)
+            }
+            vlcPlayer != null -> {
+                val vp = vlcPlayer!!
+                if (vp.isPlaying) {
+                    vp.pause(); showOverlay(); overlayHandler.removeCallbacks(hideOverlayRunnable)
+                } else {
+                    vp.play(); showOverlay()
+                }
+            }
+            ::player.isInitialized -> {
+                if (player.isPlaying) {
+                    player.pause(); showOverlay(); overlayHandler.removeCallbacks(hideOverlayRunnable)
+                } else {
+                    player.play(); showOverlay()
+                }
             }
         }
     }
 
     private fun updatePauseButton() {
         if (isLive) return
-        val playing = if (mpvReady) !binding.mpvView.isPaused()
-                      else ::player.isInitialized && player.isPlaying
+        val playing = when {
+            mpvReady -> !binding.mpvView.isPaused()
+            vlcPlayer != null -> vlcPlayer!!.isPlaying
+            ::player.isInitialized -> player.isPlaying
+            else -> false
+        }
         binding.btnPause.text = if (playing) "▌▌  PAUSE" else "▶  RESUME"
     }
 
     private fun seekBy(deltaMs: Long) {
         val dur: Long
         val base: Long
-        if (mpvReady) {
-            dur = binding.mpvView.getDurationMs().takeIf { it > 0L } ?: return
-            base = if (pendingSeekTargetMs >= 0L) pendingSeekTargetMs
-                   else binding.mpvView.getCurrentPositionMs()
-        } else {
-            if (!::player.isInitialized) return
-            dur = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: return
-            base = if (pendingSeekTargetMs >= 0L) pendingSeekTargetMs else player.currentPosition
+        when {
+            mpvReady -> {
+                dur = binding.mpvView.getDurationMs().takeIf { it > 0L } ?: return
+                base = if (pendingSeekTargetMs >= 0L) pendingSeekTargetMs else binding.mpvView.getCurrentPositionMs()
+            }
+            vlcPlayer != null -> {
+                dur = vlcPlayer!!.length.takeIf { it > 0L } ?: return
+                base = if (pendingSeekTargetMs >= 0L) pendingSeekTargetMs else vlcPlayer!!.time.coerceAtLeast(0L)
+            }
+            ::player.isInitialized -> {
+                dur = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: return
+                base = if (pendingSeekTargetMs >= 0L) pendingSeekTargetMs else player.currentPosition
+            }
+            else -> return
         }
         pendingSeekTargetMs = (base + deltaMs).coerceIn(0L, dur)
 
@@ -520,17 +556,30 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun commitPendingSeek() {
         if (pendingSeekTargetMs < 0L) return
-        if (mpvReady) binding.mpvView.seekTo(pendingSeekTargetMs)
-        else if (::player.isInitialized) player.seekTo(pendingSeekTargetMs)
+        when {
+            mpvReady -> binding.mpvView.seekTo(pendingSeekTargetMs)
+            vlcPlayer != null -> vlcPlayer!!.time = pendingSeekTargetMs
+            ::player.isInitialized -> player.seekTo(pendingSeekTargetMs)
+        }
         pendingSeekTargetMs = -1L
         seekHandler.postDelayed(hideSeekIndicatorRunnable, SEEK_INDICATOR_HIDE_MS)
     }
 
     private fun updatePositionDisplay() {
         if (mpvReady) { updateMpvPositionDisplay(); return }
+        if (vlcPlayer != null) { updateVlcPositionDisplay(); return }
         if (!::player.isInitialized) return
         val pos = player.currentPosition
         val dur = player.duration.takeIf { it != C.TIME_UNSET && it > 0L } ?: return
+        binding.tvPosition.text = "${formatMs(pos)} / ${formatMs(dur)}"
+        binding.vodProgress.progress = ((pos.toFloat() / dur) * 1000).toInt()
+    }
+
+    private fun updateVlcPositionDisplay() {
+        val vp = vlcPlayer ?: return
+        if (pendingSeekTargetMs >= 0L) return
+        val pos = vp.time.takeIf { it >= 0L } ?: return
+        val dur = vp.length.takeIf { it > 0L } ?: return
         binding.tvPosition.text = "${formatMs(pos)} / ${formatMs(dur)}"
         binding.vodProgress.progress = ((pos.toFloat() / dur) * 1000).toInt()
     }
@@ -543,11 +592,29 @@ class PlayerActivity : AppCompatActivity() {
 
     private val surfaceCallback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) {
-            if (::player.isInitialized) player.setVideoSurface(holder.surface)
+            when {
+                ::player.isInitialized -> player.setVideoSurface(holder.surface)
+                vlcPlayer != null && !(vlcPlayer!!.vlcVout.areViewsAttached()) -> {
+                    val vout = vlcPlayer!!.vlcVout
+                    vout.setVideoSurface(holder.surface, holder)
+                    vout.attachViews { _, _, _, _, _, _, _ ->
+                        runOnUiThread {
+                            val w = binding.surfaceView.width
+                            val h = binding.surfaceView.height
+                            if (w > 0 && h > 0) vout.setWindowSize(w, h)
+                        }
+                    }
+                    val w = binding.surfaceView.width
+                    val h = binding.surfaceView.height
+                    if (w > 0 && h > 0) vout.setWindowSize(w, h)
+                    vlcPlayer!!.videoScale = VLCMediaPlayer.ScaleType.SURFACE_BEST_FIT
+                }
+            }
         }
         override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
         override fun surfaceDestroyed(holder: SurfaceHolder) {
             if (::player.isInitialized) player.clearVideoSurface()
+            vlcPlayer?.vlcVout?.detachViews()
         }
     }
 
@@ -974,6 +1041,146 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun initExoPlayer() {
+        binding.mpvView.visibility = View.GONE
+        binding.surfaceView.visibility = View.VISIBLE
+        player = ExoPlayer.Builder(this).build()
+        player.addListener(playerListener)
+        binding.surfaceView.holder.addCallback(surfaceCallback)
+        player.setMediaItem(MediaItem.fromUri(streamUrl))
+        if (resumeMs > 0L) { player.seekTo(resumeMs); resumeMs = 0L }
+        player.prepare()
+        player.playWhenReady = true
+        binding.progressBar.visibility = View.VISIBLE
+        setStatus("CONNECTING...", COLOR_BUFFERING)
+    }
+
+    private fun initVlcPlayer() {
+        binding.mpvView.visibility = View.GONE
+        binding.surfaceView.visibility = View.VISIBLE
+        val lib = LibVLC(this, arrayListOf("--network-caching=1500", "--codec=mediacodec_ndk,all"))
+        vlcLibrary = lib
+        val vp = VLCMediaPlayer(lib)
+        vlcPlayer = vp
+        binding.surfaceView.holder.addCallback(surfaceCallback)
+        binding.surfaceView.keepScreenOn = true
+        val surface = binding.surfaceView.holder.surface
+        if (surface != null && surface.isValid) {
+            val vout = vp.vlcVout
+            vout.setVideoSurface(surface, binding.surfaceView.holder)
+            vout.attachViews { _, _, _, _, _, _, _ ->
+                runOnUiThread {
+                    val w = binding.surfaceView.width
+                    val h = binding.surfaceView.height
+                    if (w > 0 && h > 0) vout.setWindowSize(w, h)
+                }
+            }
+            val w = binding.surfaceView.width
+            val h = binding.surfaceView.height
+            if (w > 0 && h > 0) vp.vlcVout.setWindowSize(w, h)
+        }
+        vp.videoScale = VLCMediaPlayer.ScaleType.SURFACE_BEST_FIT
+        vp.setEventListener { event ->
+            when (event.type) {
+                VLCMediaPlayer.Event.Playing -> runOnUiThread {
+                    hasError = false
+                    binding.progressBar.visibility = View.GONE
+                    setStatus(if (isLive) "● LIVE" else "▶ PLAYING", if (isLive) COLOR_LIVE else COLOR_PLAYING)
+                    updatePauseButton()
+                    if (!isLive) { positionHandler.removeCallbacks(positionRunnable); positionHandler.post(positionRunnable) }
+                }
+                VLCMediaPlayer.Event.Paused -> runOnUiThread {
+                    setStatus("⏸ PAUSED", COLOR_PAUSED)
+                    positionHandler.removeCallbacks(positionRunnable)
+                    updatePauseButton()
+                }
+                VLCMediaPlayer.Event.Buffering -> runOnUiThread {
+                    if (event.buffering < 100f) {
+                        binding.progressBar.visibility = View.VISIBLE
+                        setStatus("BUFFERING...", COLOR_BUFFERING)
+                    } else {
+                        binding.progressBar.visibility = View.GONE
+                    }
+                }
+                VLCMediaPlayer.Event.EndReached -> runOnUiThread {
+                    binding.progressBar.visibility = View.GONE
+                    setStatus("FINISHED", COLOR_PLAYING)
+                    positionHandler.removeCallbacks(positionRunnable)
+                    if (!isLive && !episodeCompleted) {
+                        episodeCompleted = true
+                        when {
+                            favId.isNotEmpty() -> { handleCompletion(); showOverlay(); overlayHandler.removeCallbacks(hideOverlayRunnable) }
+                            embyItemId.isNotEmpty() -> markEmbyPlayedAndFinish()
+                            plexRatingKey.isNotEmpty() -> markPlexPlayedAndFinish()
+                            else -> { showOverlay(); overlayHandler.removeCallbacks(hideOverlayRunnable) }
+                        }
+                    }
+                }
+                VLCMediaPlayer.Event.EncounteredError -> runOnUiThread {
+                    binding.progressBar.visibility = View.GONE
+                    positionHandler.removeCallbacks(positionRunnable)
+                    hasError = true
+                    setStatus("STREAM ERROR — TAP TO RETRY", COLOR_ERROR)
+                    showOverlay()
+                }
+            }
+        }
+        val media = Media(lib, android.net.Uri.parse(streamUrl))
+        vp.media = media
+        media.release()
+        if (resumeMs > 0L) { vp.time = resumeMs; resumeMs = 0L }
+        vp.play()
+        binding.progressBar.visibility = View.VISIBLE
+        setStatus("CONNECTING...", COLOR_BUFFERING)
+    }
+
+    private fun retryVlc() {
+        val vp = vlcPlayer ?: return
+        val lib = vlcLibrary ?: return
+        val media = Media(lib, android.net.Uri.parse(streamUrl))
+        vp.media = media
+        media.release()
+        vp.play()
+        binding.progressBar.visibility = View.VISIBLE
+        setStatus("CONNECTING...", COLOR_BUFFERING)
+    }
+
+    private fun showVlcAudioPicker() {
+        val vp = vlcPlayer ?: return
+        val tracks = vp.audioTracks
+        if (tracks.isNullOrEmpty()) {
+            Toast.makeText(this, "NO AUDIO TRACKS FOUND IN THIS STREAM", Toast.LENGTH_SHORT).show()
+            overlayHandler.postDelayed(hideOverlayRunnable, OVERLAY_HIDE_DELAY_MS)
+            return
+        }
+        val currentId = vp.audioTrack
+        val labels = tracks.map { t -> "${if (t.id == currentId) "●" else "○"}  ${t.name.uppercase()}" }
+        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("AUDIO LANGUAGE")
+            .setItems(labels.toTypedArray()) { _, i -> vp.audioTrack = tracks[i].id }
+            .setOnDismissListener { overlayHandler.postDelayed(hideOverlayRunnable, OVERLAY_HIDE_DELAY_MS) }
+            .show()
+    }
+
+    private fun showVlcSubtitlePicker() {
+        val vp = vlcPlayer ?: return
+        data class SubEntry(val id: Int, val name: String)
+        val entries = mutableListOf(SubEntry(-1, "OFF"))
+        vp.spuTracks?.forEach { t -> entries.add(SubEntry(t.id, t.name)) }
+        if (entries.size == 1) {
+            Toast.makeText(this, "NO SUBTITLE TRACKS AVAILABLE", Toast.LENGTH_SHORT).show()
+            overlayHandler.postDelayed(hideOverlayRunnable, OVERLAY_HIDE_DELAY_MS)
+            return
+        }
+        val currentId = vp.spuTrack
+        val labels = entries.map { e -> "${if (e.id == currentId) "●" else "○"}  ${e.name.uppercase()}" }
+        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("SUBTITLES")
+            .setItems(labels.toTypedArray()) { _, i -> vp.spuTrack = entries[i].id }
+            .setOnDismissListener { overlayHandler.postDelayed(hideOverlayRunnable, OVERLAY_HIDE_DELAY_MS) }
+            .show()
+    }
+
     private fun updateMpvState() {
         if (!mpvReady) return
         val buffering = binding.mpvView.isBuffering()
@@ -1090,7 +1297,12 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun initPlayer() {
-        initMpvPlayer()
+        when (currentEngine) {
+            PlayerEngine.MPV      -> initMpvPlayer()
+            PlayerEngine.EXOPLAYER -> initExoPlayer()
+            PlayerEngine.VLC      -> initVlcPlayer()
+            PlayerEngine.EXTERNAL -> { launchExternalPlayer(); finish() }
+        }
     }
 
     private fun playMedia() {
@@ -1138,12 +1350,19 @@ class PlayerActivity : AppCompatActivity() {
         setStatus("LOADING...", COLOR_BUFFERING)
         showOverlay()
 
-        if (mpvReady) {
-            mpvStartedPlayingOnce = false
-            mpvLoadStartMs = System.currentTimeMillis()
-            binding.mpvView.loadUrl(streamUrl, 0L)
-        } else {
-            playMedia()
+        when {
+            mpvReady -> {
+                mpvStartedPlayingOnce = false
+                mpvLoadStartMs = System.currentTimeMillis()
+                binding.mpvView.loadUrl(streamUrl, 0L)
+            }
+            vlcPlayer != null -> {
+                val media = Media(vlcLibrary!!, android.net.Uri.parse(streamUrl))
+                vlcPlayer!!.media = media
+                media.release()
+                vlcPlayer!!.play()
+            }
+            else -> playMedia()
         }
 
         loadEpg()
@@ -1219,6 +1438,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun showAudioPicker() {
         if (mpvReady) { showMpvAudioPicker(); return }
+        if (vlcPlayer != null) { showVlcAudioPicker(); return }
         if (!::player.isInitialized) return
         overlayHandler.removeCallbacks(hideOverlayRunnable)
 
@@ -1259,6 +1479,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun showSubtitlePicker() {
         if (mpvReady) { showMpvSubtitlePicker(); return }
+        if (vlcPlayer != null) { showVlcSubtitlePicker(); return }
         if (!::player.isInitialized) return
         overlayHandler.removeCallbacks(hideOverlayRunnable)
 
@@ -1332,11 +1553,13 @@ class PlayerActivity : AppCompatActivity() {
         if (isLive || favId.isEmpty() || episodeCompleted) return
         val pos: Long = when {
             mpvReady              -> binding.mpvView.getCurrentPositionMs()
+            vlcPlayer != null     -> vlcPlayer!!.time.coerceAtLeast(0L)
             ::player.isInitialized -> player.currentPosition
             else                  -> return
         }.takeIf { it > 0L } ?: return
         val dur: Long = when {
             mpvReady              -> binding.mpvView.getDurationMs()
+            vlcPlayer != null     -> vlcPlayer!!.length
             ::player.isInitialized -> player.duration.takeIf { it != C.TIME_UNSET } ?: return
             else                  -> return
         }.takeIf { it > 0L } ?: return
@@ -1388,6 +1611,7 @@ class PlayerActivity : AppCompatActivity() {
         val session = EmbyPrefsManager.getSession(this) ?: return
         val posMs: Long = when {
             mpvReady              -> binding.mpvView.getCurrentPositionMs()
+            vlcPlayer != null     -> vlcPlayer!!.time.coerceAtLeast(0L)
             ::player.isInitialized -> player.currentPosition
             else                  -> 0L
         }
@@ -1428,6 +1652,7 @@ class PlayerActivity : AppCompatActivity() {
         val session = PlexPrefsManager.getSession(this) ?: return
         val posMs: Long = when {
             mpvReady              -> binding.mpvView.getCurrentPositionMs()
+            vlcPlayer != null     -> vlcPlayer!!.time.coerceAtLeast(0L)
             ::player.isInitialized -> player.currentPosition
             else                  -> 0L
         }
@@ -1465,9 +1690,15 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        binding.surfaceView.keepScreenOn = true
+        binding.mpvView.keepScreenOn = true
         enterFullscreen()
-        if (mpvReady) binding.mpvView.setPaused(false)
-        else if (::player.isInitialized && !hasError) player.playWhenReady = true
+        when {
+            mpvReady -> binding.mpvView.setPaused(false)
+            vlcPlayer != null && !hasError -> vlcPlayer!!.play()
+            ::player.isInitialized && !hasError -> player.playWhenReady = true
+        }
         com.orbital.iptv.utils.ReminderBus.register { r -> showReminderDialog(r) }
         if (isLive) {
             RecordingState.isLiveTvActive   = true
@@ -1484,8 +1715,11 @@ class PlayerActivity : AppCompatActivity() {
         super.onPause()
         if (enteringPip) { enteringPip = false; return }  // keep playing in PiP
         com.orbital.iptv.utils.ReminderBus.unregister()
-        if (mpvReady) binding.mpvView.setPaused(true)
-        else if (::player.isInitialized) player.pause()
+        when {
+            mpvReady -> binding.mpvView.setPaused(true)
+            vlcPlayer != null -> vlcPlayer!!.pause()
+            ::player.isInitialized -> player.pause()
+        }
         if (isLive) {
             RecordingState.unregisterStopLiveTv()
         }
@@ -1553,13 +1787,23 @@ class PlayerActivity : AppCompatActivity() {
         tickerHandler.removeCallbacksAndMessages(null)
         newsHandler.removeCallbacksAndMessages(null)
         mpvHandler.removeCallbacksAndMessages(null)
-        if (mpvReady) {
-            binding.mpvView.release()
-        } else {
-            binding.surfaceView.holder.removeCallback(surfaceCallback)
-            if (::player.isInitialized) {
-                player.removeListener(playerListener)
-                player.release()
+        when {
+            mpvReady -> binding.mpvView.release()
+            vlcPlayer != null -> {
+                vlcPlayer!!.stop()
+                runCatching { vlcPlayer!!.vlcVout.detachViews() }
+                vlcPlayer!!.release()
+                vlcLibrary?.release()
+                vlcPlayer = null
+                vlcLibrary = null
+                binding.surfaceView.holder.removeCallback(surfaceCallback)
+            }
+            else -> {
+                binding.surfaceView.holder.removeCallback(surfaceCallback)
+                if (::player.isInitialized) {
+                    player.removeListener(playerListener)
+                    player.release()
+                }
             }
         }
     }

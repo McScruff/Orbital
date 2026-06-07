@@ -26,7 +26,9 @@ class EpgView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     var onChannelSelected: ((streamId: Int) -> Unit)? = null
+    var onChannelLongPress: ((streamId: Int) -> Unit)? = null
     var onProgrammeSelected: ((streamId: Int, channelName: String, listing: EpgListing) -> Unit)? = null
+    var onRequestFocusLeft: (() -> Unit)? = null
 
     private val rows = mutableListOf<EpgRow>()
 
@@ -43,6 +45,8 @@ class EpgView @JvmOverloads constructor(
     private var scrollX = -1
     private var scrollY = 0
     private var focusedRowIndex = 0
+    // -1 = channel-name column selected, 0+ = index into row.listings
+    private var focusedCellIndex = -1
 
     private val scroller        = OverScroller(context)
     private val gestureDetector = GestureDetector(context, GestureListener())
@@ -79,6 +83,10 @@ class EpgView @JvmOverloads constructor(
     private val focusRowBordPaint = Paint().apply {
         color = 0xFF3A9EFF.toInt(); strokeWidth = 2f * dp; style = Paint.Style.STROKE
     }
+    private val focusCellFillPaint = Paint().apply { color = 0x66FFFFFF.toInt() }
+    private val focusCellBordPaint = Paint().apply {
+        color = 0xFFFFFFFF.toInt(); strokeWidth = 3f * dp; style = Paint.Style.STROKE
+    }
 
     // ── Geometry helpers ──────────────────────────────────────────────────────
 
@@ -98,6 +106,7 @@ class EpgView @JvmOverloads constructor(
     fun setRows(newRows: List<EpgRow>) {
         rows.clear(); rows.addAll(newRows)
         focusedRowIndex = 0
+        focusedCellIndex = -1
         invalidate()
     }
 
@@ -170,6 +179,21 @@ class EpgView @JvmOverloads constructor(
             if (isFocused && i == focusedRowIndex) {
                 canvas.drawRect(0f, rowTop, w, rowBot, focusRowFillPaint)
                 canvas.drawRect(1f, rowTop + 1f, w - 1f, rowBot - 1f, focusRowBordPaint)
+
+                // Highlight focused programme cell
+                if (focusedCellIndex >= 0 && focusedCellIndex < row.listings.size) {
+                    val fl = row.listings[focusedCellIndex]
+                    val fs = fl.startTimestamp?.toLongOrNull()
+                    val fe = fl.stopTimestamp?.toLongOrNull()
+                    if (fs != null && fe != null) {
+                        val cL = tsToX(fs, todayMidnight).coerceAtLeast(chanW)
+                        val cR = tsToX(fe, todayMidnight)
+                        if (cR > chanW && cL < w) {
+                            canvas.drawRect(cL + 1, rowTop + 2, cR - 1, rowBot - 2, focusCellFillPaint)
+                            canvas.drawRect(cL + 2, rowTop + 3, cR - 2, rowBot - 3, focusCellBordPaint)
+                        }
+                    }
+                }
             }
 
             canvas.save()
@@ -256,34 +280,76 @@ class EpgView @JvmOverloads constructor(
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_DOWN -> {
                 if (focusedRowIndex < rows.size - 1) {
-                    focusedRowIndex++; scrollToShowFocusedRow(); invalidate()
+                    focusedRowIndex++; focusedCellIndex = -1
+                    scrollToShowFocusedRow(); invalidate()
                 }
-                return true   // always consume — nothing below to focus
+                return true   // always consume
             }
             KeyEvent.KEYCODE_DPAD_UP -> {
                 if (focusedRowIndex > 0) {
-                    focusedRowIndex--; scrollToShowFocusedRow(); invalidate(); return true
+                    focusedRowIndex--; focusedCellIndex = -1
+                    scrollToShowFocusedRow(); invalidate(); return true
                 }
-                return false  // at top row: let system return focus to BACK button
+                return false  // at top row: let focus escape
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                if (scrollX < maxScrollX()) {
-                    scrollX = (scrollX + (60 * pxPerMin).toInt()).coerceIn(0, maxScrollX())
-                    invalidate()
+                val row = rows.getOrNull(focusedRowIndex)
+                if (row != null && row.listings.isNotEmpty()) {
+                    val nextIdx = if (focusedCellIndex < 0) {
+                        // Jump to the current/upcoming programme
+                        val nowSec = System.currentTimeMillis() / 1000
+                        val idx = row.listings.indexOfFirst { l ->
+                            val e = l.stopTimestamp?.toLongOrNull() ?: return@indexOfFirst false
+                            e > nowSec
+                        }
+                        if (idx >= 0) idx else 0
+                    } else {
+                        focusedCellIndex + 1
+                    }
+                    if (nextIdx < row.listings.size) {
+                        focusedCellIndex = nextIdx
+                        scrollToShowFocusedCell(); scrollToShowFocusedRow(); invalidate()
+                    } else if (scrollX < maxScrollX()) {
+                        scrollX = (scrollX + (60 * pxPerMin).toInt()).coerceIn(0, maxScrollX())
+                        invalidate()
+                    }
+                } else {
+                    if (scrollX < maxScrollX()) {
+                        scrollX = (scrollX + (60 * pxPerMin).toInt()).coerceIn(0, maxScrollX())
+                        invalidate()
+                    }
                 }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
-                if (scrollX > 0) {
-                    scrollX = (scrollX - (60 * pxPerMin).toInt()).coerceAtLeast(0)
-                    invalidate()
-                    return true
+                when {
+                    focusedCellIndex > 0 -> {
+                        focusedCellIndex--
+                        scrollToShowFocusedCell(); scrollToShowFocusedRow(); invalidate()
+                        return true
+                    }
+                    focusedCellIndex == 0 -> {
+                        focusedCellIndex = -1; invalidate()
+                        return true
+                    }
+                    else -> {
+                        // Already at channel column — hand focus back to categories
+                        onRequestFocusLeft?.invoke()
+                        return true
+                    }
                 }
-                return false  // at leftmost edge: let focus escape upward to BACK button
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                if (focusedRowIndex in rows.indices)
-                    onChannelSelected?.invoke(rows[focusedRowIndex].streamId)
+                val row = rows.getOrNull(focusedRowIndex) ?: return true
+                if (focusedCellIndex >= 0 && focusedCellIndex < row.listings.size) {
+                    onProgrammeSelected?.invoke(row.streamId, row.channelName, row.listings[focusedCellIndex])
+                } else {
+                    onChannelSelected?.invoke(row.streamId)
+                }
+                return true
+            }
+            KeyEvent.KEYCODE_BACK -> {
+                onRequestFocusLeft?.invoke()
                 return true
             }
         }
@@ -304,6 +370,21 @@ class EpgView @JvmOverloads constructor(
             rowBot > scrollY + (height - headerHeight) -> rowBot - (height - headerHeight)
             else                                       -> scrollY
         }.coerceIn(0, maxScrollY())
+    }
+
+    private fun scrollToShowFocusedCell() {
+        val listing = rows.getOrNull(focusedRowIndex)?.listings?.getOrNull(focusedCellIndex) ?: return
+        val midnight = todayMidnightSec()
+        val startSec = listing.startTimestamp?.toLongOrNull() ?: return
+        val endSec   = listing.stopTimestamp?.toLongOrNull()  ?: return
+        val availW   = (width - channelColWidth).coerceAtLeast(1)
+        val startPx  = ((startSec - midnight) / 60f * pxPerMin).toInt()
+        val endPx    = ((endSec   - midnight) / 60f * pxPerMin).toInt()
+        scrollX = when {
+            startPx < scrollX             -> startPx.coerceAtLeast(0)
+            endPx > scrollX + availW      -> (startPx - availW / 4).coerceIn(0, maxScrollX())
+            else                          -> scrollX
+        }
     }
 
     // ── Tap handling ──────────────────────────────────────────────────────────
@@ -335,6 +416,12 @@ class EpgView @JvmOverloads constructor(
     private inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
         override fun onDown(e: MotionEvent) = true
         override fun onSingleTapUp(e: MotionEvent): Boolean { handleTap(e.x, e.y); return true }
+        override fun onLongPress(e: MotionEvent) {
+            if (e.y < headerHeight) return
+            val idx = ((e.y - headerHeight + scrollY) / rowHeight).toInt()
+            if (idx in rows.indices && e.x < channelColWidth)
+                onChannelLongPress?.invoke(rows[idx].streamId)
+        }
         override fun onScroll(e1: MotionEvent?, e2: MotionEvent, dx: Float, dy: Float): Boolean {
             scrollX = (scrollX + dx.toInt()).coerceIn(0, maxScrollX())
             scrollY = (scrollY + dy.toInt()).coerceIn(0, maxScrollY())

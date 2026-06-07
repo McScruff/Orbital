@@ -41,7 +41,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
+import java.util.concurrent.atomic.AtomicInteger
 import com.orbital.iptv.utils.ThemeManager
 
 // ── Data models ───────────────────────────────────────────────────────────────
@@ -407,6 +412,37 @@ class GlobalSearchActivity : AppCompatActivity() {
                 binding.tvEmpty.text = "INDEX READY — SEARCHING…"
             }
 
+            // ── EPG index check ───────────────────────────────────────────────
+            val cachedEpgCount = EpgCache.getCachedCount(this@GlobalSearchActivity)
+            val totalLiveChannels = withContext(Dispatchers.IO) {
+                profiles.sumOf { p ->
+                    ContentCache.getLiveStreams(this@GlobalSearchActivity, p.serverUrl)?.size ?: 0
+                }
+            }
+            if (cachedEpgCount < 5 && totalLiveChannels > 0) {
+                val shouldBuild = suspendCancellableCoroutine { cont ->
+                    AlertDialog.Builder(this@GlobalSearchActivity, R.style.Theme_Orbital_Dialog)
+                        .setTitle("NO EPG INDEX")
+                        .setMessage(
+                            "TV Guide data has not been indexed yet.\n\n" +
+                            "Build the EPG index now to search programme titles across " +
+                            "$totalLiveChannels channels?\n\n" +
+                            "This downloads guide data for all channels and may take a few minutes."
+                        )
+                        .setPositiveButton("BUILD INDEX") { _, _ -> cont.resume(true) }
+                        .setNegativeButton("SEARCH WITHOUT EPG") { _, _ -> cont.resume(false) }
+                        .setOnCancelListener { if (cont.isActive) cont.resume(false) }
+                        .show()
+                }
+                if (shouldBuild) {
+                    binding.tvEmpty.text = "BUILDING EPG INDEX…  0 / $totalLiveChannels"
+                    binding.tvEmpty.visibility = View.VISIBLE
+                    buildEpgIndex(totalLiveChannels)
+                    binding.tvEmpty.text = "EPG INDEX READY — SEARCHING…"
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────
+
             val results = withContext(Dispatchers.IO) { searchAll(query) }
             fullResults = results
             binding.progressBar.visibility = View.GONE
@@ -494,6 +530,44 @@ class GlobalSearchActivity : AppCompatActivity() {
             }
             container.addView(tv)
         }
+    }
+
+    private suspend fun buildEpgIndex(totalChannels: Int) {
+        val profiles = PrefsManager.getProfiles(this)
+        val done     = AtomicInteger(0)
+        val sem      = Semaphore(5)   // max 5 concurrent EPG fetches
+        coroutineScope {
+            for (profile in profiles) {
+                val streams = ContentCache.getLiveStreams(this@GlobalSearchActivity, profile.serverUrl)
+                    ?: continue
+                for (stream in streams) {
+                    if (EpgCache.isValid(this@GlobalSearchActivity, stream.streamId)) {
+                        // Already cached — just count it
+                        val n = done.incrementAndGet()
+                        launch(Dispatchers.Main) {
+                            binding.tvEmpty.text = "BUILDING EPG INDEX…  $n / $totalChannels"
+                        }
+                    } else {
+                        launch(Dispatchers.IO) {
+                            sem.withPermit {
+                                xtream.getFullChannelEpg(
+                                    profile.serverUrl, profile.username, profile.password, stream.streamId
+                                ).onSuccess { epg ->
+                                    val listings = epg.listings ?: emptyList()
+                                    if (listings.isNotEmpty())
+                                        EpgCache.put(this@GlobalSearchActivity, stream.streamId, listings)
+                                }
+                            }
+                            val n = done.incrementAndGet()
+                            withContext(Dispatchers.Main) {
+                                binding.tvEmpty.text = "BUILDING EPG INDEX…  $n / $totalChannels"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        EpgCache.markBatchRefreshed(this)
     }
 
     private suspend fun searchAll(query: String): List<SearchResultItem> = coroutineScope {
@@ -636,7 +710,6 @@ class GlobalSearchActivity : AppCompatActivity() {
 
                     val byEpg = streams
                         .filter { it.streamId !in matchedIds && EpgCache.isValid(this@GlobalSearchActivity, it.streamId) }
-                        .take(200)
                         .mapNotNull { s ->
                             val listings = EpgCache.get(this@GlobalSearchActivity, s.streamId)
                             val hit = listings?.firstOrNull { l ->

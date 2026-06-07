@@ -2,55 +2,50 @@ package com.orbital.iptv.ui.home
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.KeyEvent
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.lifecycle.lifecycleScope
+import androidx.work.*
 import com.orbital.iptv.R
 import com.orbital.iptv.data.api.ApiClient
+import com.orbital.iptv.data.model.EpgListing
 import com.orbital.iptv.data.model.LiveCategory
 import com.orbital.iptv.data.model.LiveStream
 import com.orbital.iptv.data.model.ServerProfile
+import com.orbital.iptv.data.model.getDecodedTitle
+import com.orbital.iptv.data.repository.XtreamRepository
 import com.orbital.iptv.databinding.ActivityHomeBinding
-import com.orbital.iptv.ui.login.LoginActivity
-import com.orbital.iptv.ui.epg.EpgActivity
-import com.orbital.iptv.ui.player.PlayerActivity
+import com.orbital.iptv.recording.*
+import com.orbital.iptv.ui.epg.EpgRow
 import com.orbital.iptv.ui.games.GamesActivity
+import com.orbital.iptv.ui.login.LoginActivity
+import com.orbital.iptv.ui.player.PlayerActivity
 import com.orbital.iptv.ui.series.SeriesActivity
 import com.orbital.iptv.ui.favourites.FavouritesActivity
 import com.orbital.iptv.ui.vod.VodActivity
-import com.orbital.iptv.utils.CategoryPrefs
-import com.orbital.iptv.utils.ChannelQueue
-import com.orbital.iptv.utils.ContentCache
-import com.orbital.iptv.utils.EpgCache
-import com.orbital.iptv.utils.FavouritesManager
-import com.orbital.iptv.utils.PlayerType
-import com.orbital.iptv.utils.PrefsManager
-import com.orbital.iptv.utils.EmbyPrefsManager
-import com.orbital.iptv.utils.PlexPrefsManager
-import com.orbital.iptv.utils.ThemeManager
-import com.orbital.iptv.utils.PlayerLauncher
-import com.orbital.iptv.utils.ReminderBus
-import com.orbital.iptv.utils.UpdateChecker
 import com.orbital.iptv.ui.emby.EmbyBrowserActivity
-import com.orbital.iptv.ui.emby.EmbyLoginActivity
 import com.orbital.iptv.ui.plex.PlexBrowserActivity
-import com.orbital.iptv.ui.plex.PlexLoginActivity
 import com.orbital.iptv.ui.search.GlobalSearchActivity
 import com.orbital.iptv.ui.tv.TvModeActivity
 import com.orbital.iptv.ui.tv.TvModeHolder
-import androidx.activity.OnBackPressedCallback
-import androidx.lifecycle.lifecycleScope
+import com.orbital.iptv.utils.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
     private lateinit var viewModel: HomeViewModel
-    private lateinit var channelAdapter: ChannelAdapter
-    private var lastNavMs = 0L
+    private val repository = XtreamRepository()
+    private var currentChannels: List<LiveStream> = emptyList()
+    private var epgLoadingJob: Job? = null
 
 
 
@@ -62,18 +57,6 @@ class HomeActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         ReminderBus.unregister()
-    }
-
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN &&
-            (event.keyCode == KeyEvent.KEYCODE_DPAD_UP || event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN) &&
-            binding.rvChannels.hasFocus()
-        ) {
-            val now = System.currentTimeMillis()
-            if (now - lastNavMs < 80L) return true  // absorb the event, don't pass to RecyclerView
-            lastNavMs = now
-        }
-        return super.dispatchKeyEvent(event)
     }
 
     private fun showReminderDialog(r: ReminderBus.Reminder) {
@@ -109,7 +92,7 @@ class HomeActivity : AppCompatActivity() {
         ThemeManager.load(this)
         ApiClient.liveFormat = PrefsManager.getLiveFormat(this)
         viewModel = ViewModelProvider(this)[HomeViewModel::class.java]
-        setupRecyclerView()
+        setupEpgView()
         setupTabButtons()
         applyTheme()
         observeViewModel()
@@ -177,8 +160,6 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun showSettingsMenu() {
-        val currentPlayer = PrefsManager.getPlayerType(this)
-        val playerLabel = "PLAYER: ${if (currentPlayer == PlayerType.EXTERNAL) "EXTERNAL APP" else "EXOPLAYER (BUILT-IN)"}"
         val serverCount = PrefsManager.getProfiles(this).size
         val activeProfile = PrefsManager.getActiveProfile(this)
         val serverName    = activeProfile?.name?.uppercase() ?: "SERVER"
@@ -189,7 +170,7 @@ class HomeActivity : AppCompatActivity() {
         val tvModeLabel = "TV MODE: ${if (PrefsManager.isTvModeEnabled(this)) "ON" else "OFF"}"
         val pipLabel    = "PICTURE IN PICTURE: ${if (PrefsManager.isPipEnabled(this)) "ON" else "OFF"}"
         items += Item("SERVERS ($serverCount SAVED)")     { showServerManager() }
-        items += Item(playerLabel)                        { showPlayerPicker() }
+        items += Item("▸  PLAYER ENGINES")                { showPlayerEnginesMenu() }
         items += Item("↺  REFRESH $serverName")          { refreshServer() }
         items += Item("MANAGE VISIBLE CATEGORIES")        { showManageServerCategoriesDialog() }
         items += Item(themeLabel)                         { showThemePicker() }
@@ -366,55 +347,84 @@ class HomeActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showPlayerPicker() {
-        val current = PrefsManager.getPlayerType(this)
-        val labels = arrayOf(
-            if (current == PlayerType.EXOPLAYER) "● EXOPLAYER (BUILT-IN)" else "○ EXOPLAYER (BUILT-IN)",
-            if (current == PlayerType.EXTERNAL) "● EXTERNAL APP (VLC / MX PLAYER)" else "○ EXTERNAL APP (VLC / MX PLAYER)"
+    private fun showPlayerEnginesMenu() {
+        data class Item(val label: String, val action: () -> Unit)
+        val items = listOf(
+            Item("LIVE TV:  ${PrefsManager.getLivePlayer(this).name}")  { showEnginePicker("LIVE TV PLAYER",  PlayerEngine.values().toList()) { e -> PrefsManager.setLivePlayer(this, e) } },
+            Item("MOVIES:   ${PrefsManager.getMoviePlayer(this).name}") { showEnginePicker("MOVIES PLAYER",  PlayerEngine.values().filter { it != PlayerEngine.EXTERNAL }) { e -> PrefsManager.setMoviePlayer(this, e) } },
+            Item("SERIES:   ${PrefsManager.getSeriesPlayer(this).name}") { showEnginePicker("SERIES PLAYER", PlayerEngine.values().filter { it != PlayerEngine.EXTERNAL }) { e -> PrefsManager.setSeriesPlayer(this, e) } }
         )
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
-        builder.setTitle("SELECT PLAYER")
-        builder.setItems(labels) { _, which ->
-            val type = if (which == 0) PlayerType.EXOPLAYER else PlayerType.EXTERNAL
-            PrefsManager.setPlayerType(this, type)
-            android.widget.Toast.makeText(this, "PLAYER SET TO: ${type.name}", android.widget.Toast.LENGTH_SHORT).show()
-        }
-        builder.show()
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("PLAYER ENGINES")
+            .setItems(items.map { it.label }.toTypedArray()) { _, i -> items[i].action() }
+            .show()
     }
 
-    private fun setupRecyclerView() {
-        channelAdapter = ChannelAdapter(
-            onChannelClick = { stream -> onChannelSelected(stream) },
-            onChannelLongClick = { stream -> onChannelLongPressed(stream) }
-        )
-        binding.rvChannels.apply {
-            adapter = channelAdapter
-            layoutManager = LinearLayoutManager(this@HomeActivity)
-            itemAnimator = null  // prevent animation-based focus loss during rapid D-pad scroll
-            // Add spacing between cards when the theme requests it
-            addItemDecoration(object : androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
-                override fun getItemOffsets(
-                    outRect: android.graphics.Rect, view: View,
-                    parent: androidx.recyclerview.widget.RecyclerView,
-                    state: androidx.recyclerview.widget.RecyclerView.State
-                ) {
-                    val m = (ThemeManager.palette().itemMarginDp * resources.displayMetrics.density).toInt()
-                    outRect.top    = m / 2
-                    outRect.bottom = m / 2
-                    outRect.left   = m
-                    outRect.right  = m
+    private fun showEnginePicker(title: String, options: List<PlayerEngine>, setter: (PlayerEngine) -> Unit) {
+        val labels = options.map { it.name }.toTypedArray()
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle(title)
+            .setItems(labels) { _, i ->
+                setter(options[i])
+                android.widget.Toast.makeText(this, "$title: ${options[i].name}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+            .show()
+    }
+
+    private fun setupEpgView() {
+        binding.epgView.onChannelSelected = { streamId ->
+            currentChannels.find { it.streamId == streamId }?.let { onChannelSelected(it) }
+        }
+        binding.epgView.onChannelLongPress = { streamId ->
+            currentChannels.find { it.streamId == streamId }?.let { onChannelLongPressed(it) }
+        }
+        binding.epgView.onProgrammeSelected = { streamId, channelName, listing ->
+            val url = viewModel.buildStreamUrl(streamId)
+            handleProgrammeTap(streamId, channelName, url, listing)
+        }
+        binding.epgView.onRequestFocusLeft = {
+            val container = binding.originalCatContainer
+            var focused = false
+            if (container != null) {
+                for (i in 0 until container.childCount) {
+                    val child = container.getChildAt(i)
+                    if (child.isFocusable) { child.requestFocus(); focused = true; break }
                 }
-            })
+            }
+            if (!focused) binding.headerTvListings.requestFocus()
+        }
+    }
+
+    private fun loadCategoryIntoEpg(channels: List<LiveStream>) {
+        currentChannels = channels
+        val rows = channels.map { EpgRow(streamId = it.streamId, channelName = it.name) }
+        binding.epgView.setRows(rows)
+        binding.epgView.scrollToNow()
+
+        epgLoadingJob?.cancel()
+        val creds = PrefsManager.getCredentials(this) ?: return
+        epgLoadingJob = lifecycleScope.launch {
+            channels.forEach { stream ->
+                launch {
+                    val cached = EpgCache.get(this@HomeActivity, stream.streamId, minCount = 50)
+                    if (cached != null) {
+                        binding.epgView.updateRow(stream.streamId, cached)
+                    } else {
+                        val result = repository.getFullChannelEpg(creds.serverUrl, creds.username, creds.password, stream.streamId)
+                        result.onSuccess { epg ->
+                            val listings = epg.listings ?: emptyList()
+                            EpgCache.put(this@HomeActivity, stream.streamId, listings)
+                            binding.epgView.updateRow(stream.streamId, listings)
+                        }
+                    }
+                }
+            }
         }
     }
 
     private fun launchEpgGuide() {
-        val channels = viewModel.uiState.value?.channels?.take(25)
-        if (channels.isNullOrEmpty()) return
-        startActivity(Intent(this, EpgActivity::class.java).apply {
-            putIntegerArrayListExtra(EpgActivity.EXTRA_STREAM_IDS, ArrayList(channels.map { it.streamId }))
-            putStringArrayListExtra(EpgActivity.EXTRA_STREAM_NAMES, ArrayList(channels.map { it.name }))
-        })
+        binding.epgView.scrollToNow()
+        binding.epgView.requestFocus()
     }
 
     private fun applyTheme() {
@@ -431,12 +441,6 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.epgUpdate.observe(this) { streamId ->
-            val channels = viewModel.uiState.value?.channels ?: return@observe
-            val pos = channels.indexOfFirst { it.streamId == streamId }
-            if (pos >= 0) channelAdapter.notifyItemChanged(pos)
-        }
-
         viewModel.uiState.observe(this) { state ->
             binding.progressBar?.visibility = if (state.isLoading) View.VISIBLE else View.GONE
 
@@ -447,7 +451,7 @@ class HomeActivity : AppCompatActivity() {
                 binding.tvError?.visibility = View.GONE
             }
 
-            channelAdapter.submitList(state.channels)
+            loadCategoryIntoEpg(state.channels)
             binding.tvChannelCount?.text = "${state.channels.size} CHANNELS"
 
             setupCategoryMenu(state.xtreamCategories, state.selectedXtreamCategory)
@@ -503,6 +507,7 @@ class HomeActivity : AppCompatActivity() {
             typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL)
             isClickable = true
             isFocusable = true
+            nextFocusRightId = R.id.epg_view
             if (p.cardElevation > 0f) elevation = p.cardElevation * density
             clipToOutline = true
             if (isFavSelected) {
@@ -538,6 +543,7 @@ class HomeActivity : AppCompatActivity() {
                 typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL)
                 isClickable = true
                 isFocusable = true
+                nextFocusRightId = R.id.epg_view
                 if (p.cardElevation > 0f) elevation = p.cardElevation * density
                 clipToOutline = true
 
@@ -693,6 +699,125 @@ class HomeActivity : AppCompatActivity() {
         viewModel.loadData(credentials.serverUrl, credentials.username, credentials.password)
     }
 
+    // ── EPG recording / reminder (mirrors EpgActivity) ────────────────────────
+
+    private fun handleProgrammeTap(streamId: Int, channelName: String, url: String, listing: EpgListing) {
+        val title   = listing.getDecodedTitle().ifBlank { "Recording" }
+        val startMs = (listing.startTimestamp?.toLongOrNull() ?: 0L) * 1000L
+        val endMs   = (listing.stopTimestamp?.toLongOrNull()  ?: 0L) * 1000L
+        val nowMs   = System.currentTimeMillis()
+
+        if (endMs > 0L && endMs <= nowMs) {
+            AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+                .setTitle("CANNOT RECORD")
+                .setMessage("'$title' has already finished.")
+                .setPositiveButton("OK", null)
+                .show()
+            return
+        }
+
+        val timeFmt = SimpleDateFormat("HH:mm", Locale.UK)
+        val dateFmt = SimpleDateFormat("EEE dd MMM", Locale.UK)
+        val availGb = RecordingRepository.availableGb(this)
+        val timeStr = if (startMs > 0L) {
+            val dateStr = dateFmt.format(Date(startMs))
+            val endStr  = if (endMs > 0L) timeFmt.format(Date(endMs)) else "?"
+            "$dateStr  ${timeFmt.format(Date(startMs))} — $endStr"
+        } else "Time unknown"
+        val msg = "$channelName\n$title\n$timeStr\n\nAvailable storage: ${"%.1f".format(availGb)} GB"
+        val label = if (startMs > nowMs) "SCHEDULE RECORDING" else "RECORD NOW (ongoing)"
+
+        val builder = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle(label)
+            .setMessage(msg)
+            .setPositiveButton("RECORD") { _, _ ->
+                if (endMs > 0L) {
+                    scheduleRecording(streamId, channelName, url, title, startMs.coerceAtLeast(nowMs), endMs)
+                } else {
+                    askForDuration { durationMs ->
+                        scheduleRecording(streamId, channelName, url, title, startMs.coerceAtLeast(nowMs), startMs.coerceAtLeast(nowMs) + durationMs)
+                    }
+                }
+            }
+            .setNegativeButton("CANCEL", null)
+        if (startMs > nowMs) {
+            builder.setNeutralButton("SET REMINDER") { _, _ ->
+                scheduleReminder(channelName, title, startMs, url, streamId)
+            }
+        }
+        builder.show()
+    }
+
+    private fun scheduleReminder(channelName: String, title: String, startMs: Long, streamUrl: String, streamId: Int) {
+        val delayMs = (startMs - System.currentTimeMillis()).coerceAtLeast(0L)
+        val data = Data.Builder()
+            .putString(ReminderWorker.KEY_TITLE,      title)
+            .putString(ReminderWorker.KEY_CHANNEL,    channelName)
+            .putString(ReminderWorker.KEY_STREAM_URL, streamUrl)
+            .putInt(ReminderWorker.KEY_STREAM_ID,     streamId)
+            .build()
+        WorkManager.getInstance(this).enqueue(
+            OneTimeWorkRequestBuilder<ReminderWorker>()
+                .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+                .setInputData(data)
+                .addTag("reminder_${title.hashCode()}")
+                .build()
+        )
+        val timeStr = SimpleDateFormat("HH:mm", Locale.UK).format(Date(startMs))
+        Toast.makeText(this, "REMINDER SET: $title at $timeStr", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun askForDuration(onChosen: (Long) -> Unit) {
+        val options   = arrayOf("30 minutes", "1 hour", "1 hour 30 min", "2 hours", "3 hours")
+        val durations = longArrayOf(30, 60, 90, 120, 180)
+        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("RECORDING DURATION")
+            .setMessage("No end time found in EPG. How long should we record?")
+            .setItems(options) { _, i -> onChosen(durations[i] * 60_000L) }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
+    private fun scheduleRecording(streamId: Int, channelName: String, url: String, title: String, startMs: Long, endMs: Long) {
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val recording = RecordingEntity(
+                    channelName    = channelName,
+                    channelUrl     = url,
+                    streamId       = streamId,
+                    epgTitle       = title,
+                    scheduledStart = startMs,
+                    scheduledEnd   = endMs,
+                    status         = RecordingStatus.SCHEDULED
+                )
+                val id = RecordingDatabase.get(this@HomeActivity).dao().insert(recording).toInt()
+                val delayMs = startMs - System.currentTimeMillis()
+                if (delayMs <= 0L) {
+                    startForegroundService(
+                        Intent(this@HomeActivity, RecordingService::class.java).apply {
+                            putExtra(RecordingService.EXTRA_RECORDING_ID, id)
+                        }
+                    )
+                } else {
+                    WorkManager.getInstance(this@HomeActivity).enqueue(
+                        OneTimeWorkRequestBuilder<RecordingWorker>()
+                            .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+                            .setInputData(workDataOf("recording_id" to id))
+                            .addTag("rec_$id")
+                            .build()
+                    )
+                }
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    Toast.makeText(this@HomeActivity, "RECORDING SCHEDULED: $title", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    Toast.makeText(this@HomeActivity, "SCHEDULE FAILED: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
     private fun onChannelLongPressed(stream: LiveStream) {
         val inFavourites = viewModel.uiState.value?.selectedXtreamCategory?.categoryId == HomeViewModel.FAV_CATEGORY_ID
         if (inFavourites) {
@@ -737,7 +862,7 @@ class HomeActivity : AppCompatActivity() {
         ChannelQueue.currentIndex = channels.indexOf(stream).coerceAtLeast(0)
 
         val streamUrl = viewModel.buildStreamUrl(stream.streamId)
-        if (PrefsManager.getPlayerType(this) == PlayerType.EXTERNAL) {
+        if (PrefsManager.getLivePlayer(this) == PlayerEngine.EXTERNAL) {
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(android.net.Uri.parse(streamUrl), "video/*")
             }

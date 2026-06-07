@@ -44,7 +44,7 @@
             android:background="@color/sky_tab_selected"
             android:focusable="true"
             android:clickable="true"
-            android:nextFocusDown="@id/cat_entertainment" />
+            android:nextFocusDown="@id/header_tv_listings" />
 
         <TextView
             android:id="@+id/tab_box_office"
@@ -59,7 +59,7 @@
             android:background="@color/sky_header_blue"
             android:focusable="true"
             android:clickable="true"
-            android:nextFocusDown="@id/cat_entertainment" />
+            android:nextFocusDown="@id/header_tv_listings" />
 
         <TextView
             android:id="@+id/tab_radio"
@@ -74,7 +74,7 @@
             android:background="@color/sky_header_blue"
             android:focusable="true"
             android:clickable="true"
-            android:nextFocusDown="@id/cat_entertainment" />
+            android:nextFocusDown="@id/header_tv_listings" />
 
         <TextView
             android:id="@+id/tab_interactive"
@@ -89,7 +89,7 @@
             android:background="@color/sky_header_blue"
             android:focusable="true"
             android:clickable="true"
-            android:nextFocusDown="@id/cat_entertainment" />
+            android:nextFocusDown="@id/header_tv_listings" />
 
         <TextView
             android:id="@+id/tab_services"
@@ -104,7 +104,7 @@
             android:background="@color/sky_header_blue"
             android:focusable="true"
             android:clickable="true"
-            android:nextFocusDown="@id/cat_entertainment" />
+            android:nextFocusDown="@id/header_tv_listings" />
     </LinearLayout>
 
     <View
@@ -147,8 +147,7 @@
                     android:focusable="true"
                     android:clickable="true"
                     android:nextFocusUp="@id/tab_tv_guide"
-                    android:nextFocusDown="@id/cat_entertainment"
-                    android:nextFocusRight="@id/rv_channels" />
+                    android:nextFocusRight="@id/epg_view" />
 
                 <TextView
                     android:id="@+id/cat_entertainment"
@@ -165,7 +164,7 @@
                     android:clickable="true"
                     android:nextFocusUp="@id/header_tv_listings"
                     android:nextFocusDown="@id/cat_movies"
-                    android:nextFocusRight="@id/rv_channels" />
+                    android:nextFocusRight="@id/epg_view" />
 
                 <TextView
                     android:id="@+id/cat_movies"
@@ -182,7 +181,7 @@
                     android:clickable="true"
                     android:nextFocusUp="@id/cat_entertainment"
                     android:nextFocusDown="@id/cat_sports"
-                    android:nextFocusRight="@id/rv_channels" />
+                    android:nextFocusRight="@id/epg_view" />
 
                 <TextView
                     android:id="@+id/cat_sports"
@@ -199,7 +198,7 @@
                     android:clickable="true"
                     android:nextFocusUp="@id/cat_movies"
                     android:nextFocusDown="@id/cat_news"
-                    android:nextFocusRight="@id/rv_channels" />
+                    android:nextFocusRight="@id/epg_view" />
 
                 <TextView
                     android:id="@+id/cat_news"
@@ -216,7 +215,7 @@
                     android:clickable="true"
                     android:nextFocusUp="@id/cat_sports"
                     android:nextFocusDown="@id/cat_children"
-                    android:nextFocusRight="@id/rv_channels" />
+                    android:nextFocusRight="@id/epg_view" />
 
                 <TextView
                     android:id="@+id/cat_children"
@@ -233,7 +232,7 @@
                     android:clickable="true"
                     android:nextFocusUp="@id/cat_news"
                     android:nextFocusDown="@id/cat_music"
-                    android:nextFocusRight="@id/rv_channels" />
+                    android:nextFocusRight="@id/epg_view" />
 
                 <TextView
                     android:id="@+id/cat_music"
@@ -250,7 +249,7 @@
                     android:clickable="true"
                     android:nextFocusUp="@id/cat_children"
                     android:nextFocusDown="@id/cat_other"
-                    android:nextFocusRight="@id/rv_channels" />
+                    android:nextFocusRight="@id/epg_view" />
 
                 <TextView
                     android:id="@+id/cat_other"
@@ -266,7 +265,7 @@
                     android:focusable="true"
                     android:clickable="true"
                     android:nextFocusUp="@id/cat_music"
-                    android:nextFocusRight="@id/rv_channels" />
+                    android:nextFocusRight="@id/epg_view" />
 
                 <LinearLayout
                     android:id="@+id/original_cat_container"
@@ -323,12 +322,13 @@
                 android:visibility="gone"
                 android:padding="12dp" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_channels"
+            <com.orbital.iptv.ui.epg.EpgView
+                android:id="@+id/epg_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scrollbars="vertical"
-                android:nextFocusLeft="@id/cat_entertainment" />
+                android:focusable="true"
+                android:nextFocusUp="@id/tab_tv_guide"
+                android:nextFocusLeft="@id/header_tv_listings" />
         </LinearLayout>
     </LinearLayout>
 
