@@ -9,7 +9,7 @@
         android:id="@+id/surface_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:focusable="false"
+        android:focusable="true"
         android:clickable="true" />
 
     <!-- ── HUD top bar ── buttons (mirrors PlayerActivity hud_overlay) -->

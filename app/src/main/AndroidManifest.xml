@@ -143,7 +143,7 @@
             android:name=".ui.search.GlobalSearchActivity"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:windowSoftInputMode="stateAlwaysVisible|adjustPan" />
+            android:windowSoftInputMode="stateHidden|adjustPan" />
 
         <activity
             android:name=".recording.RecordingsActivity"

@@ -21,14 +21,19 @@ import com.orbital.iptv.data.repository.XtreamRepository
 import com.orbital.iptv.databinding.ActivityHomeBinding
 import com.orbital.iptv.recording.*
 import com.orbital.iptv.ui.epg.EpgRow
+import com.orbital.iptv.ui.games.BubbleShooterActivity
 import com.orbital.iptv.ui.games.GamesActivity
+import com.orbital.iptv.ui.games.TeletextActivity
+import com.orbital.iptv.ui.sports.SportsActivity
 import com.orbital.iptv.ui.login.LoginActivity
 import com.orbital.iptv.ui.player.PlayerActivity
 import com.orbital.iptv.ui.series.SeriesActivity
 import com.orbital.iptv.ui.favourites.FavouritesActivity
 import com.orbital.iptv.ui.vod.VodActivity
 import com.orbital.iptv.ui.emby.EmbyBrowserActivity
+import com.orbital.iptv.ui.emby.EmbyLoginActivity
 import com.orbital.iptv.ui.plex.PlexBrowserActivity
+import com.orbital.iptv.ui.plex.PlexLoginActivity
 import com.orbital.iptv.ui.search.GlobalSearchActivity
 import com.orbital.iptv.ui.tv.TvModeActivity
 import com.orbital.iptv.ui.tv.TvModeHolder
@@ -123,7 +128,7 @@ class HomeActivity : AppCompatActivity() {
     private fun setupTabButtons() {
         binding.tabServices?.setOnClickListener { showSettingsMenu() }
         binding.tabBoxOffice?.setOnClickListener { showBoxOfficeMenu() }
-        binding.tabInteractive?.setOnClickListener { startActivity(Intent(this, GamesActivity::class.java)) }
+        binding.tabInteractive?.setOnClickListener { showInteractiveMenu() }
         binding.tabRadio?.setOnClickListener { startActivity(Intent(this, com.orbital.iptv.ui.radio.RadioActivity::class.java)) }
 
         val p = ThemeManager.palette()
@@ -159,6 +164,56 @@ class HomeActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showInteractiveMenu() {
+        data class MenuItem(val label: String, val action: () -> Unit)
+        val items = mutableListOf(
+            MenuItem("SPORTS")         { startActivity(Intent(this, SportsActivity::class.java)) },
+            MenuItem("TELETEXT")       { startActivity(Intent(this, TeletextActivity::class.java)) },
+            MenuItem("BUBBLE SHOOTER") { startActivity(Intent(this, BubbleShooterActivity::class.java)) },
+        )
+        val tickerOn = TickerManager.newsTickerEnabled
+        items.add(MenuItem("NEWS TICKER: ${if (tickerOn) "ON" else "OFF"}") {
+            TickerManager.newsTickerEnabled = !tickerOn
+            TickerManager.sportHeadlines.clear()
+            showInteractiveMenu()
+        })
+        items.add(MenuItem("TICKER SPORTS...") { showTickerSportPicker() })
+        items.add(MenuItem("EMBY") {
+            val dest = if (EmbyPrefsManager.getSession(this) != null) EmbyBrowserActivity::class.java else EmbyLoginActivity::class.java
+            startActivity(Intent(this, dest))
+        })
+        items.add(MenuItem("PLEX") {
+            val dest = if (PlexPrefsManager.getSession(this) != null) PlexBrowserActivity::class.java else PlexLoginActivity::class.java
+            startActivity(Intent(this, dest))
+        })
+
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("INTERACTIVE")
+            .setItems(items.map { it.label }.toTypedArray()) { _, i -> items[i].action() }
+            .show()
+    }
+
+    private fun showTickerSportPicker() {
+        val feeds = TickerManager.SPORT_FEEDS
+        val selectedIds = TickerManager.getSelectedSportIds(this).toMutableSet()
+        val checked = feeds.map { it.id in selectedIds }.toBooleanArray()
+        val labels = feeds.map { "${it.emoji} ${it.name}" }.toTypedArray()
+
+        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("SELECT SPORTS FOR NEWS TICKER")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                if (isChecked) selectedIds.add(feeds[which].id)
+                else selectedIds.remove(feeds[which].id)
+            }
+            .setPositiveButton("DONE") { _, _ ->
+                TickerManager.setSelectedSportIds(this, selectedIds)
+                if (selectedIds.isNotEmpty()) TickerManager.newsTickerEnabled = true
+                TickerManager.sportHeadlines.clear()
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
     private fun showSettingsMenu() {
         val serverCount = PrefsManager.getProfiles(this).size
         val activeProfile = PrefsManager.getActiveProfile(this)
@@ -167,7 +222,7 @@ class HomeActivity : AppCompatActivity() {
 
         data class Item(val label: String, val action: () -> Unit)
         val items = mutableListOf<Item>()
-        val tvModeLabel = "TV MODE: ${if (PrefsManager.isTvModeEnabled(this)) "ON" else "OFF"}"
+        val tvModeLabel = "TV MODE (TESTING): ${if (PrefsManager.isTvModeEnabled(this)) "ON" else "OFF"}"
         val pipLabel    = "PICTURE IN PICTURE: ${if (PrefsManager.isPipEnabled(this)) "ON" else "OFF"}"
         items += Item("SERVERS ($serverCount SAVED)")     { showServerManager() }
         items += Item("▸  PLAYER ENGINES")                { showPlayerEnginesMenu() }

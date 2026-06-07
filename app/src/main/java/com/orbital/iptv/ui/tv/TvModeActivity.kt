@@ -9,7 +9,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
 import android.view.KeyEvent
-import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
@@ -36,7 +35,9 @@ import com.orbital.iptv.databinding.ActivityTvModeBinding
 import com.orbital.iptv.recording.RecordingService
 import com.orbital.iptv.recording.RecordingState
 import com.orbital.iptv.ui.home.HomeActivity
+import com.orbital.iptv.ui.player.PlayerActivity
 import com.orbital.iptv.utils.FavouritesManager
+import com.orbital.iptv.utils.PlayerEngine
 import com.orbital.iptv.utils.PrefsManager
 import com.orbital.iptv.utils.ThemeManager
 import com.orbital.iptv.utils.TickerManager
@@ -88,7 +89,6 @@ class TvModeActivity : AppCompatActivity() {
     private var currentStreamId    = -1
     private var currentCategoryId  = ""
     private var categoryChannels: List<LiveStream> = emptyList()
-    private var surfaceReady = false
 
     private val hudHandler  = Handler(Looper.getMainLooper())
     private val hideHud     = Runnable { hideHudOverlay() }
@@ -155,23 +155,13 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     private fun initPlayer() {
+        if (PrefsManager.getLivePlayer(this) != PlayerEngine.EXOPLAYER) {
+            if (currentStreamUrl.isNotBlank()) playChannel(currentStreamUrl, currentChannelName)
+            return
+        }
         player = ExoPlayer.Builder(this).build().also { exo ->
             exo.repeatMode = Player.REPEAT_MODE_OFF
-            binding.surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
-                override fun surfaceCreated(h: SurfaceHolder) {
-                    exo.setVideoSurface(h.surface)
-                    surfaceReady = true
-                }
-                override fun surfaceChanged(h: SurfaceHolder, f: Int, w: Int, ht: Int) {}
-                override fun surfaceDestroyed(h: SurfaceHolder) { exo.clearVideoSurface() }
-            })
-            // Surface may already be available
-            binding.surfaceView.holder.surface?.let { _ ->
-                if (binding.surfaceView.holder.surface?.isValid == true) {
-                    exo.setVideoSurface(binding.surfaceView.holder.surface)
-                    surfaceReady = true
-                }
-            }
+            exo.setVideoSurfaceView(binding.surfaceView)
             if (currentStreamUrl.isNotBlank()) {
                 exo.setMediaItem(MediaItem.fromUri(currentStreamUrl))
                 exo.prepare()
@@ -182,14 +172,34 @@ class TvModeActivity : AppCompatActivity() {
         }
     }
 
-    private fun playUrl(url: String, name: String) {
-        val exo = player ?: return
-        exo.stop()
-        exo.setMediaItem(MediaItem.fromUri(url))
-        exo.prepare()
-        exo.play()
-        showInfoBar(name)
-        loadEpgForCurrentChannel()
+    private fun playChannel(url: String, name: String) {
+        when (PrefsManager.getLivePlayer(this)) {
+            PlayerEngine.EXOPLAYER -> {
+                val exo = player ?: return
+                exo.setMediaItem(MediaItem.fromUri(url))
+                exo.prepare()
+                exo.play()
+                showInfoBar(name)
+                loadEpgForCurrentChannel()
+            }
+            PlayerEngine.EXTERNAL -> {
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(android.net.Uri.parse(url), "video/*")
+                    })
+                } catch (e: Exception) {
+                    Toast.makeText(this, "NO EXTERNAL PLAYER FOUND", Toast.LENGTH_SHORT).show()
+                }
+            }
+            else -> {
+                startActivity(Intent(this, PlayerActivity::class.java).apply {
+                    putExtra(PlayerActivity.EXTRA_STREAM_URL, url)
+                    putExtra(PlayerActivity.EXTRA_CHANNEL_NAME, name)
+                    putExtra(PlayerActivity.EXTRA_STREAM_ID, currentStreamId)
+                    putExtra(PlayerActivity.EXTRA_IS_LIVE, true)
+                })
+            }
+        }
     }
 
     private fun setupButtons() {
@@ -274,6 +284,7 @@ class TvModeActivity : AppCompatActivity() {
     private fun hideHudOverlay() {
         binding.hudTop.visibility    = View.GONE
         binding.hudBottom.visibility = View.GONE
+        binding.surfaceView.requestFocus()
     }
 
     private fun showInfoBar(name: String) {
@@ -716,6 +727,7 @@ class TvModeActivity : AppCompatActivity() {
     private fun hideOverlay() {
         overlayState = OverlayState.NONE
         binding.overlayContainer.visibility = View.GONE
+        binding.surfaceView.requestFocus()
     }
 
     private fun refreshCategoryChannels() {
@@ -739,7 +751,7 @@ class TvModeActivity : AppCompatActivity() {
             currentStreamUrl   = url
             currentChannelName = stream.name
             PrefsManager.setLastTvChannel(this, url, stream.name, stream.streamId, currentCategoryId)
-            playUrl(url, stream.name)
+            playChannel(url, stream.name)
             hideOverlay()
         }
     }
@@ -797,12 +809,22 @@ class TvModeActivity : AppCompatActivity() {
                     }
                 }
                 KeyEvent.KEYCODE_DPAD_LEFT -> {
-                    if (!hudVisible && overlayState == OverlayState.NONE) {
-                        showChannelsOverlay()
-                        return true
-                    } else if (overlayState == OverlayState.CHANNELS) {
+                    if (overlayState == OverlayState.CHANNELS) {
                         showCategoriesOverlay()
                         return true
+                    }
+                    if (overlayState == OverlayState.NONE) {
+                        // Only let LEFT navigate within HUD if a non-leftmost HUD button has focus
+                        val hudNavFocused = currentFocus?.let { f ->
+                            f == binding.btnHudAudio || f == binding.btnHudRecord ||
+                            f == binding.btnHudScores || f == binding.btnHudNews
+                        } ?: false
+                        if (!hudNavFocused) {
+                            hudHandler.removeCallbacks(hideHud)
+                            hideHudOverlay()
+                            showChannelsOverlay()
+                            return true
+                        }
                     }
                 }
                 KeyEvent.KEYCODE_DPAD_RIGHT -> {
@@ -828,7 +850,7 @@ class TvModeActivity : AppCompatActivity() {
         currentStreamUrl   = url
         currentChannelName = stream.name
         PrefsManager.setLastTvChannel(this, url, stream.name, stream.streamId, currentCategoryId)
-        playUrl(url, stream.name)
+        playChannel(url, stream.name)
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -838,6 +860,9 @@ class TvModeActivity : AppCompatActivity() {
         super.onResume()
         player?.play()
         updateRecordButton()
+        if (binding.hudTop.visibility != View.VISIBLE && overlayState == OverlayState.NONE) {
+            binding.surfaceView.requestFocus()
+        }
         window.decorView.systemUiVisibility = (
             View.SYSTEM_UI_FLAG_FULLSCREEN or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or

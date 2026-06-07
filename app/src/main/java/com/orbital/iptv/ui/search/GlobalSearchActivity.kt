@@ -295,12 +295,9 @@ class GlobalSearchActivity : AppCompatActivity() {
             } else false
         }
 
+        binding.etSearch.showSoftInputOnFocus = false
         setupFilterButtons()
         binding.etSearch.requestFocus()
-        binding.etSearch.postDelayed({
-            val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-            imm.showSoftInput(binding.etSearch, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
-        }, 300)
     }
 
     private fun setupFilterButtons() {
@@ -344,6 +341,10 @@ class GlobalSearchActivity : AppCompatActivity() {
             val focused = currentFocus
             val filterButtons = setOf(binding.btnFilterAll, binding.btnFilterTv, binding.btnFilterMovies, binding.btnFilterSeries)
             when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_CENTER,
+                KeyEvent.KEYCODE_ENTER -> {
+                    if (focused == binding.etSearch) { showTvKeyboard(); return true }
+                }
                 KeyEvent.KEYCODE_DPAD_DOWN -> {
                     if (focused == binding.etSearch || focused == binding.btnBack) {
                         binding.btnFilterAll.requestFocus()
@@ -372,6 +373,75 @@ class GlobalSearchActivity : AppCompatActivity() {
             }
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    private fun showTvKeyboard() {
+        val sb = StringBuilder(binding.etSearch.text?.toString() ?: "")
+        val density = resources.displayMetrics.density
+        fun dp(n: Int) = (n * density).toInt()
+        val mp = ViewGroup.LayoutParams.MATCH_PARENT
+        val wc = ViewGroup.LayoutParams.WRAP_CONTENT
+
+        val tvDisplay = TextView(this).apply {
+            text = sb.toString().ifEmpty { "TYPE SEARCH TERM…" }
+            textSize = 16f
+            setTextColor(0xFFFFFFFF.toInt())
+            setBackgroundColor(0xFF060C1A.toInt())
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            setTypeface(null, Typeface.BOLD)
+        }
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(0xFF060C1A.toInt())
+            setPadding(dp(6), dp(8), dp(6), dp(8))
+        }
+        root.addView(tvDisplay, LinearLayout.LayoutParams(mp, wc).also { it.bottomMargin = dp(6) })
+
+        fun updateDisplay() { tvDisplay.text = sb.toString().ifEmpty { "TYPE SEARCH TERM…" } }
+
+        lateinit var dialog: AlertDialog
+
+        fun makeKey(label: String, weight: Float = 1f, action: () -> Unit): TextView =
+            TextView(this).apply {
+                text = label
+                textSize = 12f
+                gravity = android.view.Gravity.CENTER
+                setTextColor(0xFFFFFFFF.toInt())
+                setBackgroundColor(0xFF1A3060.toInt())
+                isFocusable = true; isClickable = true
+                layoutParams = LinearLayout.LayoutParams(0, dp(40), weight).also {
+                    it.setMargins(dp(2), dp(2), dp(2), dp(2))
+                }
+                setOnFocusChangeListener { _, h ->
+                    setBackgroundColor(if (h) 0xFFE5A00D.toInt() else 0xFF1A3060.toInt())
+                    setTextColor(if (h) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+                }
+                setOnClickListener { action() }
+            }
+
+        for (row in listOf("ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZ0123")) {
+            val rl = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            row.forEach { ch -> rl.addView(makeKey(ch.toString()) { sb.append(ch); updateDisplay() }) }
+            root.addView(rl, LinearLayout.LayoutParams(mp, wc))
+        }
+        val lastRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        "456789".forEach { ch -> lastRow.addView(makeKey(ch.toString()) { sb.append(ch); updateDisplay() }) }
+        lastRow.addView(makeKey("SPC") { sb.append(' '); updateDisplay() })
+        lastRow.addView(makeKey("DEL") { if (sb.isNotEmpty()) { sb.deleteCharAt(sb.lastIndex); updateDisplay() } })
+        lastRow.addView(makeKey("SEARCH", 2f) {
+            val q = sb.toString().trim()
+            binding.etSearch.setText(q)
+            dialog.dismiss()
+            if (q.length >= 2) doSearch(q) else showHint()
+        })
+        root.addView(lastRow, LinearLayout.LayoutParams(mp, wc))
+
+        dialog = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setView(root)
+            .setNegativeButton("CANCEL", null)
+            .create()
+        dialog.show()
+        root.post { (root.getChildAt(1) as? LinearLayout)?.getChildAt(0)?.requestFocus() }
     }
 
     private fun showHint() {
