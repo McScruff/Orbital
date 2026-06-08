@@ -110,7 +110,7 @@ object ApiClient {
         streamId: Int, startTimestamp: Long, durationMinutes: Int
     ): String {
         val base = if (serverUrl.endsWith("/")) serverUrl else "$serverUrl/"
-        val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+        val cal = java.util.Calendar.getInstance().apply {
             timeInMillis = startTimestamp * 1000
         }
         val date = "%04d-%02d-%02d".format(

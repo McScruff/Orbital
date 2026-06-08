@@ -63,6 +63,8 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 
 class PlayerActivity : AppCompatActivity() {
@@ -89,6 +91,7 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_PLEX_RATING_KEY = "plex_rating_key"
         const val EXTRA_PLEX_DURATION_MS = "plex_duration_ms"
         const val EXTRA_SUBTITLE_PATH   = "subtitle_path"
+        const val EXTRA_IS_CATCHUP      = "is_catchup"
 
         private const val OVERLAY_HIDE_DELAY_MS  = 5000L
         private const val SEEK_STEP_MS           = 30_000L
@@ -233,9 +236,11 @@ class PlayerActivity : AppCompatActivity() {
         plexRatingKey   = intent.getStringExtra(EXTRA_PLEX_RATING_KEY) ?: ""
         plexDurationMs  = intent.getLongExtra(EXTRA_PLEX_DURATION_MS, 0L)
         subtitlePath    = intent.getStringExtra(EXTRA_SUBTITLE_PATH) ?: ""
+        val isCatchup   = intent.getBooleanExtra(EXTRA_IS_CATCHUP, false)
 
         currentEngine = when {
-            isLive       -> PrefsManager.getLivePlayer(this)
+            isLive        -> PrefsManager.getLivePlayer(this)
+            isCatchup     -> PrefsManager.getLivePlayer(this)  // .ts timeshift — use live engine
             seriesId >= 0 -> PrefsManager.getSeriesPlayer(this)
             else          -> PrefsManager.getMoviePlayer(this)
         }
@@ -1044,7 +1049,13 @@ class PlayerActivity : AppCompatActivity() {
     private fun initExoPlayer() {
         binding.mpvView.visibility = View.GONE
         binding.surfaceView.visibility = View.VISIBLE
-        player = ExoPlayer.Builder(this).build()
+        val httpFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent(USER_AGENT)
+            .setAllowCrossProtocolRedirects(true)
+        player = ExoPlayer.Builder(this)
+            .setRenderersFactory(DefaultRenderersFactory(this).setEnableDecoderFallback(true))
+            .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
+            .build()
         player.addListener(playerListener)
         binding.surfaceView.holder.addCallback(surfaceCallback)
         player.setMediaItem(MediaItem.fromUri(streamUrl))

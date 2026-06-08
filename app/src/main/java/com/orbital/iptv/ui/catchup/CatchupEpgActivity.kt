@@ -210,7 +210,8 @@ class CatchupEpgActivity : AppCompatActivity() {
         intent.putExtra(PlayerActivity.EXTRA_STREAM_URL, catchupUrl)
         intent.putExtra(PlayerActivity.EXTRA_CHANNEL_NAME, title)
         intent.putExtra(PlayerActivity.EXTRA_STREAM_ID, streamId)
-        intent.putExtra(PlayerActivity.EXTRA_IS_LIVE, false as Boolean)
+        intent.putExtra(PlayerActivity.EXTRA_IS_LIVE, false)
+        intent.putExtra(PlayerActivity.EXTRA_IS_CATCHUP, true)
         startActivity(intent)
     }
 }

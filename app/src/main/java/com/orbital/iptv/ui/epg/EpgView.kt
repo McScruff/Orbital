@@ -47,6 +47,7 @@ class EpgView @JvmOverloads constructor(
     private var focusedRowIndex = 0
     // -1 = channel-name column selected, 0+ = index into row.listings
     private var focusedCellIndex = -1
+    private var okLongPressFired = false
 
     private val scroller        = OverScroller(context)
     private val gestureDetector = GestureDetector(context, GestureListener())
@@ -226,7 +227,7 @@ class EpgView @JvmOverloads constructor(
                     val hour = cal.get(Calendar.HOUR_OF_DAY)
                     val min  = cal.get(Calendar.MINUTE)
                     if (hour == 0 && min == 0) {
-                        // Day boundary: gold line + day name on top row, "12a" on bottom row
+                        // Day boundary: gold line + day name on top row, "00:00" on bottom row
                         canvas.drawLine(markX, 0f, markX, h, dayDivPaint)
                         val dayLabel = when (tsSec) {
                             todayMidnight         -> "TODAY"
@@ -234,13 +235,11 @@ class EpgView @JvmOverloads constructor(
                             else                  -> dayFmt.format(Date(tsSec * 1000))
                         }
                         canvas.drawText(dayLabel, markX + textPad / 2, headH * 0.42f, dayLabelPaint)
-                        canvas.drawText("12a",    markX + textPad / 2, headH * 0.82f, timeTextPaint)
+                        canvas.drawText("00:00",  markX + textPad / 2, headH * 0.82f, timeTextPaint)
                     } else {
                         canvas.drawLine(markX, headH * 0.55f, markX, h, dividerPaint)
-                        val h12  = if (hour % 12 == 0) 12 else hour % 12
-                        val ampm = if (hour < 12) "a" else "p"
-                        val label = if (min == 0) "%d%s".format(h12, ampm)
-                                    else "%d:%02d".format(h12, min)
+                        val label = if (min == 0) "%02d:00".format(hour)
+                                    else "%02d:%02d".format(hour, min)
                         canvas.drawText(label, markX + textPad / 2, headH * 0.82f, timeTextPaint)
                     }
                 }
@@ -344,7 +343,8 @@ class EpgView @JvmOverloads constructor(
                 if (focusedCellIndex >= 0 && focusedCellIndex < row.listings.size) {
                     onProgrammeSelected?.invoke(row.streamId, row.channelName, row.listings[focusedCellIndex])
                 } else {
-                    onChannelSelected?.invoke(row.streamId)
+                    // Channel column: track for long press (favourites); fire play on key-up
+                    event.startTracking()
                 }
                 return true
             }
@@ -354,6 +354,26 @@ class EpgView @JvmOverloads constructor(
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent): Boolean {
+        if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) && focusedCellIndex < 0) {
+            rows.getOrNull(focusedRowIndex)?.let { onChannelLongPress?.invoke(it.streamId) }
+            okLongPressFired = true
+            return true
+        }
+        return super.onKeyLongPress(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+        if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) && focusedCellIndex < 0) {
+            if (!okLongPressFired) {
+                rows.getOrNull(focusedRowIndex)?.let { onChannelSelected?.invoke(it.streamId) }
+            }
+            okLongPressFired = false
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
