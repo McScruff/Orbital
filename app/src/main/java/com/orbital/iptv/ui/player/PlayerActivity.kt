@@ -139,6 +139,7 @@ class PlayerActivity : AppCompatActivity() {
     private var enteringPip = false
     private var subtitlePath = ""
 
+    private var isCatchup: Boolean = false
     private var currentEngine = PlayerEngine.MPV
 
     // MPV
@@ -236,7 +237,7 @@ class PlayerActivity : AppCompatActivity() {
         plexRatingKey   = intent.getStringExtra(EXTRA_PLEX_RATING_KEY) ?: ""
         plexDurationMs  = intent.getLongExtra(EXTRA_PLEX_DURATION_MS, 0L)
         subtitlePath    = intent.getStringExtra(EXTRA_SUBTITLE_PATH) ?: ""
-        val isCatchup   = intent.getBooleanExtra(EXTRA_IS_CATCHUP, false)
+        isCatchup       = intent.getBooleanExtra(EXTRA_IS_CATCHUP, false)
 
         currentEngine = when {
             isLive        -> PrefsManager.getLivePlayer(this)
@@ -1017,6 +1018,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun initMpvPlayer() {
         binding.surfaceView.visibility = View.GONE
         binding.mpvView.visibility = View.VISIBLE
+        binding.mpvView.isCatchup = isCatchup
         binding.mpvView.init()
         mpvReady = true
         mpvStartedPlayingOnce = false

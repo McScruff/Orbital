@@ -38,6 +38,7 @@ import com.orbital.iptv.utils.EpgCache
 import com.orbital.iptv.utils.PlexPrefsManager
 import com.orbital.iptv.utils.PrefsManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -264,6 +265,7 @@ class GlobalSearchActivity : AppCompatActivity() {
 
     private var currentFilter = SearchFilter.ALL
     private var fullResults   = listOf<SearchResultItem>()
+    private var searchJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -295,7 +297,10 @@ class GlobalSearchActivity : AppCompatActivity() {
             } else false
         }
 
-        binding.etSearch.showSoftInputOnFocus = false
+        // On TV (no touchscreen) suppress the system keyboard — the D-pad keyboard handles input.
+        // On phones/tablets keep showSoftInputOnFocus = true so the keyboard appears normally.
+        val isTv = !packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TOUCHSCREEN)
+        binding.etSearch.showSoftInputOnFocus = !isTv
         setupFilterButtons()
         binding.etSearch.requestFocus()
     }
@@ -455,11 +460,14 @@ class GlobalSearchActivity : AppCompatActivity() {
     }
 
     private fun doSearch(query: String) {
+        searchJob?.cancel()
+        currentFilter = SearchFilter.ALL
+        updateFilterButtons()
         binding.progressBar.visibility = View.VISIBLE
         binding.tvEmpty.visibility = View.GONE
         binding.recyclerView.visibility = View.GONE
 
-        lifecycleScope.launch {
+        searchJob = lifecycleScope.launch {
             // Build missing caches before searching so we don't hang mid-search
             val profiles = PrefsManager.getProfiles(this@GlobalSearchActivity)
             val needsCache = profiles.any { p ->
@@ -523,12 +531,12 @@ class GlobalSearchActivity : AppCompatActivity() {
                 binding.recyclerView.visibility = View.GONE
                 binding.tvResultCount.text = ""
             } else {
-                applyFilter()
+                applyFilter(scrollToTop = true)
             }
         }
     }
 
-    private fun applyFilter() {
+    private fun applyFilter(scrollToTop: Boolean = false) {
         rebuildSidebar()
         val filtered = when (currentFilter) {
             SearchFilter.ALL    -> fullResults
@@ -552,7 +560,7 @@ class GlobalSearchActivity : AppCompatActivity() {
             binding.recyclerView.visibility = View.VISIBLE
             binding.tvResultCount.text = "${filtered.size} RESULTS"
             adapter.submitList(filtered)
-            binding.recyclerView.scrollToPosition(0)
+            if (scrollToTop) binding.recyclerView.scrollToPosition(0)
         }
     }
 
@@ -803,7 +811,7 @@ class GlobalSearchActivity : AppCompatActivity() {
         val allIptvSeries = iptvSeries.flatMap { it.await() }
         val allEmbySeries = embySeries.await()
         val allPlexSeries = plexSeries.await()
-        val allLive = liveChannels.flatMap { it.await() }
+        val allLive = liveChannels.flatMap { it.await() }.distinctBy { it.title }
 
         groupResults(allIptv, allEmby, allPlex) +
             groupSeriesResults(allIptvSeries, allEmbySeries, allPlexSeries) +

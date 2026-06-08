@@ -13,6 +13,9 @@ class SkyMpvView @JvmOverloads constructor(
 
     private var initialized = false
 
+    /** Set before calling init(). Selects the appropriate VO for the stream type. */
+    var isCatchup: Boolean = false
+
     fun init() {
         if (initialized) return
         Utils.copyAssets(context)
@@ -102,14 +105,18 @@ class SkyMpvView @JvmOverloads constructor(
 
     override fun initOptions() {
         mpv.setOptionString("profile", "fast")
-        // Always use vo=gpu so software-decode fallback can still display video.
-        // mediacodec_embed only works with hardware decode; streams with unknown
-        // HEVC profiles fall back to software and produce a black screen with it.
-        setVo("gpu")
-        if (PrefsManager.isCompatibleDecode(context)) {
-            mpv.setOptionString("hwdec", "no")  // pure software decode
+        val compatibleDecode = PrefsManager.isCompatibleDecode(context)
+        if (!isCatchup && !compatibleDecode) {
+            // Live TV: zero-copy hardware path — most efficient, no GPU copy overhead.
+            // mediacodec_embed + mediacodec is stable for normal live streams.
+            setVo("mediacodec_embed")
+            mpv.setOptionString("hwdec", "mediacodec")
         } else {
-            mpv.setOptionString("hwdec", "mediacodec-copy")  // HW with GPU copy, graceful SW fallback
+            // Catchup: use vo=gpu so SW-decode fallback works for streams with unknown
+            // HEVC profiles (which make MediaCodec return 0x0 and fall back to software).
+            // Compatible mode: vo=gpu + pure software decode.
+            setVo("gpu")
+            mpv.setOptionString("hwdec", if (compatibleDecode) "no" else "mediacodec-copy")
         }
         mpv.setOptionString("hwdec-codecs", "h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1")
         mpv.setOptionString("ao", "audiotrack,opensles")
