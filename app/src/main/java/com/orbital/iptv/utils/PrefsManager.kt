@@ -9,8 +9,6 @@ import com.orbital.iptv.data.model.XtreamCredentials
 
 enum class PlayerType { EXOPLAYER, EXTERNAL }
 
-enum class PlayerEngine { MPV, EXOPLAYER, VLC, EXTERNAL }
-
 object PrefsManager {
     private const val PREFS_NAME = "orbital_prefs"
 
@@ -189,21 +187,4 @@ object PrefsManager {
     fun getLiveFormat(context: Context): String = prefs(context).getString("live_format", "ts") ?: "ts"
     fun setLiveFormat(context: Context, format: String) = prefs(context).edit().putString("live_format", format).apply()
 
-    fun isCompatibleDecode(context: Context): Boolean = prefs(context).getBoolean("compatible_decode", false)
-    fun setCompatibleDecode(context: Context, enabled: Boolean) = prefs(context).edit().putBoolean("compatible_decode", enabled).apply()
-
-    // ── Per-content player engine ─────────────────────────────────────────────
-
-    private fun engineFromPref(context: Context, key: String, default: PlayerEngine): PlayerEngine {
-        val name = prefs(context).getString(key, default.name)
-        return try { PlayerEngine.valueOf(name!!) } catch (_: Exception) { default }
-    }
-
-    fun getLivePlayer(context: Context): PlayerEngine  = engineFromPref(context, "live_player_engine",   PlayerEngine.MPV)
-    fun getMoviePlayer(context: Context): PlayerEngine = engineFromPref(context, "movie_player_engine",  PlayerEngine.MPV)
-    fun getSeriesPlayer(context: Context): PlayerEngine = engineFromPref(context, "series_player_engine", PlayerEngine.MPV)
-
-    fun setLivePlayer(context: Context, engine: PlayerEngine)   = prefs(context).edit().putString("live_player_engine",   engine.name).apply()
-    fun setMoviePlayer(context: Context, engine: PlayerEngine)  = prefs(context).edit().putString("movie_player_engine",  engine.name).apply()
-    fun setSeriesPlayer(context: Context, engine: PlayerEngine) = prefs(context).edit().putString("series_player_engine", engine.name).apply()
 }

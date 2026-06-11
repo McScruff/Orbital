@@ -10,13 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- MPV surface (movies and series — all codecs) -->
-    <com.orbital.iptv.ui.player.SkyMpvView
-        android:id="@+id/mpv_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
-
     <!-- Top HUD overlay -->
     <LinearLayout
         android:id="@+id/hud_overlay"
