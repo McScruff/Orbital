@@ -225,7 +225,6 @@ class HomeActivity : AppCompatActivity() {
         val tvModeLabel = "TV MODE (TESTING): ${if (PrefsManager.isTvModeEnabled(this)) "ON" else "OFF"}"
         val pipLabel    = "PICTURE IN PICTURE: ${if (PrefsManager.isPipEnabled(this)) "ON" else "OFF"}"
         items += Item("SERVERS ($serverCount SAVED)")     { showServerManager() }
-        items += Item("▸  PLAYER ENGINES")                { showPlayerEnginesMenu() }
         items += Item("↺  REFRESH $serverName")          { refreshServer() }
         items += Item("MANAGE VISIBLE CATEGORIES")        { showManageServerCategoriesDialog() }
         items += Item(themeLabel)                         { showThemePicker() }
@@ -236,8 +235,6 @@ class HomeActivity : AppCompatActivity() {
         items += Item(subKeyLabel)                        { showOpenSubsKeyDialog() }
         val liveFormatLabel = "LIVE STREAM FORMAT: ${PrefsManager.getLiveFormat(this).uppercase()}"
         items += Item(liveFormatLabel) { toggleLiveFormat() }
-        val decodeLabel = "DECODE MODE: ${if (PrefsManager.isCompatibleDecode(this)) "COMPATIBLE" else "HARDWARE (FAST)"}"
-        items += Item(decodeLabel) { toggleCompatibleDecode() }
         items += Item("CHECK FOR UPDATES")                { checkForUpdatesManually() }
         items += Item("CLEAR ALL SAVED DATA")             { confirmClearAllData() }
         val versionName = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "?" }
@@ -399,30 +396,6 @@ class HomeActivity : AppCompatActivity() {
                 finish()
             }
             .setNegativeButton("CANCEL", null)
-            .show()
-    }
-
-    private fun showPlayerEnginesMenu() {
-        data class Item(val label: String, val action: () -> Unit)
-        val items = listOf(
-            Item("LIVE TV:  ${PrefsManager.getLivePlayer(this).name}")  { showEnginePicker("LIVE TV PLAYER",  PlayerEngine.values().toList()) { e -> PrefsManager.setLivePlayer(this, e) } },
-            Item("MOVIES:   ${PrefsManager.getMoviePlayer(this).name}") { showEnginePicker("MOVIES PLAYER",  PlayerEngine.values().filter { it != PlayerEngine.EXTERNAL }) { e -> PrefsManager.setMoviePlayer(this, e) } },
-            Item("SERIES:   ${PrefsManager.getSeriesPlayer(this).name}") { showEnginePicker("SERIES PLAYER", PlayerEngine.values().filter { it != PlayerEngine.EXTERNAL }) { e -> PrefsManager.setSeriesPlayer(this, e) } }
-        )
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
-            .setTitle("PLAYER ENGINES")
-            .setItems(items.map { it.label }.toTypedArray()) { _, i -> items[i].action() }
-            .show()
-    }
-
-    private fun showEnginePicker(title: String, options: List<PlayerEngine>, setter: (PlayerEngine) -> Unit) {
-        val labels = options.map { it.name }.toTypedArray()
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
-            .setTitle(title)
-            .setItems(labels) { _, i ->
-                setter(options[i])
-                android.widget.Toast.makeText(this, "$title: ${options[i].name}", android.widget.Toast.LENGTH_SHORT).show()
-            }
             .show()
     }
 
@@ -620,14 +593,6 @@ class HomeActivity : AppCompatActivity() {
             }
             binding.originalCatContainer?.addView(tv)
         }
-    }
-
-    private fun toggleCompatibleDecode() {
-        val next = !PrefsManager.isCompatibleDecode(this)
-        PrefsManager.setCompatibleDecode(this, next)
-        val msg = if (next) "COMPATIBLE DECODE ON — restart the app for this to take effect"
-                  else "HARDWARE DECODE ON — restart the app for this to take effect"
-        android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_LONG).show()
     }
 
     private fun toggleLiveFormat() {
@@ -917,24 +882,13 @@ class HomeActivity : AppCompatActivity() {
         ChannelQueue.currentIndex = channels.indexOf(stream).coerceAtLeast(0)
 
         val streamUrl = viewModel.buildStreamUrl(stream.streamId)
-        if (PrefsManager.getLivePlayer(this) == PlayerEngine.EXTERNAL) {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(android.net.Uri.parse(streamUrl), "video/*")
-            }
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                android.widget.Toast.makeText(this, "NO EXTERNAL PLAYER FOUND", android.widget.Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            val intent = Intent(this, PlayerActivity::class.java).apply {
-                putExtra(PlayerActivity.EXTRA_STREAM_URL, streamUrl)
-                putExtra(PlayerActivity.EXTRA_CHANNEL_NAME, stream.name)
-                putExtra(PlayerActivity.EXTRA_STREAM_ID, stream.streamId)
-                putExtra(PlayerActivity.EXTRA_IS_LIVE, true)
-                stream.num?.let { putExtra(PlayerActivity.EXTRA_CHANNEL_NUM, it) }
-            }
-            startActivity(intent)
+        val intent = Intent(this, PlayerActivity::class.java).apply {
+            putExtra(PlayerActivity.EXTRA_STREAM_URL, streamUrl)
+            putExtra(PlayerActivity.EXTRA_CHANNEL_NAME, stream.name)
+            putExtra(PlayerActivity.EXTRA_STREAM_ID, stream.streamId)
+            putExtra(PlayerActivity.EXTRA_IS_LIVE, true)
+            stream.num?.let { putExtra(PlayerActivity.EXTRA_CHANNEL_NUM, it) }
         }
+        startActivity(intent)
     }
 }

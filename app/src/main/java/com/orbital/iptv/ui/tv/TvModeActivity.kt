@@ -37,7 +37,6 @@ import com.orbital.iptv.recording.RecordingState
 import com.orbital.iptv.ui.home.HomeActivity
 import com.orbital.iptv.ui.player.PlayerActivity
 import com.orbital.iptv.utils.FavouritesManager
-import com.orbital.iptv.utils.PlayerEngine
 import com.orbital.iptv.utils.PrefsManager
 import com.orbital.iptv.utils.ThemeManager
 import com.orbital.iptv.utils.TickerManager
@@ -155,10 +154,6 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     private fun initPlayer() {
-        if (PrefsManager.getLivePlayer(this) != PlayerEngine.EXOPLAYER) {
-            if (currentStreamUrl.isNotBlank()) playChannel(currentStreamUrl, currentChannelName)
-            return
-        }
         player = ExoPlayer.Builder(this).build().also { exo ->
             exo.repeatMode = Player.REPEAT_MODE_OFF
             exo.setVideoSurfaceView(binding.surfaceView)
@@ -173,33 +168,12 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     private fun playChannel(url: String, name: String) {
-        when (PrefsManager.getLivePlayer(this)) {
-            PlayerEngine.EXOPLAYER -> {
-                val exo = player ?: return
-                exo.setMediaItem(MediaItem.fromUri(url))
-                exo.prepare()
-                exo.play()
-                showInfoBar(name)
-                loadEpgForCurrentChannel()
-            }
-            PlayerEngine.EXTERNAL -> {
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(android.net.Uri.parse(url), "video/*")
-                    })
-                } catch (e: Exception) {
-                    Toast.makeText(this, "NO EXTERNAL PLAYER FOUND", Toast.LENGTH_SHORT).show()
-                }
-            }
-            else -> {
-                startActivity(Intent(this, PlayerActivity::class.java).apply {
-                    putExtra(PlayerActivity.EXTRA_STREAM_URL, url)
-                    putExtra(PlayerActivity.EXTRA_CHANNEL_NAME, name)
-                    putExtra(PlayerActivity.EXTRA_STREAM_ID, currentStreamId)
-                    putExtra(PlayerActivity.EXTRA_IS_LIVE, true)
-                })
-            }
-        }
+        val exo = player ?: return
+        exo.setMediaItem(MediaItem.fromUri(url))
+        exo.prepare()
+        exo.play()
+        showInfoBar(name)
+        loadEpgForCurrentChannel()
     }
 
     private fun setupButtons() {
