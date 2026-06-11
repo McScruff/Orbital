@@ -184,7 +184,16 @@ object PrefsManager {
     fun getLastTvStreamId(context: Context): Int = prefs(context).getInt("last_tv_stream_id", -1)
     fun getLastTvCategoryId(context: Context): String = prefs(context).getString("last_tv_category_id", "") ?: ""
 
-    fun getLiveFormat(context: Context): String = prefs(context).getString("live_format", "ts") ?: "ts"
-    fun setLiveFormat(context: Context, format: String) = prefs(context).edit().putString("live_format", format).apply()
+    fun getLiveFormat(context: Context): String {
+        val p = prefs(context)
+        // Migrate: ts was the old default when MPV handled live TV. Now ExoPlayer-only,
+        // m3u8 (HLS) is always better — AAC audio, adaptive bitrate, no AC3 issues.
+        if (!p.contains("live_format_v2")) {
+            p.edit().putString("live_format", "m3u8").putBoolean("live_format_v2", true).apply()
+        }
+        return p.getString("live_format", "m3u8") ?: "m3u8"
+    }
+    fun setLiveFormat(context: Context, format: String) =
+        prefs(context).edit().putString("live_format", format).putBoolean("live_format_v2", true).apply()
 
 }

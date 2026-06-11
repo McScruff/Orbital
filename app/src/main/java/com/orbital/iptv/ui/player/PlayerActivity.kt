@@ -58,6 +58,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.MimeTypes
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -127,6 +128,7 @@ class PlayerActivity : AppCompatActivity() {
     private var episodeCompleted = false
     private var hasError = false
     private var audioRecoveryAttempted = false
+    private var liveHlsFallbackAttempted = false
     private var embyItemId = ""
     private val embyRepo = EmbyRepository()
     private var plexRatingKey = ""
@@ -525,11 +527,44 @@ class PlayerActivity : AppCompatActivity() {
                     binding.progressBar.visibility = View.GONE
                     updatePauseButton()
                     val audioGroups = player.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
-                    val anySelected = audioGroups.any { it.isSelected }
-                    if (!anySelected && audioGroups.isNotEmpty()) {
-                        val codecs = audioGroups.joinToString(", ") {
-                            it.getTrackFormat(0).sampleMimeType?.substringAfterLast('/') ?: "?"
+                    // FORMAT_HANDLED = fully decodable. ExoPlayer can silently select
+                    // AC3 tracks it cannot decode (FORMAT_EXCEEDS_CAPABILITIES), so
+                    // checking isSelected alone is not enough.
+                    val hasPlayableAudio = audioGroups.any { group ->
+                        (0 until group.length).any { i ->
+                            group.isTrackSelected(i) && group.getTrackSupport(i) == C.FORMAT_HANDLED
                         }
+                    }
+                    val audioLog = audioGroups.flatMap { g ->
+                        (0 until g.length).map { i ->
+                            val f = g.getTrackFormat(i)
+                            val sup = when (g.getTrackSupport(i)) {
+                                C.FORMAT_HANDLED -> "OK"
+                                C.FORMAT_EXCEEDS_CAPABILITIES -> "EXCEED"
+                                C.FORMAT_UNSUPPORTED_TYPE -> "UNSUP_TYPE"
+                                C.FORMAT_UNSUPPORTED_SUBTYPE -> "UNSUP_SUB"
+                                else -> "?"
+                            }
+                            "${f.sampleMimeType?.substringAfterLast('/') ?: "?"}[sel=${g.isTrackSelected(i)},sup=$sup]"
+                        }
+                    }.joinToString(" ")
+                    android.util.Log.d("OrbitalAudio", "STATE_READY: playable=$hasPlayableAudio url=$streamUrl tracks=[$audioLog]")
+                    if (!hasPlayableAudio) {
+                        // TS/HLS live streams often carry AC3 audio which Android phones
+                        // can't decode. Retry with the HLS variant — providers transcode
+                        // to AAC in their m3u8 output which ExoPlayer handles fine.
+                        if (isLive && !liveHlsFallbackAttempted &&
+                            streamUrl.endsWith(".ts", ignoreCase = true)) {
+                            liveHlsFallbackAttempted = true
+                            streamUrl = streamUrl.removeSuffix(".ts") + ".m3u8"
+                            playMedia()
+                            return@runOnUiThread
+                        }
+                        val codecs = audioGroups.flatMap { group ->
+                            (0 until group.length).map { i ->
+                                group.getTrackFormat(i).sampleMimeType?.substringAfterLast('/') ?: "?"
+                            }
+                        }.distinct().joinToString(", ")
                         setStatus("NO AUDIO — UNSUPPORTED FORMAT ($codecs)", COLOR_WARNING)
                         binding.hudOverlay.visibility = View.VISIBLE
                         binding.bottomBar.visibility = View.VISIBLE
@@ -915,8 +950,15 @@ class PlayerActivity : AppCompatActivity() {
             .setUserAgent(USER_AGENT)
             .setAllowCrossProtocolRedirects(true)
         player = ExoPlayer.Builder(this)
-            .setRenderersFactory(DefaultRenderersFactory(this).setEnableDecoderFallback(true))
+            .setRenderersFactory(
+                PcmOnlyRenderersFactory(this)
+                    .setEnableDecoderFallback(true)
+                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+            )
             .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
+            .build()
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setPreferredAudioMimeTypes(MimeTypes.AUDIO_AAC, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_AC3)
             .build()
         player.addListener(playerListener)
         binding.surfaceView.holder.addCallback(surfaceCallback)
@@ -960,6 +1002,7 @@ class PlayerActivity : AppCompatActivity() {
         streamId    = entry.streamId
         hasError          = false
         audioRecoveryAttempted = false
+        liveHlsFallbackAttempted = false
         episodeCompleted  = false
 
         binding.tvPlayerTitle.text = channelName.uppercase()

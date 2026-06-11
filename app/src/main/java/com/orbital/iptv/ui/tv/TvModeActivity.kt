@@ -20,9 +20,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import com.orbital.iptv.ui.player.PcmOnlyRenderersFactory
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.orbital.iptv.R
@@ -154,7 +159,18 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     private fun initPlayer() {
-        player = ExoPlayer.Builder(this).build().also { exo ->
+        val httpFactory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
+        player = ExoPlayer.Builder(this)
+            .setRenderersFactory(
+                PcmOnlyRenderersFactory(this)
+                    .setEnableDecoderFallback(true)
+                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+            )
+            .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
+            .build().also { exo ->
+            exo.trackSelectionParameters = exo.trackSelectionParameters.buildUpon()
+                .setPreferredAudioMimeTypes(MimeTypes.AUDIO_AAC, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_AC3)
+                .build()
             exo.repeatMode = Player.REPEAT_MODE_OFF
             exo.setVideoSurfaceView(binding.surfaceView)
             if (currentStreamUrl.isNotBlank()) {
