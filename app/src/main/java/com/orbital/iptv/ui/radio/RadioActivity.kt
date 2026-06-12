@@ -40,33 +40,8 @@ class RadioActivity : AppCompatActivity() {
             itemAnimator = null
         }
 
-        adapter.items = parseM3u()
+        adapter.items = RadioStations.load(this)
         binding.tvStationCount.text = "${adapter.items.size} STATIONS"
-    }
-
-    private fun parseM3u(): List<RadioStation> {
-        val stations = mutableListOf<RadioStation>()
-        val lines = resources.openRawResource(R.raw.radio_stations)
-            .bufferedReader()
-            .readLines()
-
-        var pendingName: String? = null
-        for (line in lines) {
-            val trimmed = line.trim()
-            if (trimmed.startsWith("#EXTINF")) {
-                val commaIdx = trimmed.indexOf(',')
-                if (commaIdx >= 0) {
-                    var name = trimmed.substring(commaIdx + 1).trim()
-                    // strip leading " - " prefix common in this playlist
-                    if (name.startsWith("- ")) name = name.removePrefix("- ").trim()
-                    pendingName = name.ifBlank { null }
-                }
-            } else if (trimmed.isNotEmpty() && !trimmed.startsWith("#") && pendingName != null) {
-                stations.add(RadioStation(name = pendingName, url = trimmed))
-                pendingName = null
-            }
-        }
-        return stations
     }
 
     private fun onStationSelected(station: RadioStation) {

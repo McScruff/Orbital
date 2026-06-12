@@ -62,7 +62,7 @@ class RecordingService : Service() {
                         .updateStatus(id, RecordingStatus.SKIPPED)
                 }
                 clearActiveState()
-                stopForeground(STOP_FOREGROUND_REMOVE)
+                androidx.core.app.ServiceCompat.stopForeground(this, androidx.core.app.ServiceCompat.STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
 

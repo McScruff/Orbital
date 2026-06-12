@@ -79,7 +79,7 @@ object ApiClient {
         ): Converter<ResponseBody, *> {
             val adapter = gson.getAdapter(TypeToken.get(type))
             return Converter { body ->
-                val content = body.use { it.string().trimStart('﻿').trim() }
+                val content = body.use { it.string().trimStart('\uFEFF').trim() }
                 adapter.read(JsonReader(java.io.StringReader(content)))
             }
         }

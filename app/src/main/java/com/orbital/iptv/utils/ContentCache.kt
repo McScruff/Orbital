@@ -114,7 +114,7 @@ object ContentCache {
         try {
             file.bufferedReader(Charsets.UTF_8).use { br ->
                 br.mark(1)
-                if (br.read() != '﻿'.code) br.reset()
+                if (br.read() != '\uFEFF'.code) br.reset()
                 val reader = JsonReader(br).also { it.isLenient = true }
                 reader.beginArray()
                 while (reader.hasNext()) {
@@ -141,7 +141,7 @@ object ContentCache {
         try {
             f.bufferedReader(Charsets.UTF_8).use { br ->
                 br.mark(1)
-                if (br.read() != '﻿'.code) br.reset()
+                if (br.read() != '\uFEFF'.code) br.reset()
                 val type = object : TypeToken<List<VodStream>>() {}.type
                 Gson().fromJson<List<VodStream>>(JsonReader(br), type)
             }
@@ -162,7 +162,7 @@ object ContentCache {
         try {
             f.bufferedReader(Charsets.UTF_8).use { br ->
                 br.mark(1)
-                if (br.read() != '﻿'.code) br.reset()
+                if (br.read() != '\uFEFF'.code) br.reset()
                 val type = object : TypeToken<List<SeriesStream>>() {}.type
                 Gson().fromJson<List<SeriesStream>>(JsonReader(br), type)
             }
@@ -183,7 +183,7 @@ object ContentCache {
         try {
             f.bufferedReader(Charsets.UTF_8).use { br ->
                 br.mark(1)
-                if (br.read() != '﻿'.code) br.reset()
+                if (br.read() != '\uFEFF'.code) br.reset()
                 val type = object : TypeToken<List<LiveStream>>() {}.type
                 Gson().fromJson<List<LiveStream>>(JsonReader(br), type)
             }

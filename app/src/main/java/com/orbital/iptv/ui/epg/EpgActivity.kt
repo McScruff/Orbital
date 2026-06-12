@@ -206,7 +206,8 @@ class EpgActivity : AppCompatActivity() {
             val delayMs = startMs - System.currentTimeMillis()
             if (delayMs <= 0L) {
                 // Start immediately
-                this@EpgActivity.startForegroundService(
+                androidx.core.content.ContextCompat.startForegroundService(
+                    this@EpgActivity,
                     android.content.Intent(this@EpgActivity, RecordingService::class.java).apply {
                         putExtra(RecordingService.EXTRA_RECORDING_ID, id)
                     }

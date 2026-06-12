@@ -129,7 +129,7 @@ class HomeActivity : AppCompatActivity() {
         binding.tabServices?.setOnClickListener { showSettingsMenu() }
         binding.tabBoxOffice?.setOnClickListener { showBoxOfficeMenu() }
         binding.tabInteractive?.setOnClickListener { showInteractiveMenu() }
-        binding.tabRadio?.setOnClickListener { startActivity(Intent(this, com.orbital.iptv.ui.radio.RadioActivity::class.java)) }
+        binding.tabRadio?.setOnClickListener { showRadioMenu() }
 
         val p = ThemeManager.palette()
         binding.tabTvGuide?.setOnFocusChangeListener { _, hasFocus ->
@@ -161,6 +161,25 @@ class HomeActivity : AppCompatActivity() {
         androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
             .setTitle("BOX OFFICE")
             .setItems(items.map { it.label }.toTypedArray()) { _, i -> items[i].action() }
+            .show()
+    }
+
+    private fun showRadioMenu() {
+        val stations = com.orbital.iptv.ui.radio.RadioStations.load(this)
+        if (stations.isEmpty()) {
+            Toast.makeText(this, "NO RADIO STATIONS FOUND", Toast.LENGTH_SHORT).show()
+            return
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("RADIO")
+            .setItems(stations.map { it.name.uppercase() }.toTypedArray()) { _, which ->
+                val station = stations[which]
+                startActivity(Intent(this, PlayerActivity::class.java).apply {
+                    putExtra(PlayerActivity.EXTRA_STREAM_URL, station.url)
+                    putExtra(PlayerActivity.EXTRA_CHANNEL_NAME, station.name)
+                    putExtra(PlayerActivity.EXTRA_IS_LIVE, true)
+                })
+            }
             .show()
     }
 
@@ -607,8 +626,11 @@ class HomeActivity : AppCompatActivity() {
     private fun toggleTvMode() {
         val enabled = !PrefsManager.isTvModeEnabled(this)
         PrefsManager.setTvModeEnabled(this, enabled)
-        val msg = if (enabled) "TV MODE ON — LIVE CHANNELS OPEN FULL SCREEN" else "TV MODE OFF"
-        android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_SHORT).show()
+        if (enabled) {
+            startActivity(Intent(this, TvModeActivity::class.java))
+        } else {
+            android.widget.Toast.makeText(this, "TV MODE OFF", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun checkForUpdates() {
@@ -813,7 +835,8 @@ class HomeActivity : AppCompatActivity() {
                 val id = RecordingDatabase.get(this@HomeActivity).dao().insert(recording).toInt()
                 val delayMs = startMs - System.currentTimeMillis()
                 if (delayMs <= 0L) {
-                    startForegroundService(
+                    androidx.core.content.ContextCompat.startForegroundService(
+                        this@HomeActivity,
                         Intent(this@HomeActivity, RecordingService::class.java).apply {
                             putExtra(RecordingService.EXTRA_RECORDING_ID, id)
                         }

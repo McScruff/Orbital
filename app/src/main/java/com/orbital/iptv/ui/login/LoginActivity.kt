@@ -11,6 +11,7 @@ import com.orbital.iptv.data.model.ServerProfile
 import com.orbital.iptv.data.repository.XtreamRepository
 import com.orbital.iptv.databinding.ActivityLoginBinding
 import com.orbital.iptv.ui.home.HomeActivity
+import com.orbital.iptv.ui.tv.TvModeActivity
 import com.orbital.iptv.utils.PrefsManager
 import kotlinx.coroutines.launch
 import com.orbital.iptv.utils.ThemeManager
@@ -106,7 +107,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun startHomeActivity() {
-        startActivity(Intent(this, HomeActivity::class.java))
+        val dest = if (PrefsManager.isTvModeEnabled(this) && PrefsManager.getLastTvChannelUrl(this) != null) {
+            Intent(this, TvModeActivity::class.java)
+        } else {
+            Intent(this, HomeActivity::class.java)
+        }
+        startActivity(dest)
         finish()
         @Suppress("DEPRECATION")
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)

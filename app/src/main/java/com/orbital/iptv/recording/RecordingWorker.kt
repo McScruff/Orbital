@@ -10,7 +10,8 @@ class RecordingWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(
         val id = inputData.getInt("recording_id", -1)
         if (id < 0) return Result.failure()
 
-        applicationContext.startForegroundService(
+        androidx.core.content.ContextCompat.startForegroundService(
+            applicationContext,
             Intent(applicationContext, RecordingService::class.java).apply {
                 putExtra(RecordingService.EXTRA_RECORDING_ID, id)
             }

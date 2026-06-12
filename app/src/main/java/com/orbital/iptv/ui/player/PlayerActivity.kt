@@ -64,6 +64,7 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class PlayerActivity : AppCompatActivity() {
 
     companion object {
@@ -329,7 +330,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun startRecordNow(epgTitle: String) {
-        startForegroundService(Intent(this, RecordingService::class.java).apply {
+        androidx.core.content.ContextCompat.startForegroundService(this, Intent(this, RecordingService::class.java).apply {
             putExtra(RecordingService.EXTRA_CHANNEL_NAME,  channelName)
             putExtra(RecordingService.EXTRA_CHANNEL_URL,   streamUrl)
             putExtra(RecordingService.EXTRA_STREAM_ID,     streamId)

@@ -42,7 +42,11 @@ class ReminderWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, param
             .setAutoCancel(true)
             .setContentIntent(pi)
             .build()
-        NotificationManagerCompat.from(applicationContext).notify(title.hashCode(), notification)
+        // POST_NOTIFICATIONS is a runtime permission on Android 13+ — notify() throws if denied
+        try {
+            val nm = NotificationManagerCompat.from(applicationContext)
+            if (nm.areNotificationsEnabled()) nm.notify(title.hashCode(), notification)
+        } catch (_: SecurityException) {}
 
         return Result.success()
     }

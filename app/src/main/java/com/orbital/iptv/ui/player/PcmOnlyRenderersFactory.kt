@@ -15,6 +15,7 @@ import androidx.media3.exoplayer.audio.DefaultAudioSink
  * forces ExoPlayer to use a real decoder (FFmpeg extension via EXTENSION_RENDERER_MODE_PREFER)
  * instead of passthrough, which always produces audible PCM output.
  */
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class PcmOnlyRenderersFactory(context: Context) : DefaultRenderersFactory(context) {
     override fun buildAudioSink(
         context: Context,
