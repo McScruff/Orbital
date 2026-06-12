@@ -1,152 +1,122 @@
-# 📺 Orbital — Android App
+# Orbital
 
-A faithful recreation of the **Sky Digital Guide UI from the 1990s**, built as a fully functional Android IPTV app using **Xtream Codes** for live TV streaming.
+A full-featured IPTV player for Android, built for Xtream Codes providers. Works on phones, tablets, Fire TV Stick, Chromecast with Google TV, and the Google TV Streamer.
 
----
-
-## 🎨 UI Design
-
-Inspired by the original Sky Digital EPG (Electronic Programme Guide) interface:
-
-- **Deep navy blue** background (`#0D1B35`)
-- **Cyan** (`#00CCFF`) and **gold/yellow** (`#FFCC00`) accent colours
-- `sans-serif-condensed` font throughout — matching the 90s Sky aesthetic
-- Numbered category menu (1–8) exactly matching the original Orbital layout
-- Top navigation bar with TV GUIDE / BOX OFFICE / SERVICES / INTERACTIVE tabs
+**Discord:** [discord.gg/WCdKAA2A7N](https://discord.gg/WCdKAA2A7N)
 
 ---
 
-## 📂 Project Structure
+## Download
 
-```
-Orbital/
-├── app/src/main/
-│   ├── AndroidManifest.xml
-│   ├── java/com/orbital/iptv/
-│   │   ├── data/
-│   │   │   ├── api/
-│   │   │   │   ├── ApiClient.kt          # Retrofit setup
-│   │   │   │   └── XtreamApiService.kt   # Xtream Codes endpoints
-│   │   │   ├── model/
-│   │   │   │   └── Models.kt             # Data classes + Sky category mapping
-│   │   │   └── repository/
-│   │   │       └── XtreamRepository.kt   # Data layer
-│   │   ├── ui/
-│   │   │   ├── login/
-│   │   │   │   └── LoginActivity.kt      # Xtream login screen
-│   │   │   ├── home/
-│   │   │   │   ├── HomeActivity.kt       # Main Orbital UI
-│   │   │   │   ├── HomeViewModel.kt      # Category + channel logic
-│   │   │   │   └── ChannelAdapter.kt     # RecyclerView adapter
-│   │   │   └── player/
-│   │   │       └── PlayerActivity.kt     # ExoPlayer/Media3 live TV
-│   │   └── utils/
-│   │       └── PrefsManager.kt           # Credential storage
-│   └── res/
-│       ├── layout/
-│       │   ├── activity_login.xml        # Login screen
-│       │   ├── activity_home.xml         # Orbital main screen
-│       │   ├── activity_player.xml       # Full-screen player
-│       │   └── item_channel.xml          # Channel list row
-│       └── values/
-│           ├── colors.xml                # Sky UK colour palette
-│           ├── strings.xml
-│           └── themes.xml
-```
+Get the latest APK from the [Releases](https://github.com/McScruff/Orbital/releases/latest) page.
 
 ---
 
-## 🔧 Setup & Build
+## Features
 
-### Requirements
-- Android Studio Hedgehog (2023.1.1) or later
-- Android SDK 34
-- Kotlin 1.9+
-- JDK 17
+### Live TV
+- Browse channels by category with instant switching
+- Electronic Programme Guide (EPG) with now/next info
+- Full 7-day EPG grid view
+- Set reminders for upcoming programmes
+- Catchup TV — replay past broadcasts where your provider supports it
+- Live stream format toggle (TS / HLS)
+- Audio track picker for multi-language streams
 
-### Steps
+### Box Office
+- **Movies** — browse, search and stream your VOD library
+- **Series** — full series and episode browser with artwork
+- **Catchup** — catch up on missed live TV
+- **Continue Watching / Favourites** — resume where you left off
 
-1. **Open in Android Studio**
-   ```
-   File → Open → Select the Orbital folder
-   ```
+### Radio
+- Built-in radio station playlist
+- Quick popup picker in both normal and TV mode
 
-2. **Sync Gradle**
-   Android Studio will prompt you — click **Sync Now**
+### Sports & News
+- Live football scores ticker with league selection
+- Live scores from ESPN — updates automatically during matches
+- News headlines ticker fed from RSS sports feeds
+- Full league tables and fixture lists
 
-3. **Build & Run**
-   - Connect an Android device (API 21+) or start an emulator
-   - Press **▶ Run** or `Shift+F10`
+### Recording
+- Record live TV directly to device storage
+- Scheduled and instant recording
+- Background recording while watching another channel
+
+### TV Mode
+Optimised D-pad interface for big-screen devices (Fire TV Stick, Chromecast, Google TV Streamer):
+- **LEFT** — open channel list → category list → main menu
+- **RIGHT** — step back through panels
+- **UP / DOWN** — change channel while watching
+- Now & Next EPG shown alongside every channel
+- Vertical menu: Live TV, Box Office, Radio, Interactive, Settings
+- Press **BACK** to exit, dismiss overlays, or step back through menus
+
+### Interactive
+- Emby server browser — connect and stream your Emby library
+- Plex server browser — connect and stream your Plex library
+- Sports standings and fixtures
+- Teletext viewer
+- Bubble Shooter game
+
+### Player
+- ExoPlayer with FFmpeg extension — handles AC3/EAC3, HEVC and unusual codec profiles
+- OpenSubtitles integration for automatic subtitle search
+- Picture-in-Picture support
+- Screen stays on during playback on all devices
+
+### General
+- Multiple Xtream server profiles — switch without logging out
+- Global search across live, movies and series
+- Show/hide categories per server
+- Multiple colour themes
+- In-app update checker and one-tap installer
+- Firestick, Chromecast and Google TV Streamer compatible
 
 ---
 
-## 📡 Xtream Codes Configuration
+## Setup
 
-On first launch, you'll see the **login screen** asking for:
+1. Install the APK (enable *Install from unknown sources* if prompted)
+2. Enter your Xtream Codes server URL, username and password
+3. Orbital loads your channels, categories and EPG automatically
 
-| Field | Example |
-|-------|---------|
-| Server URL | `http://yourprovider.com:8080` |
-| Username | `your_username` |
-| Password | `your_password` |
+---
 
-The app calls:
-- `GET /player_api.php?username=X&password=Y` — verify auth
-- `GET /player_api.php?action=get_live_categories` — fetch categories
-- `GET /player_api.php?action=get_live_streams` — fetch all channels
+## Requirements
 
-Stream URLs are built as:
-```
-{server}/live/{username}/{password}/{stream_id}.ts
+- Android 6.0 (API 23) or higher
+- An active Xtream Codes IPTV subscription
+
+---
+
+## Building from Source
+
+```bash
+# Requires JDK 17+
+JAVA_HOME="path/to/jdk17" ./gradlew assembleRelease
 ```
 
----
-
-## 📺 Orbital Category Mapping
-
-The app automatically maps your provider's categories to Sky's iconic 8-slot menu:
-
-| # | Sky Category | Provider Keywords Matched |
-|---|-------------|--------------------------|
-| 1 | TV GUIDE LISTINGS | *(header only)* |
-| 2 | ENTERTAINMENT | entertainment, drama, comedy |
-| 3 | MOVIES | movie, film, cinema |
-| 4 | SPORTS | sport, football, cricket |
-| 5 | NEWS & DOCUMENTARIES | news, documentary |
-| 6 | CHILDREN | child, kid, cartoon, junior |
-| 7 | MUSIC & SPECIALIST | music, radio, mtv |
-| 8 | OTHER CHANNELS | *(everything else)* |
+Create a `local.properties` file in the project root with your signing credentials (not committed):
+```
+sdk.dir=/path/to/android/sdk
+ORBITAL_STORE_PASS=...
+ORBITAL_KEY_PASS=...
+```
 
 ---
 
-## 🎬 Player
+## Privacy
 
-- Powered by **Jetpack Media3 / ExoPlayer**
-- Supports **HLS (.m3u8)** and **MPEG-TS (.ts)** streams
-- Full-screen landscape playback
-- Retro Sky-styled on-screen overlay with channel name and LIVE indicator
-- Screen kept on during playback
-
----
-
-## 🔒 Privacy
-
-- Credentials are stored locally in `SharedPreferences` (not transmitted anywhere except your IPTV server)
+- Credentials are stored locally on-device only
 - No analytics, no ads, no tracking
+- All data stays between your device and your IPTV provider
 
 ---
 
-## 📝 Dependencies
+## Community
 
-| Library | Purpose |
-|---------|---------|
-| Retrofit2 + Gson | Xtream Codes API calls |
-| OkHttp3 | HTTP client |
-| Media3 ExoPlayer | Live stream playback |
-| Glide | Channel logo loading |
-| AndroidX Lifecycle | ViewModel + LiveData |
-| Kotlin Coroutines | Async API calls |
+Questions, bugs, or feature requests — join the Discord:
 
----
-
-*Designed with love for the golden era of Sky Digital. Press the red button.*  📡
+**[discord.gg/WCdKAA2A7N](https://discord.gg/WCdKAA2A7N)**
