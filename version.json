@@ -1,6 +1,6 @@
 {
-  "version_code": 10,
-  "version_name": "1.0.9",
+  "version_code": 11,
+  "version_name": "1.1.0",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "Fixed Catchup EPG timezone issue. Fixed catchup playback on channels with unusual HEVC profiles. Long-press OK/Select in TV Guide to add/remove favourites."
+  "release_notes": "ExoPlayer only — MPV and VLC removed. APK much smaller. TV mode: full navigation menu, Settings popup, Radio popup, exit dialog. Screen stays on during playback."
 }
