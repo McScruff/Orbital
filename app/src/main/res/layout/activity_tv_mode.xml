@@ -12,7 +12,165 @@
         android:focusable="true"
         android:clickable="true" />
 
-    <!-- ── HUD top bar ── buttons -->
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Left navigation panel — shown when user presses LEFT while watching.
+         One of three sub-panels is visible at a time:
+           CHANNELS   – channel list for the current category
+           CATEGORIES – category picker
+           MAIN_MENU  – Live TV / Box Office / Radio / Interactive / Settings
+         TV keeps playing behind this panel on the right.
+         ══════════════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/left_panel"
+        android:layout_width="330dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:background="#F0010813"
+        android:visibility="gone">
+
+        <!-- Header: shows category name / "CATEGORIES" / "ORBITAL" -->
+        <TextView
+            android:id="@+id/panel_header"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#FF010810"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/sky_cyan"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/sky_cyan" />
+
+        <!-- CHANNELS sub-panel: channel list with Now/Next EPG -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_panel_channels"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:focusable="true"
+            android:visibility="gone" />
+
+        <!-- CATEGORIES sub-panel: category picker -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_panel_categories"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:focusable="true"
+            android:visibility="gone" />
+
+        <!-- MAIN_MENU sub-panel: top-level navigation -->
+        <LinearLayout
+            android:id="@+id/panel_main_menu"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/menu_item_live_tv"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="LIVE TV"
+                android:textColor="@color/sky_white"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:gravity="center"
+                android:focusable="true"
+                android:clickable="true"
+                android:background="#0A1628" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+
+            <TextView
+                android:id="@+id/menu_item_box_office"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="BOX OFFICE"
+                android:textColor="@color/sky_white"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:gravity="center"
+                android:focusable="true"
+                android:clickable="true"
+                android:background="#0D1E38" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+
+            <TextView
+                android:id="@+id/menu_item_radio"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="RADIO"
+                android:textColor="@color/sky_white"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:gravity="center"
+                android:focusable="true"
+                android:clickable="true"
+                android:background="#0A1628" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+
+            <TextView
+                android:id="@+id/menu_item_interactive"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="INTERACTIVE"
+                android:textColor="@color/sky_white"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:gravity="center"
+                android:focusable="true"
+                android:clickable="true"
+                android:background="#0D1E38" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+
+            <TextView
+                android:id="@+id/menu_item_settings"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="SETTINGS"
+                android:textColor="@color/sky_white"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:gravity="center"
+                android:focusable="true"
+                android:clickable="true"
+                android:background="#0A1628" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ── HUD top bar ── buttons shown briefly on OK/ENTER -->
     <LinearLayout
         android:id="@+id/hud_top"
         android:layout_width="match_parent"
@@ -316,154 +474,5 @@
         </FrameLayout>
 
     </LinearLayout>
-
-    <!-- ── EPG + Nav overlay (shown when LEFT is pressed while watching) ── -->
-    <FrameLayout
-        android:id="@+id/epg_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#CC000000"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <!-- Main menu panel (leftmost, shown on second LEFT from categories) -->
-            <LinearLayout
-                android:id="@+id/main_menu_panel"
-                android:layout_width="200dp"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:background="#F5020C1C"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:gravity="center"
-                    android:background="#FF010810">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="ORBITAL"
-                        android:textColor="@color/sky_cyan"
-                        android:textSize="15sp"
-                        android:fontFamily="sans-serif-condensed"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.12" />
-                </LinearLayout>
-
-                <View android:layout_width="match_parent" android:layout_height="2dp" android:background="@color/sky_cyan" />
-
-                <TextView android:id="@+id/menu_item_live_tv"
-                    android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-                    android:text="LIVE TV" android:textColor="@color/sky_white" android:textSize="13sp"
-                    android:fontFamily="sans-serif-condensed" android:textStyle="bold" android:letterSpacing="0.06"
-                    android:gravity="center" android:focusable="true" android:clickable="true" android:background="#0A1628" />
-
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
-
-                <TextView android:id="@+id/menu_item_box_office"
-                    android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-                    android:text="BOX OFFICE" android:textColor="@color/sky_white" android:textSize="13sp"
-                    android:fontFamily="sans-serif-condensed" android:textStyle="bold" android:letterSpacing="0.06"
-                    android:gravity="center" android:focusable="true" android:clickable="true" android:background="#0D1E38" />
-
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
-
-                <TextView android:id="@+id/menu_item_radio"
-                    android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-                    android:text="RADIO" android:textColor="@color/sky_white" android:textSize="13sp"
-                    android:fontFamily="sans-serif-condensed" android:textStyle="bold" android:letterSpacing="0.06"
-                    android:gravity="center" android:focusable="true" android:clickable="true" android:background="#0A1628" />
-
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
-
-                <TextView android:id="@+id/menu_item_interactive"
-                    android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-                    android:text="INTERACTIVE" android:textColor="@color/sky_white" android:textSize="13sp"
-                    android:fontFamily="sans-serif-condensed" android:textStyle="bold" android:letterSpacing="0.06"
-                    android:gravity="center" android:focusable="true" android:clickable="true" android:background="#0D1E38" />
-
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
-
-                <TextView android:id="@+id/menu_item_settings"
-                    android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-                    android:text="SETTINGS" android:textColor="@color/sky_white" android:textSize="13sp"
-                    android:fontFamily="sans-serif-condensed" android:textStyle="bold" android:letterSpacing="0.06"
-                    android:gravity="center" android:focusable="true" android:clickable="true" android:background="#0A1628" />
-
-            </LinearLayout>
-
-            <!-- Divider between main menu and categories -->
-            <View
-                android:id="@+id/main_menu_divider"
-                android:layout_width="2dp"
-                android:layout_height="match_parent"
-                android:background="@color/sky_cyan"
-                android:visibility="gone" />
-
-            <!-- Category list (always visible when overlay is open) -->
-            <ScrollView
-                android:id="@+id/tv_cat_scroll"
-                android:layout_width="220dp"
-                android:layout_height="match_parent"
-                android:background="#F0060C1A"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/tv_cat_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingTop="4dp" />
-
-            </ScrollView>
-
-            <!-- Divider between categories and EPG -->
-            <View
-                android:id="@+id/cat_epg_divider"
-                android:layout_width="2dp"
-                android:layout_height="match_parent"
-                android:background="@color/sky_cyan"
-                android:visibility="gone" />
-
-            <!-- Now & Next panel (shown in EPG state, hidden in MAIN_MENU state) -->
-            <LinearLayout
-                android:id="@+id/epg_panel"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="#0A1628"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/tv_now_next_header"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:background="@color/sky_mid_blue"
-                    android:gravity="center_vertical"
-                    android:paddingStart="16dp"
-                    android:text="NOW &amp; NEXT"
-                    android:textColor="@color/sky_yellow"
-                    android:textSize="14sp"
-                    android:fontFamily="sans-serif-condensed"
-                    android:textStyle="bold" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_now_next"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:focusable="true" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </FrameLayout>
 
 </FrameLayout>

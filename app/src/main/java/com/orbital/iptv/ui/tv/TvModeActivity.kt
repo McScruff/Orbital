@@ -107,11 +107,16 @@ class TvModeActivity : AppCompatActivity() {
         private const val FAV_CATEGORY_ID = "__favourites__"
     }
 
-    private enum class OverlayState { NONE, EPG, MAIN_MENU }
+    // Three-level left-panel navigation.
+    // NONE      – full-screen TV, no panel visible
+    // CHANNELS  – channel list for the current category
+    // CATEGORIES– category picker
+    // MAIN_MENU – top-level menu (Live TV / Box Office / Radio / Interactive / Settings)
+    private enum class PanelState { NONE, CHANNELS, CATEGORIES, MAIN_MENU }
 
     private lateinit var binding: ActivityTvModeBinding
     private var player: ExoPlayer? = null
-    private var overlayState = OverlayState.NONE
+    private var panelState = PanelState.NONE
     private var activeDialog: AlertDialog? = null
 
     private var currentStreamUrl   = ""
@@ -120,10 +125,8 @@ class TvModeActivity : AppCompatActivity() {
     private var currentCategoryId  = ""
     private var categoryChannels: List<LiveStream> = emptyList()
 
-    private var epgFocusInCategories = false
-
     private var epgLoadingJob: Job? = null
-    private var nowNextAdapter: NowNextAdapter? = null
+    private var channelPanelAdapter: NowNextAdapter? = null
 
     private val hudHandler  = Handler(Looper.getMainLooper())
     private val hideHud     = Runnable { hideHudOverlay() }
@@ -240,7 +243,7 @@ class TvModeActivity : AppCompatActivity() {
         binding.menuItemInteractive.tag = 0xFF0D1E38.toInt()
         binding.menuItemSettings.tag    = 0xFF0A1628.toInt()
 
-        menuItem(binding.menuItemLiveTv)      { hideOverlay() }
+        menuItem(binding.menuItemLiveTv)      { hidePanel() }
         menuItem(binding.menuItemBoxOffice)   { showBoxOfficeMenu() }
         menuItem(binding.menuItemRadio)       { showRadioMenu() }
         menuItem(binding.menuItemInteractive) { showInteractiveMenu() }
@@ -311,19 +314,19 @@ class TvModeActivity : AppCompatActivity() {
     private fun hideHudOverlay() {
         binding.hudTop.visibility    = View.GONE
         binding.hudBottom.visibility = View.GONE
-        binding.surfaceView.requestFocus()
+        if (panelState == PanelState.NONE) binding.surfaceView.requestFocus()
     }
 
     private fun showInfoBar(name: String) {
-        binding.tvChannelName.text = name.uppercase()
+        binding.tvChannelName.text    = name.uppercase()
         binding.tvHudChannelInfo.text = name.uppercase()
-        showHudOverlay()
+        // Only pop the HUD when no panel is open — otherwise the HUD steals focus from the panel
+        if (panelState == PanelState.NONE) showHudOverlay()
     }
 
     private fun loadEpgForCurrentChannel() {
         if (currentStreamId < 0) return
         val creds = PrefsManager.getCredentials(this) ?: return
-        // Snapshot before suspend — currentStreamId may change if user switches channel
         val streamIdSnapshot = currentStreamId
         binding.tvEpgNow.text = ""
         binding.tvEpgNextTitle.text = ""
@@ -342,7 +345,6 @@ class TvModeActivity : AppCompatActivity() {
                         EpgCache.put(this@TvModeActivity, streamIdSnapshot, l)
                     } ?: emptyList()
                 }
-                // Discard result if user has already switched to a different channel
                 if (currentStreamId != streamIdSnapshot) return@launch
                 val nowSec = System.currentTimeMillis() / 1000
                 val sorted = listings.sortedBy { it.startTimestamp?.toLongOrNull() ?: 0L }
@@ -708,124 +710,66 @@ class TvModeActivity : AppCompatActivity() {
         } else { pendingNewsText = newText }
     }
 
-    // ── Overlay state machine ─────────────────────────────────────────────────
+    // ── Left-panel navigation state machine ───────────────────────────────────
 
-    private fun showEpgOverlay(focusChannelList: Boolean = true) {
-        overlayState = OverlayState.EPG
-        binding.mainMenuPanel.visibility   = View.GONE
-        binding.mainMenuDivider.visibility = View.GONE
-        binding.catEpgDivider.visibility   = View.VISIBLE
-        binding.epgPanel.visibility        = View.VISIBLE
-        binding.epgOverlay.visibility      = View.VISIBLE
-        populateTvCategories()
-        if (focusChannelList) focusCurrentChannelRow() else focusCurrentCategory()
-    }
+    /** Open the CHANNELS panel (channel list for the current category). */
+    private fun showChannelPanel() {
+        hideHudOverlay()
+        panelState = PanelState.CHANNELS
+        binding.leftPanel.visibility         = View.VISIBLE
+        binding.rvPanelChannels.visibility   = View.VISIBLE
+        binding.rvPanelCategories.visibility = View.GONE
+        binding.panelMainMenu.visibility     = View.GONE
 
-    private fun focusCurrentChannelRow() {
-        epgFocusInCategories = false
-        if (categoryChannels.isEmpty()) {
-            focusCurrentCategory()
-            return
+        val catName = when {
+            currentCategoryId == FAV_CATEGORY_ID -> "★  FAVOURITES"
+            currentCategoryId.isBlank() -> "ALL CHANNELS"
+            else -> TvModeHolder.categories
+                .find { it.categoryId == currentCategoryId }
+                ?.categoryName?.uppercase() ?: "CHANNELS"
         }
-        val idx = categoryChannels.indexOfFirst { it.streamId == currentStreamId }.coerceAtLeast(0)
-        binding.rvNowNext.post {
-            (binding.rvNowNext.findViewHolderForAdapterPosition(idx)?.itemView
-                ?: binding.rvNowNext.getChildAt(0))?.requestFocus()
-        }
+        binding.panelHeader.text = catName
+
+        refreshCategoryChannels()
+        loadChannelPanel(categoryChannels)
     }
 
-    private fun focusCurrentCategory() {
-        epgFocusInCategories = true
-        binding.tvCatContainer.post {
-            val idx = when {
-                currentCategoryId == FAV_CATEGORY_ID -> 0
-                else -> {
-                    val base = visibleCategories().indexOfFirst { it.categoryId == currentCategoryId }
-                    if (base >= 0) base + 1 else 0
-                }
-            }
-            (binding.tvCatContainer.getChildAt(idx) ?: binding.tvCatContainer.getChildAt(0))
-                ?.requestFocus()
-        }
+    /** Open the CATEGORIES panel (category picker). */
+    private fun showCategoryPanel() {
+        panelState = PanelState.CATEGORIES
+        binding.leftPanel.visibility         = View.VISIBLE
+        binding.rvPanelChannels.visibility   = View.GONE
+        binding.rvPanelCategories.visibility = View.VISIBLE
+        binding.panelMainMenu.visibility     = View.GONE
+        binding.panelHeader.text             = "CATEGORIES"
+        loadCategoryPanel()
     }
 
-    private fun visibleCategories(): List<LiveCategory> {
-        val hidden = CategoryPrefs.getHiddenServerCatIds(this)
-        return TvModeHolder.categories.filter { it.categoryId !in hidden }
+    /** Open the MAIN_MENU panel (Live TV / Box Office / Radio / Interactive / Settings). */
+    private fun showMainMenuPanel() {
+        panelState = PanelState.MAIN_MENU
+        binding.leftPanel.visibility         = View.VISIBLE
+        binding.rvPanelChannels.visibility   = View.GONE
+        binding.rvPanelCategories.visibility = View.GONE
+        binding.panelMainMenu.visibility     = View.VISIBLE
+        binding.panelHeader.text             = "ORBITAL"
+        binding.panelMainMenu.post { binding.menuItemLiveTv.requestFocus() }
     }
 
-    private fun showMainMenuOverlay() {
-        epgFocusInCategories = false
-        overlayState = OverlayState.MAIN_MENU
-        binding.catEpgDivider.visibility   = View.GONE
-        binding.epgPanel.visibility        = View.GONE
-        binding.mainMenuPanel.visibility   = View.VISIBLE
-        binding.mainMenuDivider.visibility = View.VISIBLE
-        binding.epgOverlay.visibility      = View.VISIBLE
-        populateTvCategories()
-        binding.mainMenuPanel.post { binding.menuItemLiveTv.requestFocus() }
-    }
-
-    private fun hideOverlay() {
-        epgFocusInCategories = false
-        overlayState = OverlayState.NONE
+    /** Close all panels and return to full-screen TV. */
+    private fun hidePanel() {
         epgLoadingJob?.cancel()
-        binding.epgOverlay.visibility = View.GONE
+        panelState = PanelState.NONE
+        binding.leftPanel.visibility = View.GONE
         binding.surfaceView.requestFocus()
     }
 
-    private fun populateTvCategories() {
-        val p       = ThemeManager.palette()
-        val density = resources.displayMetrics.density
-        val rowH    = (38 * density).toInt()
-        val pad     = (12 * density).toInt()
+    // ── Channel panel ─────────────────────────────────────────────────────────
 
-        binding.tvCatContainer.removeAllViews()
+    private fun loadChannelPanel(channels: List<LiveStream>) {
+        val items = channels.map { ch -> NowNextItem(ch.streamId, ch.name) }.toMutableList()
 
-        val favCat  = LiveCategory(FAV_CATEGORY_ID, "★ FAVOURITES", 0)
-        val allCats = listOf(favCat) + visibleCategories()
-
-        allCats.forEachIndexed { index, cat ->
-            val isCurrent = cat.categoryId == currentCategoryId
-            val normalBg  = if (isCurrent) p.highlight else if (index % 2 == 0) p.bgMid else p.bgPrimary
-            val tv = TextView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, rowH)
-                setPadding(pad, 0, pad, 0)
-                gravity = Gravity.CENTER_VERTICAL
-                textSize = 12f
-                typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
-                text = if (index == 0) "  ★  FAVOURITES" else "  ${index + 1}  ${cat.categoryName.uppercase()}"
-                isFocusable = true; isClickable = true
-                background = ThemeManager.roundedBg(normalBg, density)
-                setTextColor(if (isCurrent) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
-                setOnFocusChangeListener { _, hasFocus ->
-                    if (!isCurrent) background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, density)
-                }
-                setOnClickListener {
-                    currentCategoryId = cat.categoryId
-                    refreshCategoryChannels()
-                    loadNowNextForCategory(categoryChannels)
-                    if (overlayState != OverlayState.EPG) {
-                        showEpgOverlay(focusChannelList = false)
-                    } else {
-                        populateTvCategories()
-                        focusCurrentCategory()
-                    }
-                }
-            }
-            binding.tvCatContainer.addView(tv)
-        }
-
-        refreshCategoryChannels()
-        if (overlayState == OverlayState.EPG) loadNowNextForCategory(categoryChannels)
-    }
-
-    private fun loadNowNextForCategory(channels: List<LiveStream>) {
-        val items = channels.map { ch ->
-            NowNextItem(ch.streamId, ch.name)
-        }.toMutableList()
-
-        nowNextAdapter = NowNextAdapter(items, currentStreamId) { streamId ->
+        channelPanelAdapter = NowNextAdapter(items, currentStreamId) { streamId ->
             val ch    = channels.find { it.streamId == streamId } ?: return@NowNextAdapter
             val creds = PrefsManager.getCredentials(this) ?: return@NowNextAdapter
             val url   = repository.buildStreamUrl(creds.serverUrl, creds.username, creds.password, ch.streamId)
@@ -834,15 +778,25 @@ class TvModeActivity : AppCompatActivity() {
             currentChannelName = ch.name
             PrefsManager.setLastTvChannel(this, url, ch.name, ch.streamId, currentCategoryId)
             playChannel(url, ch.name)
-            hideOverlay()
+            // Panel stays open — update the highlight
+            channelPanelAdapter?.setCurrentId(currentStreamId)
         }
-        binding.rvNowNext.layoutManager = TvLayoutManager(this)
-        binding.rvNowNext.itemAnimator  = null
-        binding.rvNowNext.adapter       = nowNextAdapter
+
+        binding.rvPanelChannels.layoutManager = TvLayoutManager(this)
+        binding.rvPanelChannels.itemAnimator  = null
+        binding.rvPanelChannels.adapter       = channelPanelAdapter
 
         val idx = channels.indexOfFirst { it.streamId == currentStreamId }.coerceAtLeast(0)
-        (binding.rvNowNext.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(idx, 0)
+        (binding.rvPanelChannels.layoutManager as? LinearLayoutManager)
+            ?.scrollToPositionWithOffset(idx, 0)
 
+        // Focus current channel row after layout
+        binding.rvPanelChannels.post {
+            (binding.rvPanelChannels.findViewHolderForAdapterPosition(idx)?.itemView
+                ?: binding.rvPanelChannels.getChildAt(0))?.requestFocus()
+        }
+
+        // Load EPG for all channels in the background
         epgLoadingJob?.cancel()
         val creds = PrefsManager.getCredentials(this) ?: return
         epgLoadingJob = lifecycleScope.launch {
@@ -873,11 +827,43 @@ class TvModeActivity : AppCompatActivity() {
                         val m   = cal.get(Calendar.MINUTE)
                         "%d:%02d%s".format(if (h % 12 == 0) 12 else h % 12, m, if (h < 12) "am" else "pm")
                     } ?: ""
-                    nowNextAdapter?.updateEpg(stream.streamId, nowTitle, nextTitle, nextTime)
+                    channelPanelAdapter?.updateEpg(stream.streamId, nowTitle, nextTitle, nextTime)
                 }
             }
         }
     }
+
+    // ── Category panel ────────────────────────────────────────────────────────
+
+    private fun loadCategoryPanel() {
+        val favCat  = LiveCategory(FAV_CATEGORY_ID, "★  FAVOURITES", 0)
+        val allCats = listOf(favCat) + visibleCategories()
+        val countMap = TvModeHolder.allChannels.groupingBy { it.categoryId }.eachCount()
+
+        val adapter = CategoryPanelAdapter(allCats, currentCategoryId, countMap.mapKeys { it.key ?: "" }) { cat ->
+            currentCategoryId = cat.categoryId
+            refreshCategoryChannels()
+            showChannelPanel()
+        }
+        binding.rvPanelCategories.layoutManager = TvLayoutManager(this)
+        binding.rvPanelCategories.itemAnimator  = null
+        binding.rvPanelCategories.adapter       = adapter
+
+        val idx = allCats.indexOfFirst { it.categoryId == currentCategoryId }.coerceAtLeast(0)
+        (binding.rvPanelCategories.layoutManager as? LinearLayoutManager)
+            ?.scrollToPositionWithOffset(idx, 0)
+        binding.rvPanelCategories.post {
+            (binding.rvPanelCategories.findViewHolderForAdapterPosition(idx)?.itemView
+                ?: binding.rvPanelCategories.getChildAt(0))?.requestFocus()
+        }
+    }
+
+    private fun visibleCategories(): List<LiveCategory> {
+        val hidden = CategoryPrefs.getHiddenServerCatIds(this)
+        return TvModeHolder.categories.filter { it.categoryId !in hidden }
+    }
+
+    // ── Dialogs ───────────────────────────────────────────────────────────────
 
     private fun showExitDialog() {
         showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
@@ -886,7 +872,6 @@ class TvModeActivity : AppCompatActivity() {
             .setNegativeButton("CANCEL", null))
     }
 
-    /** Shows a dialog with BACK-key dismissal wired up for the TV remote. */
     private fun showTvDialog(builder: AlertDialog.Builder): AlertDialog {
         val dlg = builder.setOnDismissListener { activeDialog = null }.show()
         dlg.setOnKeyListener { _, keyCode, event ->
@@ -929,7 +914,7 @@ class TvModeActivity : AppCompatActivity() {
                 binding.tvEpgNextTime.text = ""
                 binding.liveNextRow.visibility = View.GONE
                 playChannel(station.url, station.name)
-                hideOverlay()
+                hidePanel()
             })
     }
 
@@ -958,8 +943,6 @@ class TvModeActivity : AppCompatActivity() {
             .setTitle("INTERACTIVE")
             .setItems(items.map { it.label }.toTypedArray()) { _, which -> items[which].action() })
     }
-
-    // ── Settings (mirrors the normal-mode settings menu) ──────────────────────
 
     private fun showTvSettingsMenu() {
         val serverCount   = PrefsManager.getProfiles(this).size
@@ -1059,7 +1042,7 @@ class TvModeActivity : AppCompatActivity() {
             TvModeHolder.serverUrl   = PrefsManager.getCredentials(this@TvModeActivity)?.serverUrl ?: ""
             TvModeHolder.allChannels = emptyList()
             TvModeHolder.categories  = emptyList()
-            loadChannelsInBackground { showEpgOverlay(focusChannelList = false) }
+            loadChannelsInBackground { showCategoryPanel() }
         }
     }
 
@@ -1072,7 +1055,11 @@ class TvModeActivity : AppCompatActivity() {
             TvModeHolder.allChannels = emptyList()
             TvModeHolder.categories  = emptyList()
             loadChannelsInBackground {
-                if (overlayState != OverlayState.NONE) populateTvCategories()
+                when (panelState) {
+                    PanelState.CHANNELS    -> showChannelPanel()
+                    PanelState.CATEGORIES  -> showCategoryPanel()
+                    else                   -> { /* main menu / none — nothing to refresh */ }
+                }
             }
         }
     }
@@ -1095,7 +1082,7 @@ class TvModeActivity : AppCompatActivity() {
             }
             .setPositiveButton("SAVE") { _, _ ->
                 CategoryPrefs.setHiddenServerCatIds(this, hiddenIds)
-                if (overlayState != OverlayState.NONE) populateTvCategories()
+                if (panelState == PanelState.CATEGORIES) loadCategoryPanel()
             }
             .setNegativeButton("CANCEL", null))
     }
@@ -1270,87 +1257,75 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     // ── Key dispatch ──────────────────────────────────────────────────────────
+    //
+    // Navigation summary:
+    //   NONE        + LEFT  → CHANNELS panel
+    //   CHANNELS    + LEFT  → CATEGORIES panel
+    //   CHANNELS    + RIGHT → close panel (NONE)
+    //   CATEGORIES  + LEFT  → MAIN_MENU panel
+    //   CATEGORIES  + RIGHT → CHANNELS panel (current category)
+    //   MAIN_MENU   + RIGHT → CATEGORIES panel
+    //   BACK (any)          → close panel / exit dialog
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             val hudVisible = binding.hudTop.visibility == View.VISIBLE
             when (event.keyCode) {
+
                 KeyEvent.KEYCODE_BACK -> {
-                    if (event.repeatCount > 0) return true  // swallow held repeats
+                    if (event.repeatCount > 0) return true
                     val d = activeDialog
                     if (d != null && d.isShowing) { d.dismiss(); return true }
-                    when (overlayState) {
-                        OverlayState.MAIN_MENU -> { showEpgOverlay(focusChannelList = false); return true }
-                        OverlayState.EPG       -> { hideOverlay(); return true }
-                        OverlayState.NONE      -> {
-                            if (hudVisible) hideHudOverlay()
-                            else showExitDialog()
-                            return true
-                        }
-                    }
+                    if (panelState != PanelState.NONE) { hidePanel(); return true }
+                    if (hudVisible) { hideHudOverlay(); return true }
+                    showExitDialog(); return true
                 }
+
                 KeyEvent.KEYCODE_DPAD_CENTER,
                 KeyEvent.KEYCODE_ENTER -> {
-                    if (!hudVisible && overlayState == OverlayState.NONE) {
-                        showHudOverlay()
-                        return true
+                    if (!hudVisible && panelState == PanelState.NONE) {
+                        showHudOverlay(); return true
                     }
                 }
+
                 KeyEvent.KEYCODE_DPAD_UP -> {
-                    if (!hudVisible && overlayState == OverlayState.NONE) {
-                        changeTvChannel(-1)
-                        return true
+                    if (!hudVisible && panelState == PanelState.NONE) {
+                        changeTvChannel(-1); return true
                     }
                 }
+
                 KeyEvent.KEYCODE_DPAD_DOWN -> {
-                    if (!hudVisible && overlayState == OverlayState.NONE) {
-                        changeTvChannel(+1)
-                        return true
+                    if (!hudVisible && panelState == PanelState.NONE) {
+                        changeTvChannel(+1); return true
                     }
                 }
+
                 KeyEvent.KEYCODE_DPAD_LEFT -> {
-                    if (overlayState == OverlayState.NONE) {
-                        val hudNavFocused = currentFocus?.let { f ->
-                            f == binding.btnHudAudio || f == binding.btnHudRecord ||
-                            f == binding.btnHudScores || f == binding.btnHudNews
-                        } ?: false
-                        if (!hudNavFocused) {
-                            hudHandler.removeCallbacks(hideHud)
-                            hideHudOverlay()
-                            showEpgOverlay()
-                            return true
+                    when (panelState) {
+                        PanelState.NONE -> {
+                            val hudNavFocused = currentFocus?.let { f ->
+                                f == binding.btnHudAudio || f == binding.btnHudRecord ||
+                                f == binding.btnHudScores || f == binding.btnHudNews
+                            } ?: false
+                            if (!hudNavFocused) {
+                                hudHandler.removeCallbacks(hideHud)
+                                hideHudOverlay()
+                                showChannelPanel()
+                                return true
+                            }
                         }
-                    }
-                    if (overlayState == OverlayState.EPG) {
-                        val focusClass = currentFocus?.javaClass?.simpleName ?: "null"
-                        Toast.makeText(this, "LEFT EPG cats=$epgFocusInCategories focus=$focusClass", Toast.LENGTH_SHORT).show()
-                        if (epgFocusInCategories) {
-                            showMainMenuOverlay()
-                        } else {
-                            focusCurrentCategory()
-                        }
-                        return true
-                    }
-                    if (overlayState == OverlayState.MAIN_MENU) {
-                        hideOverlay()
-                        return true
+                        PanelState.CHANNELS   -> { showCategoryPanel(); return true }
+                        PanelState.CATEGORIES -> { showMainMenuPanel(); return true }
+                        PanelState.MAIN_MENU  -> return true  // already at leftmost — swallow
                     }
                 }
+
                 KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                    if (overlayState == OverlayState.MAIN_MENU) {
-                        showEpgOverlay(focusChannelList = false)
-                        return true
-                    }
-                    if (overlayState == OverlayState.EPG) {
-                        if (binding.rvNowNext.hasFocus()) {
-                            // RIGHT from channel list → close overlay
-                            hideOverlay()
-                            return true
-                        } else {
-                            // RIGHT from category list → focus first visible channel item
-                            focusCurrentChannelRow()
-                            return true
-                        }
+                    when (panelState) {
+                        PanelState.CHANNELS   -> { hidePanel(); return true }
+                        PanelState.CATEGORIES -> { showChannelPanel(); return true }
+                        PanelState.MAIN_MENU  -> { showCategoryPanel(); return true }
+                        PanelState.NONE       -> { /* normal right navigation */ }
                     }
                 }
             }
@@ -1380,7 +1355,7 @@ class TvModeActivity : AppCompatActivity() {
         super.onResume()
         player?.play()
         updateRecordButton()
-        if (binding.hudTop.visibility != View.VISIBLE && overlayState == OverlayState.NONE) {
+        if (binding.hudTop.visibility != View.VISIBLE && panelState == PanelState.NONE) {
             binding.surfaceView.requestFocus()
         }
         window.decorView.systemUiVisibility = (
@@ -1418,11 +1393,11 @@ data class NowNextItem(
     var nextTime: String  = ""
 )
 
-// ── Now & Next adapter ────────────────────────────────────────────────────────
+// ── Channel panel adapter (channel name + now/next EPG) ───────────────────────
 
 class NowNextAdapter(
     private val items: MutableList<NowNextItem>,
-    private val currentId: Int,
+    private var currentId: Int,
     private val onSelect: (Int) -> Unit
 ) : RecyclerView.Adapter<NowNextAdapter.VH>() {
 
@@ -1435,11 +1410,10 @@ class NowNextAdapter(
             orientation = LinearLayout.HORIZONTAL
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (58 * d).toInt())
             isFocusable = true; isClickable = true
-            // Block focus from entering child views so D-pad UP/DOWN moves between items, not into text
             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         }
         val chanTv = TextView(parent.context).apply {
-            layoutParams = LinearLayout.LayoutParams((190 * d).toInt(), LinearLayout.LayoutParams.MATCH_PARENT)
+            layoutParams = LinearLayout.LayoutParams((170 * d).toInt(), LinearLayout.LayoutParams.MATCH_PARENT)
             gravity = Gravity.CENTER_VERTICAL
             setPadding((10 * d).toInt(), 0, (8 * d).toInt(), 0)
             textSize = 11f
@@ -1455,14 +1429,14 @@ class NowNextAdapter(
         }
         val nowTv = TextView(parent.context).apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            textSize = 11f
+            textSize = 10f
             typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
             setTextColor(0xFFCCDDEE.toInt())
             maxLines = 1; ellipsize = TextUtils.TruncateAt.END
         }
         val nextTv = TextView(parent.context).apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            textSize = 10f
+            textSize = 9f
             typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
             setTextColor(0xFF7799BB.toInt())
             maxLines = 1; ellipsize = TextUtils.TruncateAt.END
@@ -1477,9 +1451,9 @@ class NowNextAdapter(
     override fun getItemCount() = items.size
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val item     = items[position]
-        val p        = ThemeManager.palette()
-        val d        = holder.itemView.resources.displayMetrics.density
+        val item      = items[position]
+        val p         = ThemeManager.palette()
+        val d         = holder.itemView.resources.displayMetrics.density
         val isPlaying = item.streamId == currentId
         val normalBg  = if (isPlaying) p.highlight else if (position % 2 == 0) 0xFF0A1628.toInt() else 0xFF0D1E38.toInt()
 
@@ -1510,6 +1484,58 @@ class NowNextAdapter(
             notifyItemChanged(idx)
         }
     }
+
+    /** Update the currently-playing highlight without closing the panel. */
+    fun setCurrentId(id: Int) {
+        currentId = id
+        notifyDataSetChanged()
+    }
+}
+
+// ── Category panel adapter ────────────────────────────────────────────────────
+
+class CategoryPanelAdapter(
+    private val items: List<LiveCategory>,
+    private val currentCategoryId: String,
+    private val countMap: Map<String, Int>,
+    private val onSelect: (LiveCategory) -> Unit
+) : RecyclerView.Adapter<CategoryPanelAdapter.VH>() {
+
+    inner class VH(val tv: TextView) : RecyclerView.ViewHolder(tv)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val d   = parent.resources.displayMetrics.density
+        val tv  = TextView(parent.context).apply {
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (48 * d).toInt())
+            setPadding((14 * d).toInt(), 0, (10 * d).toInt(), 0)
+            gravity = Gravity.CENTER_VERTICAL
+            textSize = 12f
+            typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
+            isFocusable = true; isClickable = true
+        }
+        return VH(tv)
+    }
+
+    override fun getItemCount() = items.size
+
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val cat       = items[position]
+        val p         = ThemeManager.palette()
+        val d         = holder.tv.resources.displayMetrics.density
+        val isCurrent = cat.categoryId == currentCategoryId
+        val normalBg  = if (isCurrent) p.highlight else if (position % 2 == 0) 0xFF0A1628.toInt() else 0xFF0D1E38.toInt()
+
+        val count = if (cat.categoryId == "__favourites__") null
+                    else countMap[cat.categoryId]
+        holder.tv.text = if (count != null) "${cat.categoryName.uppercase()}  ($count)"
+                         else cat.categoryName.uppercase()
+        holder.tv.setTextColor(if (isCurrent) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+        holder.tv.background = ThemeManager.roundedBg(normalBg, d)
+        holder.tv.setOnFocusChangeListener { _, hasFocus ->
+            if (!isCurrent) holder.tv.background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, d)
+        }
+        holder.tv.setOnClickListener { onSelect(cat) }
+    }
 }
 
 // ── TV-friendly RecyclerView LayoutManager ────────────────────────────────────
@@ -1529,4 +1555,3 @@ private class TvLayoutManager(ctx: android.content.Context) : LinearLayoutManage
         return true
     }
 }
-
