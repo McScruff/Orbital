@@ -1,6 +1,6 @@
 {
-  "version_code": 11,
-  "version_name": "1.1.0",
+  "version_code": 12,
+  "version_name": "1.2.0",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "ExoPlayer only — MPV and VLC removed. APK much smaller. TV mode: full navigation menu, Settings popup, Radio popup, exit dialog. Screen stays on during playback."
+  "release_notes": "TV mode panel navigation overhaul — left panel cycles through Channels, Categories, and Main Menu. Portrait aspect ratio for movie and series posters."
 }
