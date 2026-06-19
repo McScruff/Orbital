@@ -1,6 +1,6 @@
 {
-  "version_code": 12,
-  "version_name": "1.2.0",
+  "version_code": 13,
+  "version_name": "1.2.1",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "TV mode panel navigation overhaul — left panel cycles through Channels, Categories, and Main Menu. Portrait aspect ratio for movie and series posters."
+  "release_notes": "Should fix search issue on some devices."
 }
