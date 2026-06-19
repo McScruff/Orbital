@@ -24,6 +24,7 @@ import com.orbital.iptv.databinding.ActivityPlexBrowserBinding
 import com.orbital.iptv.ui.player.PlayerActivity
 import com.orbital.iptv.utils.PlexPrefsManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.orbital.iptv.utils.ThemeManager
@@ -55,6 +56,7 @@ class PlexBrowserActivity : AppCompatActivity() {
     private var currentLevel: Level = Level.Root
     private val searchHandler = Handler(Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
+    private var fetchJob: Job? = null
 
     private var allPlexGenres: List<PlexGenre> = emptyList()
     private var selectedGenreTitle: String? = null  // null=ALL, "__continue__"=Continue Watching, else genre title
@@ -225,6 +227,7 @@ class PlexBrowserActivity : AppCompatActivity() {
         })
         binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                searchRunnable?.let { searchHandler.removeCallbacks(it) }
                 val query = binding.etSearch.text?.toString()?.trim() ?: ""
                 if (query.isNotBlank()) loadSearch(query)
                 true
@@ -392,9 +395,10 @@ class PlexBrowserActivity : AppCompatActivity() {
     }
 
     private fun fetch(sourceBadge: String? = null, block: suspend () -> Result<List<PlexItem>>) {
+        fetchJob?.cancel()
         setLoading(true)
         binding.tvEmpty.visibility = View.GONE
-        lifecycleScope.launch {
+        fetchJob = lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) { runCatching { block().getOrThrow() } }
             setLoading(false)
             result.onFailure { err ->

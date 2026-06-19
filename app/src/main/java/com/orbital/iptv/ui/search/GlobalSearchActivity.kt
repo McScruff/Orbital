@@ -263,9 +263,11 @@ class GlobalSearchActivity : AppCompatActivity() {
     private val embyRepo = EmbyRepository()
     private val plexRepo = PlexRepository()
 
-    private var currentFilter = SearchFilter.ALL
-    private var fullResults   = listOf<SearchResultItem>()
-    private var searchJob: Job? = null
+    private var currentFilter    = SearchFilter.ALL
+    private var fullResults      = listOf<SearchResultItem>()
+    private var searchJob: Job?  = null
+    private var lastSearchQuery  = ""
+    private var lastSearchMs     = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -450,7 +452,8 @@ class GlobalSearchActivity : AppCompatActivity() {
     }
 
     private fun showHint() {
-        fullResults = emptyList()
+        fullResults     = emptyList()
+        lastSearchQuery = ""
         binding.recyclerView.visibility = View.GONE
         binding.tvEmpty.visibility = View.VISIBLE
         binding.sidebarScroll.visibility = View.GONE
@@ -460,6 +463,18 @@ class GlobalSearchActivity : AppCompatActivity() {
     }
 
     private fun doSearch(query: String) {
+        // Guard against double-trigger: some IME implementations fire EditorActionListener
+        // asynchronously after setText(), re-entering doSearch while results are already showing.
+        val now = System.currentTimeMillis()
+        if (query == lastSearchQuery && now - lastSearchMs < 1500L) return
+        lastSearchQuery = query
+        lastSearchMs    = now
+
+        // Dismiss the soft keyboard so it can't re-fire the action while the search runs.
+        val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
+                as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+
         searchJob?.cancel()
         currentFilter = SearchFilter.ALL
         updateFilterButtons()

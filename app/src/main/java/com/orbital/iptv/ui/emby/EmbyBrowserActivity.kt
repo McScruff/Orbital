@@ -23,6 +23,7 @@ import com.orbital.iptv.databinding.ActivityEmbyBrowserBinding
 import com.orbital.iptv.ui.player.PlayerActivity
 import com.orbital.iptv.utils.EmbyPrefsManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.orbital.iptv.utils.ThemeManager
@@ -53,6 +54,7 @@ class EmbyBrowserActivity : AppCompatActivity() {
     private var currentLevel: Level = Level.Root
     private val searchHandler = Handler(Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
+    private var fetchJob: Job? = null
 
     private var allEmbyGenres: List<EmbyItem> = emptyList()
     private var selectedGenreId: String? = null   // null=ALL, "__continue__"=Continue Watching, else genre id
@@ -229,6 +231,7 @@ class EmbyBrowserActivity : AppCompatActivity() {
         })
         binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                searchRunnable?.let { searchHandler.removeCallbacks(it) }
                 val query = binding.etSearch.text?.toString()?.trim() ?: ""
                 if (query.isNotBlank()) loadSearch(query)
                 true
@@ -448,9 +451,10 @@ class EmbyBrowserActivity : AppCompatActivity() {
     }
 
     private fun fetch(sourceBadge: String? = null, block: suspend () -> List<EmbyItem>) {
+        fetchJob?.cancel()
         setLoading(true)
         binding.tvEmpty.visibility = View.GONE
-        lifecycleScope.launch {
+        fetchJob = lifecycleScope.launch {
             val items = withContext(Dispatchers.IO) { runCatching { block() }.getOrDefault(emptyList()) }
             setLoading(false)
             if (items.isEmpty()) {
