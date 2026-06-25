@@ -65,6 +65,7 @@ import com.orbital.iptv.ui.series.SeriesActivity
 import com.orbital.iptv.ui.sports.SportsActivity
 import com.orbital.iptv.ui.vod.VodActivity
 import com.orbital.iptv.utils.FavouritesManager
+import com.orbital.iptv.utils.PinManager
 import com.orbital.iptv.utils.PrefsManager
 import com.orbital.iptv.utils.ThemeManager
 import com.orbital.iptv.utils.TickerManager
@@ -130,6 +131,8 @@ class TvModeActivity : AppCompatActivity() {
 
     private val hudHandler  = Handler(Looper.getMainLooper())
     private val hideHud     = Runnable { hideHudOverlay() }
+    private val zapHandler  = Handler(Looper.getMainLooper())
+    private val hideZap     = Runnable { hideZapBar() }
     private val repository  = XtreamRepository()
     private var isRecording = false
 
@@ -211,7 +214,7 @@ class TvModeActivity : AppCompatActivity() {
                 exo.setMediaItem(MediaItem.fromUri(currentStreamUrl))
                 exo.prepare()
                 exo.play()
-                showInfoBar(currentChannelName)
+                updateChannelInfo(currentChannelName)
                 loadEpgForCurrentChannel()
             }
         }
@@ -303,6 +306,7 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     private fun showHudOverlay() {
+        zapHandler.removeCallbacks(hideZap)
         updateClock()
         binding.hudTop.visibility    = View.VISIBLE
         binding.hudBottom.visibility = View.VISIBLE
@@ -317,11 +321,34 @@ class TvModeActivity : AppCompatActivity() {
         if (panelState == PanelState.NONE) binding.surfaceView.requestFocus()
     }
 
-    private fun showInfoBar(name: String) {
+    private fun updateChannelInfo(name: String) {
         binding.tvChannelName.text    = name.uppercase()
         binding.tvHudChannelInfo.text = name.uppercase()
-        // Only pop the HUD when no panel is open — otherwise the HUD steals focus from the panel
+    }
+
+    private fun showInfoBar(name: String) {
+        updateChannelInfo(name)
         if (panelState == PanelState.NONE) showHudOverlay()
+    }
+
+    private fun showZapBar(name: String) {
+        updateChannelInfo(name)
+        updateClock()
+        // Always force top HUD hidden and cancel its timer — only bottom info bar shows during zap
+        hudHandler.removeCallbacks(hideHud)
+        binding.hudTop.visibility    = View.GONE
+        binding.hudBottom.visibility = View.VISIBLE
+        zapHandler.removeCallbacks(hideZap)
+        zapHandler.postDelayed(hideZap, 3000L)
+        loadEpgForCurrentChannel()
+    }
+
+    private fun hideZapBar() {
+        zapHandler.removeCallbacks(hideZap)
+        // Only collapse the bottom bar if the full HUD (top) is not currently shown
+        if (binding.hudTop.visibility != View.VISIBLE) {
+            binding.hudBottom.visibility = View.GONE
+        }
     }
 
     private fun loadEpgForCurrentChannel() {
@@ -715,6 +742,7 @@ class TvModeActivity : AppCompatActivity() {
     /** Open the CHANNELS panel (channel list for the current category). */
     private fun showChannelPanel() {
         hideHudOverlay()
+        zapHandler.removeCallbacks(hideZap)
         panelState = PanelState.CHANNELS
         binding.leftPanel.visibility         = View.VISIBLE
         binding.rvPanelChannels.visibility   = View.VISIBLE
@@ -841,9 +869,16 @@ class TvModeActivity : AppCompatActivity() {
         val countMap = TvModeHolder.allChannels.groupingBy { it.categoryId }.eachCount()
 
         val adapter = CategoryPanelAdapter(allCats, currentCategoryId, countMap.mapKeys { it.key ?: "" }) { cat ->
-            currentCategoryId = cat.categoryId
-            refreshCategoryChannels()
-            showChannelPanel()
+            fun openCategory() {
+                currentCategoryId = cat.categoryId
+                refreshCategoryChannels()
+                showChannelPanel()
+            }
+            if (PinManager.isCategoryLocked(this, cat.categoryId)) {
+                tvPromptPin("ENTER PIN TO VIEW CATEGORY") { openCategory() }
+            } else {
+                openCategory()
+            }
         }
         binding.rvPanelCategories.layoutManager = TvLayoutManager(this)
         binding.rvPanelCategories.itemAnimator  = null
@@ -881,6 +916,89 @@ class TvModeActivity : AppCompatActivity() {
         }
         activeDialog = dlg
         return dlg
+    }
+
+    // ── PIN helpers ───────────────────────────────────────────────────────────
+
+    private fun tvPinEditText(hint: String) = android.widget.EditText(this).apply {
+        inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+                    android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        filters = arrayOf(android.text.InputFilter.LengthFilter(4))
+        this.hint = hint
+        gravity = Gravity.CENTER
+        textSize = 22f
+        setPadding(48, 32, 48, 16)
+    }
+
+    private fun tvPromptPin(title: String, onCorrect: () -> Unit) {
+        val et = tvPinEditText("ENTER PIN")
+        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle(title)
+            .setView(et)
+            .setPositiveButton("OK") { _, _ ->
+                if (et.text.toString() == PinManager.getPin(this)) onCorrect()
+                else Toast.makeText(this, "INCORRECT PIN", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("CANCEL", null))
+    }
+
+    private fun showPinProtectedCategories() {
+        tvPromptPin("ENTER PIN TO MANAGE LOCKED CATEGORIES") { showLockedCategoryPicker() }
+    }
+
+    private fun showLockedCategoryPicker() {
+        val categories = TvModeHolder.categories
+        if (categories.isEmpty()) {
+            Toast.makeText(this, "NO CATEGORIES LOADED", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val lockedIds = PinManager.getLockedCategoryIds(this).toMutableSet()
+        val labels  = categories.map { it.categoryName.uppercase() }.toTypedArray()
+        val checked = categories.map { it.categoryId in lockedIds }.toBooleanArray()
+        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("PIN PROTECTED CATEGORIES")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                if (isChecked) lockedIds.add(categories[which].categoryId)
+                else           lockedIds.remove(categories[which].categoryId)
+            }
+            .setPositiveButton("SAVE") { _, _ ->
+                PinManager.setLockedCategoryIds(this, lockedIds)
+                Toast.makeText(this, "SAVED", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("CANCEL", null))
+    }
+
+    private fun showChangePinDialog() {
+        tvPromptPin("ENTER CURRENT PIN") { tvPromptNewPin() }
+    }
+
+    private fun tvPromptNewPin() {
+        val et = tvPinEditText("ENTER NEW PIN")
+        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("ENTER NEW PIN")
+            .setView(et)
+            .setPositiveButton("NEXT") { _, _ ->
+                val pin = et.text.toString()
+                if (pin.length == 4) tvConfirmNewPin(pin)
+                else Toast.makeText(this, "PIN MUST BE 4 DIGITS", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("CANCEL", null))
+    }
+
+    private fun tvConfirmNewPin(newPin: String) {
+        val et = tvPinEditText("CONFIRM NEW PIN")
+        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("CONFIRM NEW PIN")
+            .setView(et)
+            .setPositiveButton("SAVE") { _, _ ->
+                if (et.text.toString() == newPin) {
+                    PinManager.setPin(this, newPin)
+                    Toast.makeText(this, "PIN CHANGED", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "PINS DO NOT MATCH", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("CANCEL", null))
     }
 
     private fun showBoxOfficeMenu() {
@@ -963,6 +1081,8 @@ class TvModeActivity : AppCompatActivity() {
             showOpenSubsKeyDialog()
         }
         items += Item("LIVE STREAM FORMAT: ${PrefsManager.getLiveFormat(this).uppercase()}") { toggleLiveFormat() }
+        items += Item("PIN PROTECTED CATEGORIES")       { showPinProtectedCategories() }
+        items += Item("CHANGE PIN")                    { showChangePinDialog() }
         items += Item("CHECK FOR UPDATES")             { checkForUpdatesManually() }
         items += Item("CLEAR ALL SAVED DATA")          { confirmClearAllData() }
         val versionName = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "?" }
@@ -1289,13 +1409,13 @@ class TvModeActivity : AppCompatActivity() {
                 }
 
                 KeyEvent.KEYCODE_DPAD_UP -> {
-                    if (!hudVisible && panelState == PanelState.NONE) {
+                    if (panelState == PanelState.NONE) {
                         changeTvChannel(-1); return true
                     }
                 }
 
                 KeyEvent.KEYCODE_DPAD_DOWN -> {
-                    if (!hudVisible && panelState == PanelState.NONE) {
+                    if (panelState == PanelState.NONE) {
                         changeTvChannel(+1); return true
                     }
                 }
@@ -1345,7 +1465,11 @@ class TvModeActivity : AppCompatActivity() {
         currentStreamUrl   = url
         currentChannelName = stream.name
         PrefsManager.setLastTvChannel(this, url, stream.name, stream.streamId, currentCategoryId)
-        playChannel(url, stream.name)
+        // Play without opening the full HUD — show lightweight zap bar instead
+        player?.setMediaItem(MediaItem.fromUri(url))
+        player?.prepare()
+        player?.play()
+        showZapBar(stream.name)
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -1545,12 +1669,16 @@ private class TvLayoutManager(ctx: android.content.Context) : LinearLayoutManage
         parent: RecyclerView, state: RecyclerView.State,
         child: android.view.View, focused: android.view.View?
     ): Boolean {
-        val first = findFirstCompletelyVisibleItemPosition()
-        val last  = findLastCompletelyVisibleItemPosition()
-        val pos   = getPosition(child)
+        val pos          = getPosition(child)
+        val firstComplete = findFirstCompletelyVisibleItemPosition()
+        val lastComplete  = findLastCompletelyVisibleItemPosition()
         when {
-            pos < first -> scrollToPositionWithOffset(pos, 0)
-            pos > last  -> scrollToPositionWithOffset(pos, (parent.height - child.height).coerceAtLeast(0))
+            pos < firstComplete -> {
+                // Scroll only enough to reveal the top of the item — avoids snapping to y=0 when item is partially visible
+                val dy = child.top
+                if (dy < 0) parent.scrollBy(0, dy) else scrollToPositionWithOffset(pos, 0)
+            }
+            pos > lastComplete  -> scrollToPositionWithOffset(pos, (parent.height - child.height).coerceAtLeast(0))
         }
         return true
     }

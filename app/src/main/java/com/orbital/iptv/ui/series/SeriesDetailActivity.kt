@@ -210,7 +210,10 @@ class SeriesDetailActivity : AppCompatActivity() {
     }
 
     private fun resolveNextEpisode(ep: Episode): Episode? {
-        val epSeasonKey = ep.season?.toString() ?: ""
+        // ep.season is null on many providers — fall back to scanning all buckets by episode ID
+        val epSeasonKey = ep.season?.toString()
+            ?: allEpisodes.entries.firstOrNull { (_, eps) -> eps.any { it.id == ep.id } }?.key
+            ?: ""
         val seasonEps = (allEpisodes[epSeasonKey] ?: emptyList()).sortedBy { it.episodeNum ?: 0 }
         val idx = seasonEps.indexOfFirst { it.id == ep.id }
         if (idx >= 0 && idx + 1 < seasonEps.size) return seasonEps[idx + 1]
@@ -221,6 +224,11 @@ class SeriesDetailActivity : AppCompatActivity() {
         }
         return null
     }
+
+    private fun resolvedSeasonKey(ep: Episode): String =
+        ep.season?.toString()
+            ?: allEpisodes.entries.firstOrNull { (_, eps) -> eps.any { it.id == ep.id } }?.key
+            ?: ""
 
     private fun episodeDisplayTitle(ep: Episode): String =
         ep.title?.takeIf { it.isNotBlank() } ?: "S${ep.season}E%02d".format(ep.episodeNum ?: 0)
@@ -253,9 +261,10 @@ class SeriesDetailActivity : AppCompatActivity() {
             repository.buildSeriesEpisodeUrl(serverUrl, username, password, it.id, it.containerExtension ?: "mp4")
         } ?: ""
         val nextTitle = next?.let { "${binding.tvTitle.text} — ${episodeDisplayTitle(it)}" } ?: ""
-        val favId = "ep_${seriesId}_${ep.season}_${ep.episodeNum}"
+        val epSeasonKey   = resolvedSeasonKey(ep)
+        val nextSeasonKey = next?.let { resolvedSeasonKey(it) } ?: ""
+        val favId = "ep_${seriesId}_${epSeasonKey}_${ep.episodeNum}"
 
-        // Remove any other episode of this series already saved before adding the new one
         FavouritesManager.removeBySeriesId(this, seriesId)
         FavouritesManager.addOrUpdate(this, FavouriteItem(
             id               = favId,
@@ -265,12 +274,12 @@ class SeriesDetailActivity : AppCompatActivity() {
             streamUrl        = url,
             streamId         = ep.id.toIntOrNull() ?: 0,
             seriesId         = seriesId,
-            season           = ep.season?.toString() ?: "",
+            season           = epSeasonKey,
             episodeNum       = ep.episodeNum ?: 0,
             episodeId        = ep.id,
             nextEpisodeUrl   = nextUrl,
             nextEpisodeTitle = nextTitle,
-            nextEpisodeSeason = next?.season?.toString() ?: "",
+            nextEpisodeSeason = nextSeasonKey,
             nextEpisodeNum   = next?.episodeNum ?: 0,
             nextEpisodeId    = next?.id ?: ""
         ))
@@ -298,7 +307,9 @@ class SeriesDetailActivity : AppCompatActivity() {
         val next  = resolveNextEpisode(ep)
         val nextUrl   = next?.let { repository.buildSeriesEpisodeUrl(serverUrl, username, password, it.id, it.containerExtension ?: "mp4") } ?: ""
         val nextTitle = next?.let { "${binding.tvTitle.text} — ${episodeDisplayTitle(it)}" } ?: ""
-        val favId = "ep_${seriesId}_${ep.season}_${ep.episodeNum}"
+        val epSeasonKey   = resolvedSeasonKey(ep)
+        val nextSeasonKey = next?.let { resolvedSeasonKey(it) } ?: ""
+        val favId = "ep_${seriesId}_${epSeasonKey}_${ep.episodeNum}"
 
         PlayerLauncher.launch(
             activity     = this,
@@ -309,13 +320,13 @@ class SeriesDetailActivity : AppCompatActivity() {
             favId        = favId,
             artUrl       = seriesCoverUrl,
             seriesId     = seriesId,
-            season       = ep.season?.toString() ?: "",
+            season       = epSeasonKey,
             episodeNum   = ep.episodeNum ?: 0,
             episodeId    = ep.id,
             nextEpUrl    = nextUrl,
             nextEpTitle  = nextTitle,
             nextEpNum    = next?.episodeNum ?: 0,
-            nextEpSeason = next?.season?.toString() ?: "",
+            nextEpSeason = nextSeasonKey,
             nextEpId     = next?.id ?: "",
             subtitlePath = subtitlePath
         )

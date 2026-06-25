@@ -254,6 +254,8 @@ class HomeActivity : AppCompatActivity() {
         items += Item(subKeyLabel)                        { showOpenSubsKeyDialog() }
         val liveFormatLabel = "LIVE STREAM FORMAT: ${PrefsManager.getLiveFormat(this).uppercase()}"
         items += Item(liveFormatLabel) { toggleLiveFormat() }
+        items += Item("PIN PROTECTED CATEGORIES")          { showPinProtectedCategories() }
+        items += Item("CHANGE PIN")                       { showChangePinDialog() }
         items += Item("CHECK FOR UPDATES")                { checkForUpdatesManually() }
         items += Item("CLEAR ALL SAVED DATA")             { confirmClearAllData() }
         val versionName = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "?" }
@@ -608,7 +610,13 @@ class HomeActivity : AppCompatActivity() {
                     if (!isSelected) background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, density)
                 }
 
-                setOnClickListener { viewModel.selectXtreamCategory(category) }
+                setOnClickListener {
+                    if (PinManager.isCategoryLocked(this@HomeActivity, category.categoryId)) {
+                        promptPin("ENTER PIN TO VIEW CATEGORY") { viewModel.selectXtreamCategory(category) }
+                    } else {
+                        viewModel.selectXtreamCategory(category)
+                    }
+                }
             }
             binding.originalCatContainer?.addView(tv)
         }
@@ -882,6 +890,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun onChannelSelected(stream: LiveStream) {
+        launchChannel(stream)
+    }
+
+    private fun launchChannel(stream: LiveStream) {
         if (PrefsManager.isTvModeEnabled(this)) {
             val streamUrl = viewModel.buildStreamUrl(stream.streamId)
             val catId = viewModel.uiState.value?.selectedXtreamCategory?.categoryId
@@ -913,5 +925,92 @@ class HomeActivity : AppCompatActivity() {
             stream.num?.let { putExtra(PlayerActivity.EXTRA_CHANNEL_NUM, it) }
         }
         startActivity(intent)
+    }
+
+    // ── PIN helpers ───────────────────────────────────────────────────────────
+
+    private fun pinEditText(hint: String) = android.widget.EditText(this).apply {
+        inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+                    android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        filters = arrayOf(android.text.InputFilter.LengthFilter(4))
+        this.hint = hint
+        gravity = android.view.Gravity.CENTER
+        textSize = 22f
+        setPadding(48, 32, 48, 16)
+    }
+
+    private fun promptPin(title: String, onCorrect: () -> Unit) {
+        val et = pinEditText("ENTER PIN")
+        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle(title)
+            .setView(et)
+            .setPositiveButton("OK") { _, _ ->
+                if (et.text.toString() == PinManager.getPin(this)) onCorrect()
+                else Toast.makeText(this, "INCORRECT PIN", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
+    private fun showPinProtectedCategories() {
+        promptPin("ENTER PIN TO MANAGE LOCKED CATEGORIES") { showLockedCategoryPicker() }
+    }
+
+    private fun showLockedCategoryPicker() {
+        val categories = viewModel.uiState.value?.xtreamCategories ?: emptyList()
+        if (categories.isEmpty()) {
+            Toast.makeText(this, "NO CATEGORIES LOADED", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val lockedIds = PinManager.getLockedCategoryIds(this).toMutableSet()
+        val labels  = categories.map { it.categoryName.uppercase() }.toTypedArray()
+        val checked = categories.map { it.categoryId in lockedIds }.toBooleanArray()
+        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("PIN PROTECTED CATEGORIES")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                if (isChecked) lockedIds.add(categories[which].categoryId)
+                else           lockedIds.remove(categories[which].categoryId)
+            }
+            .setPositiveButton("SAVE") { _, _ ->
+                PinManager.setLockedCategoryIds(this, lockedIds)
+                Toast.makeText(this, "SAVED", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
+    private fun showChangePinDialog() {
+        promptPin("ENTER CURRENT PIN") { promptNewPin() }
+    }
+
+    private fun promptNewPin() {
+        val et = pinEditText("ENTER NEW PIN")
+        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("ENTER NEW PIN")
+            .setView(et)
+            .setPositiveButton("NEXT") { _, _ ->
+                val pin = et.text.toString()
+                if (pin.length == 4) confirmNewPin(pin)
+                else Toast.makeText(this, "PIN MUST BE 4 DIGITS", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
+    private fun confirmNewPin(newPin: String) {
+        val et = pinEditText("CONFIRM NEW PIN")
+        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("CONFIRM NEW PIN")
+            .setView(et)
+            .setPositiveButton("SAVE") { _, _ ->
+                if (et.text.toString() == newPin) {
+                    PinManager.setPin(this, newPin)
+                    Toast.makeText(this, "PIN CHANGED", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "PINS DO NOT MATCH", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
     }
 }

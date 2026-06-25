@@ -141,6 +141,9 @@ class PlayerActivity : AppCompatActivity() {
     private val overlayHandler = Handler(Looper.getMainLooper())
     private val hideOverlayRunnable = Runnable { hideOverlay() }
 
+    private val zapHandler = Handler(Looper.getMainLooper())
+    private val hideZapRunnable = Runnable { hideZapBar() }
+
     private val clockHandler = Handler(Looper.getMainLooper())
     private val clockRunnable = object : Runnable {
         override fun run() {
@@ -426,6 +429,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun showOverlay() {
+        zapHandler.removeCallbacks(hideZapRunnable)
+        if (isLive) binding.btnRecord.visibility = View.VISIBLE
         binding.hudOverlay.visibility = View.VISIBLE
         binding.bottomBar.visibility = View.VISIBLE
         overlayHandler.removeCallbacks(hideOverlayRunnable)
@@ -443,6 +448,23 @@ class PlayerActivity : AppCompatActivity() {
         binding.hudOverlay.visibility = View.GONE
         binding.bottomBar.visibility = View.GONE
         clockHandler.removeCallbacks(clockRunnable)
+    }
+
+    private fun showZapBar() {
+        overlayHandler.removeCallbacks(hideOverlayRunnable)
+        binding.hudOverlay.visibility = View.GONE
+        binding.btnRecord.visibility = View.GONE
+        binding.bottomBar.visibility = View.VISIBLE
+        if (isLive) updateClock()
+        zapHandler.removeCallbacks(hideZapRunnable)
+        zapHandler.postDelayed(hideZapRunnable, 3000L)
+    }
+
+    private fun hideZapBar() {
+        zapHandler.removeCallbacks(hideZapRunnable)
+        if (binding.hudOverlay.visibility != View.VISIBLE) {
+            binding.bottomBar.visibility = View.GONE
+        }
     }
 
     private fun isOverlayFocused(): Boolean =
@@ -1015,7 +1037,7 @@ class PlayerActivity : AppCompatActivity() {
 
         binding.progressBar.visibility = View.VISIBLE
         setStatus("LOADING...", COLOR_BUFFERING)
-        showOverlay()
+        showZapBar()
 
         playMedia()
         loadEpg()

@@ -11,6 +11,7 @@ import com.orbital.iptv.utils.ThemeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class FavouritesAdapter(
@@ -73,13 +74,15 @@ class FavouritesAdapter(
 
             // Load art
             artJob?.cancel()
+            b.ivArt.setImageDrawable(null)
             if (item.artUrl.isNotEmpty()) {
+                // Episodes share a series poster — key by seriesId so they use the same cache file.
+                // Movies and live key by streamId which is unique per item.
+                val cacheKey = if (item.type == com.orbital.iptv.data.model.FavType.EPISODE) item.seriesId else item.streamId
                 artJob = scope.launch {
-                    val bmp = PosterCache.getBitmap(b.root.context, item.streamId, item.artUrl, sampleSize = 4)
-                    if (bmp != null) b.ivArt.setImageBitmap(bmp)
+                    val bmp = PosterCache.getBitmap(b.root.context, cacheKey, item.artUrl, sampleSize = 4)
+                    if (isActive && bmp != null) b.ivArt.setImageBitmap(bmp)
                 }
-            } else {
-                b.ivArt.setImageDrawable(null)
             }
         }
 
