@@ -141,11 +141,8 @@ class TvModeActivity : AppCompatActivity() {
     private val tickerHandler = Handler(Looper.getMainLooper())
     private val newsHandler   = Handler(Looper.getMainLooper())
     private var pendingTickerText: String? = null
-    private var pendingNewsText:   String? = null
     private var tickerScrollAnim: ValueAnimator? = null
-    private var newsScrollAnim:   ValueAnimator? = null
     private var tickerShowingPlaceholder = false
-    private var newsShowingPlaceholder   = false
     private val tickerRunnable = object : Runnable {
         override fun run() {
             fetchTickerScores()
@@ -649,42 +646,16 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun startNewsTicker() {
         binding.newsTickerRow.visibility = View.VISIBLE
-        newsShowingPlaceholder = TickerManager.sportHeadlines.isEmpty()
         binding.tvNewsTicker.text = TickerManager.buildNewsText()
+        binding.tvNewsTicker.start()
         newsHandler.removeCallbacks(newsRunnable)
         newsHandler.post(newsRunnable)
-        binding.tvNewsTicker.post { loopNewsScroll() }
     }
 
     private fun stopNewsTicker() {
         newsHandler.removeCallbacks(newsRunnable)
-        newsScrollAnim?.cancel(); newsScrollAnim = null
-        pendingNewsText = null
+        binding.tvNewsTicker.stop()
         binding.newsTickerRow.visibility = View.GONE
-    }
-
-    private fun loopNewsScroll() {
-        val tv = binding.tvNewsTicker
-        if (binding.newsTickerRow.visibility != View.VISIBLE || !TickerManager.newsTickerEnabled) return
-        pendingNewsText?.let { tv.text = it; pendingNewsText = null }
-        val containerWidth = (tv.parent as View).width.toFloat()
-        tv.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-        val textWidth = tv.measuredWidth.toFloat()
-        if (containerWidth <= 0f || textWidth <= 0f) { tv.post { loopNewsScroll() }; return }
-        val pxPerSec = 60f * resources.displayMetrics.density
-        val duration = ((containerWidth + textWidth) / pxPerSec * 1000f).toLong()
-        tv.translationX = containerWidth
-        newsScrollAnim = ValueAnimator.ofFloat(containerWidth, -textWidth).apply {
-            this.duration = duration
-            interpolator = LinearInterpolator()
-            addUpdateListener { tv.translationX = it.animatedValue as Float }
-            addListener(object : AnimatorListenerAdapter() {
-                private var cancelled = false
-                override fun onAnimationCancel(a: Animator) { cancelled = true }
-                override fun onAnimationEnd(a: Animator) { if (!cancelled) loopNewsScroll() }
-            })
-            start()
-        }
     }
 
     private fun fetchNewsHeadlines() {
@@ -728,13 +699,7 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun updateNewsTickerText() {
         if (!TickerManager.newsTickerEnabled) return
-        val newText = TickerManager.buildNewsText()
-        if (newsShowingPlaceholder) {
-            newsShowingPlaceholder = false
-            newsScrollAnim?.cancel(); newsScrollAnim = null
-            binding.tvNewsTicker.text = newText
-            loopNewsScroll()
-        } else { pendingNewsText = newText }
+        binding.tvNewsTicker.text = TickerManager.buildNewsText()
     }
 
     // ── Left-panel navigation state machine ───────────────────────────────────
@@ -1501,7 +1466,7 @@ class TvModeActivity : AppCompatActivity() {
         tickerHandler.removeCallbacksAndMessages(null)
         newsHandler.removeCallbacksAndMessages(null)
         tickerScrollAnim?.cancel()
-        newsScrollAnim?.cancel()
+        binding.tvNewsTicker.stop()
         player?.release()
         player = null
     }

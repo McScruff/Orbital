@@ -429,19 +429,11 @@
             android:background="#DD001008"
             android:clipChildren="true"
             android:visibility="gone">
-            <TextView
+            <com.orbital.iptv.ui.widget.MarqueeTickerView
                 android:id="@+id/tv_news_ticker"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="30dp"
-                android:textColor="#FFCC00"
-                android:textSize="12sp"
-                android:fontFamily="sans-serif-condensed"
-                android:textStyle="bold"
-                android:singleLine="true"
-                android:focusable="false"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:gravity="center_vertical" />
+                android:focusable="false" />
         </FrameLayout>
 
         <FrameLayout
