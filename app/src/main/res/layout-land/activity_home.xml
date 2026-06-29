@@ -356,6 +356,24 @@
             android:textColor="@color/sky_cyan"
             android:textSize="9sp"
             android:fontFamily="sans-serif-condensed" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  •  "
+            android:textColor="#668899"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif-condensed" />
+
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/sky_cyan"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
     </LinearLayout>
 
 </LinearLayout>

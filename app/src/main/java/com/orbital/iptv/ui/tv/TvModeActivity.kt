@@ -1328,14 +1328,36 @@ class TvModeActivity : AppCompatActivity() {
     private fun loadChannelsInBackground(onLoaded: (() -> Unit)? = null) {
         val creds = PrefsManager.getCredentials(this) ?: return
         lifecycleScope.launch {
-            val streams = withContext(Dispatchers.IO) {
-                repository.getLiveStreams(creds.serverUrl, creds.username, creds.password).getOrNull()
+            // Serve the on-disk cache immediately so the panel isn't blank on a cold start.
+            // HomeActivity writes this cache after every successful load; TvModeActivity now
+            // does the same (see below), so the cache stays warm across sessions.
+            if (TvModeHolder.allChannels.isEmpty()) {
+                val cached = withContext(Dispatchers.IO) {
+                    ContentCache.getLiveStreams(this@TvModeActivity, creds.serverUrl)
+                }
+                if (cached != null) {
+                    TvModeHolder.allChannels = cached
+                    refreshCategoryChannels()
+                }
             }
+
+            // Categories are a tiny payload — fetch first so the category panel populates fast
             val cats = withContext(Dispatchers.IO) {
                 repository.getLiveCategories(creds.serverUrl, creds.username, creds.password).getOrNull()
             }
-            if (streams != null) TvModeHolder.allChannels = streams
-            if (cats   != null) TvModeHolder.categories   = cats
+            if (cats != null) TvModeHolder.categories = cats
+
+            // Full stream list can be several MB on large servers — fetched after cats
+            val streams = withContext(Dispatchers.IO) {
+                repository.getLiveStreams(creds.serverUrl, creds.username, creds.password).getOrNull()
+            }
+            if (streams != null) {
+                TvModeHolder.allChannels = streams
+                // Keep the cache warm for subsequent cold-starts (mirrors HomeViewModel behaviour)
+                withContext(Dispatchers.IO) {
+                    ContentCache.saveLiveStreams(this@TvModeActivity, creds.serverUrl, streams)
+                }
+            }
             refreshCategoryChannels()
             onLoaded?.invoke()
         }

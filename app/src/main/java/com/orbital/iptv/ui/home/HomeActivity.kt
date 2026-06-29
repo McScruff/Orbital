@@ -2,6 +2,8 @@ package com.orbital.iptv.ui.home
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -52,16 +54,27 @@ class HomeActivity : AppCompatActivity() {
     private var currentChannels: List<LiveStream> = emptyList()
     private var epgLoadingJob: Job? = null
 
+    private val clockFmt = SimpleDateFormat("HH:mm", Locale.UK)
+    private val clockHandler = Handler(Looper.getMainLooper())
+    private val clockRunnable = object : Runnable {
+        override fun run() {
+            binding.tvTime?.text = clockFmt.format(Date())
+            clockHandler.postDelayed(this, 30_000L)
+        }
+    }
+
 
 
     override fun onResume() {
         super.onResume()
         ReminderBus.register { r -> showReminderDialog(r) }
+        clockRunnable.run()
     }
 
     override fun onPause() {
         super.onPause()
         ReminderBus.unregister()
+        clockHandler.removeCallbacks(clockRunnable)
     }
 
     private fun showReminderDialog(r: ReminderBus.Reminder) {

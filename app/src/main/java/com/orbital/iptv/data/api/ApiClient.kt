@@ -57,7 +57,7 @@ object ApiClient {
         val client = OkHttpClient.Builder()
             .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)   // large get_live_streams responses need more than 30 s
             .build()
 
         return Retrofit.Builder()

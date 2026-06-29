@@ -108,6 +108,7 @@ class EpgView @JvmOverloads constructor(
         rows.clear(); rows.addAll(newRows)
         focusedRowIndex = 0
         focusedCellIndex = -1
+        scrollY = 0   // reset vertical scroll on category change — stale scrollY from a larger category culls all rows
         invalidate()
     }
 
