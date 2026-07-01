@@ -1,10 +1,12 @@
 package com.orbital.iptv.ui.login
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.orbital.iptv.data.model.ServerProfile
@@ -46,6 +48,7 @@ class LoginActivity : AppCompatActivity() {
 
         prefillForm()
         setupClickListeners()
+        setupKeyboardOnFocus()
         animateIn()
     }
 
@@ -59,6 +62,17 @@ class LoginActivity : AppCompatActivity() {
         // Suggest a default profile name
         val count = PrefsManager.getProfiles(this).size
         binding.etProfileName.hint = if (count == 0) "My Server" else "Server ${count + 1}"
+    }
+
+    private fun setupKeyboardOnFocus() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        listOf(binding.etProfileName, binding.etServerUrl, binding.etUsername, binding.etPassword).forEach { et ->
+            et.setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus) {
+                    view.postDelayed({ imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT) }, 100)
+                }
+            }
+        }
     }
 
     private fun setupClickListeners() {

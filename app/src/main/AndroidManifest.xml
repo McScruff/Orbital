@@ -28,7 +28,8 @@
             android:name=".ui.login.LoginActivity"
             android:exported="true"
             android:banner="@drawable/tv_banner"
-            android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
