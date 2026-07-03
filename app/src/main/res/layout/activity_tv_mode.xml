@@ -22,7 +22,7 @@
          ══════════════════════════════════════════════════════════════════════ -->
     <LinearLayout
         android:id="@+id/left_panel"
-        android:layout_width="330dp"
+        android:layout_width="500dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:orientation="vertical"
@@ -51,14 +51,34 @@
             android:layout_height="2dp"
             android:background="@color/sky_cyan" />
 
-        <!-- CHANNELS sub-panel: channel list with Now/Next EPG -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_panel_channels"
+        <!-- CHANNELS sub-panel: channel list (left) + EPG for focused channel (right) -->
+        <LinearLayout
+            android:id="@+id/layout_channels_split"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:focusable="true"
-            android:visibility="gone" />
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_panel_channels"
+                android:layout_width="185dp"
+                android:layout_height="match_parent"
+                android:focusable="true" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/sky_cyan" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_channel_epg"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:focusable="false" />
+
+        </LinearLayout>
 
         <!-- CATEGORIES sub-panel: category picker -->
         <androidx.recyclerview.widget.RecyclerView
@@ -97,6 +117,24 @@
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
             <TextView
+                android:id="@+id/menu_item_guide"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="FULL EPG GUIDE"
+                android:textColor="@color/sky_white"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:gravity="center"
+                android:focusable="true"
+                android:clickable="true"
+                android:background="#0D1E38" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+
+            <TextView
                 android:id="@+id/menu_item_box_office"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -110,7 +148,7 @@
                 android:gravity="center"
                 android:focusable="true"
                 android:clickable="true"
-                android:background="#0D1E38" />
+                android:background="#0A1628" />
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
@@ -128,7 +166,7 @@
                 android:gravity="center"
                 android:focusable="true"
                 android:clickable="true"
-                android:background="#0A1628" />
+                android:background="#0D1E38" />
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
@@ -146,7 +184,7 @@
                 android:gravity="center"
                 android:focusable="true"
                 android:clickable="true"
-                android:background="#0D1E38" />
+                android:background="#0A1628" />
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
@@ -164,7 +202,70 @@
                 android:gravity="center"
                 android:focusable="true"
                 android:clickable="true"
-                android:background="#0A1628" />
+                android:background="#0D1E38" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Full EPG guide overlay — grid of channels x time (7 days), covers the
+         whole screen. Left column lets you switch category without leaving
+         the guide; the grid on the right reloads for the selected category.
+         ══════════════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/guide_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#FF010810"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/guide_header"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#FF010810"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="GUIDE"
+            android:textColor="@color/sky_cyan"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/sky_cyan" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_guide_categories"
+                android:layout_width="220dp"
+                android:layout_height="match_parent"
+                android:focusable="true" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/sky_cyan" />
+
+            <com.orbital.iptv.ui.epg.EpgView
+                android:id="@+id/epg_view_guide"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:focusable="true" />
 
         </LinearLayout>
 
@@ -223,6 +324,25 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_btn_hud"
             android:text="AUDIO"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginStart="6dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btn_hud_surround"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_btn_hud"
+            android:text="5.1"
             android:textColor="@color/sky_white"
             android:textSize="11sp"
             android:fontFamily="sans-serif-condensed"

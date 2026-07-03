@@ -57,7 +57,4 @@ class SeriesViewModel : ViewModel() {
     }
 
     fun getCredentials() = creds
-
-    suspend fun getAllSeriesForCache(serverUrl: String, username: String, password: String): List<SeriesStream>? =
-        repository.getAllSeries(serverUrl, username, password).getOrNull()
 }

@@ -74,6 +74,18 @@ object ContentCache {
         )
     }
 
+    // get_live_streams can be several MB with thousands of channels — piping straight to disk
+    // (rather than through Retrofit/Gson's body.string() + JsonElement-tree parse) avoids the
+    // OOM that hits low/mid-heap devices on large IPTV catalogs (see downloadAndSaveMovies).
+    suspend fun downloadAndSaveLiveStreams(
+        context: Context, serverUrl: String, username: String, password: String
+    ) = withContext(Dispatchers.IO) {
+        streamToFile(
+            ApiClient.buildApiUrl(serverUrl, username, password, "get_live_streams"),
+            liveFile(context, serverUrl)
+        )
+    }
+
     private fun streamToFile(url: String, target: File) {
         val temp = File(target.parent, "${target.name}.tmp")
         try {

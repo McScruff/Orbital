@@ -62,7 +62,4 @@ class VodViewModel : ViewModel() {
     }
 
     fun getCredentials() = creds
-
-    suspend fun getAllMoviesForCache(serverUrl: String, username: String, password: String): List<VodStream>? =
-        repository.getAllVodStreams(serverUrl, username, password).getOrNull()
 }

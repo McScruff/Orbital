@@ -222,6 +222,8 @@ class PlayerActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
         binding.btnAudio.setOnClickListener { showAudioPicker() }
+        updateSurroundButton()
+        binding.btnSurround.setOnClickListener { toggleSurroundSound() }
         binding.btnSubs.setOnClickListener { showSubtitlePicker() }
         binding.btnScores.setOnClickListener { toggleTicker() }
         binding.btnNews.setOnClickListener { toggleNewsTicker() }
@@ -439,6 +441,7 @@ class PlayerActivity : AppCompatActivity() {
             clockHandler.postDelayed(clockRunnable, 30_000L)
         }
         if (!isLive) updatePositionDisplay()
+        updateSurroundButton()
     }
 
     private fun hideOverlay() {
@@ -935,7 +938,7 @@ class PlayerActivity : AppCompatActivity() {
             .setAllowCrossProtocolRedirects(true)
         player = ExoPlayer.Builder(this)
             .setRenderersFactory(
-                PcmOnlyRenderersFactory(this)
+                PcmOnlyRenderersFactory(this, PrefsManager.isSurroundEnabled(this))
                     .setEnableDecoderFallback(true)
                     .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
             )
@@ -945,13 +948,75 @@ class PlayerActivity : AppCompatActivity() {
             .setPreferredAudioMimeTypes(MimeTypes.AUDIO_AAC, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_AC3)
             .build()
         player.addListener(playerListener)
+        binding.surfaceView.holder.removeCallback(surfaceCallback)
         binding.surfaceView.holder.addCallback(surfaceCallback)
+        // addCallback() alone only fires surfaceCreated() when the native surface doesn't exist
+        // yet. If the SurfaceView's surface is already valid — the normal case when rebuilding
+        // the player on the same screen (e.g. the 5.1 toggle) rather than on first launch —
+        // surfaceCreated() never fires again, so the new player would never get a video output
+        // attached at all (silently no video; audio is unaffected since it's a separate
+        // pipeline). Attach explicitly whenever a valid surface already exists.
+        binding.surfaceView.holder.surface?.takeIf { it.isValid }?.let { player.setVideoSurface(it) }
         player.setMediaItem(MediaItem.fromUri(streamUrl))
         if (resumeMs > 0L) { player.seekTo(resumeMs); resumeMs = 0L }
         player.prepare()
         player.playWhenReady = true
         binding.progressBar.visibility = View.VISIBLE
         setStatus("CONNECTING...", COLOR_BUFFERING)
+    }
+
+    /** Toggles PcmOnlyRenderersFactory's stereo-only lock — see its doc comment for the tradeoff. */
+    private fun toggleSurroundSound() {
+        if (!hasSurroundAudioTrack()) {
+            Toast.makeText(this, "NO 5.1/SURROUND AUDIO TRACK ON THIS STREAM", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val newState = !PrefsManager.isSurroundEnabled(this)
+        PrefsManager.setSurroundEnabled(this, newState)
+        updateSurroundButton()
+        // RenderersFactory is baked in at ExoPlayer construction, so the only way to apply the
+        // new capability setting is to release and rebuild the player at the current position.
+        if (::player.isInitialized) {
+            if (!isLive) resumeMs = player.currentPosition
+            player.clearVideoSurface()
+            player.removeListener(playerListener)
+            player.release()
+        }
+        initExoPlayer()
+        Toast.makeText(
+            this,
+            if (newState) "SURROUND: ON — testing real device audio capabilities" else "SURROUND: OFF — forced stereo",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun updateSurroundButton() {
+        val on = PrefsManager.isSurroundEnabled(this)
+        binding.btnSurround.text = if (on) "5.1 ✓" else "5.1"
+        val available = hasSurroundAudioTrack()
+        binding.btnSurround.isEnabled = available
+        binding.btnSurround.visibility = if (available) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * True if the audio track actually SELECTED for playback right now is 5.1/7.1+ (channel
+     * count) or explicitly labelled surround — not just any track the stream happens to offer.
+     * Many IPTV channels bundle a stereo AAC track alongside a 5.1 AC3 alternate, and
+     * setPreferredAudioMimeTypes() picks AAC first, so checking "any available track" let the
+     * button light up even while a plain stereo track was the one actually playing.
+     */
+    private fun hasSurroundAudioTrack(): Boolean {
+        if (!::player.isInitialized) return false
+        return player.currentTracks.groups.any { group ->
+            group.type == C.TRACK_TYPE_AUDIO && (0 until group.length).any { i ->
+                group.isTrackSelected(i) && run {
+                    val fmt = group.getTrackFormat(i)
+                    fmt.channelCount >= 6 ||
+                        fmt.label?.contains("5.1", ignoreCase = true) == true ||
+                        fmt.label?.contains("surround", ignoreCase = true) == true
+                }
+            }
+        }
     }
 
     private fun playMedia() {

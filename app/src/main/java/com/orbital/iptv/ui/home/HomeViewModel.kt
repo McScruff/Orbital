@@ -59,25 +59,23 @@ class HomeViewModel(application: android.app.Application) : AndroidViewModel(app
                 onSuccess = { categories ->
                     allCategories = categories
 
-                    // Load all streams
-                    val streamsResult = repository.getLiveStreams(serverUrl, username, password)
-                    streamsResult.fold(
-                        onSuccess = { streams ->
-                            allStreams = streams
-                            viewModelScope.launch { ContentCache.saveLiveStreams(getApplication(), serverUrl, streams) }
-                            _uiState.value = _uiState.value?.copy(
-                                isLoading = false,
-                                xtreamCategories = categories
-                            )
-                            categories.firstOrNull()?.let { selectXtreamCategory(it) }
-                        },
-                        onFailure = { error ->
-                            _uiState.value = _uiState.value?.copy(
-                                isLoading = false,
-                                error = "Failed to load channels: ${error.message}"
-                            )
-                        }
-                    )
+                    // Load all streams — stream straight to disk (not through Retrofit/Gson)
+                    // to avoid OOM on large IPTV catalogs, then read back via streaming JsonReader.
+                    ContentCache.downloadAndSaveLiveStreams(getApplication(), serverUrl, username, password)
+                    val streams = ContentCache.getLiveStreams(getApplication(), serverUrl)
+                    if (streams != null) {
+                        allStreams = streams
+                        _uiState.value = _uiState.value?.copy(
+                            isLoading = false,
+                            xtreamCategories = categories
+                        )
+                        categories.firstOrNull()?.let { selectXtreamCategory(it) }
+                    } else {
+                        _uiState.value = _uiState.value?.copy(
+                            isLoading = false,
+                            error = "Failed to load channels"
+                        )
+                    }
                 },
                 onFailure = { error ->
                     _uiState.value = _uiState.value?.copy(
@@ -196,12 +194,11 @@ class HomeViewModel(application: android.app.Application) : AndroidViewModel(app
             // Re-load live channel list (triggers loading state in UI)
             loadData(creds.first, creds.second, creds.third)
 
-            // Re-fetch VOD movies + series in background
+            // Re-fetch VOD movies + series in background — stream straight to disk (not
+            // through Retrofit/Gson) to avoid OOM on large catalogs.
             launch(Dispatchers.IO) {
-                repository.getAllVodStreams(creds.first, creds.second, creds.third)
-                    .onSuccess { ContentCache.saveMovies(app, creds.first, it) }
-                repository.getAllSeries(creds.first, creds.second, creds.third)
-                    .onSuccess { ContentCache.saveSeries(app, creds.first, it) }
+                ContentCache.downloadAndSaveMovies(app, creds.first, creds.second, creds.third)
+                ContentCache.downloadAndSaveSeries(app, creds.first, creds.second, creds.third)
             }
         }
     }

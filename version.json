@@ -1,6 +1,6 @@
 {
-  "version_code": 16,
-  "version_name": "1.3.2",
+  "version_code": 17,
+  "version_name": "1.4.0",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "Potential fix for Firestick keyboard not opening when entering server details"
+  "release_notes": "TV Mode: short EPG on-channel + full EPG guide from the left menu; RIGHT toggles back to your previous channel. Normal mode: GUI improvements; tapping a show in the EPG shows info + a poster (via TMDB, falls back to VOD search). Dolby 5.1/7.1 toggle in the top menu while playing (only shown when the stream actually supports it). Various memory/stability fixes, and another attempt at the Firestick keyboard issue on the add-server screen."
 }

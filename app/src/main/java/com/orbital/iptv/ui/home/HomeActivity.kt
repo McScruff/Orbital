@@ -1,10 +1,14 @@
 package com.orbital.iptv.ui.home
 
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
@@ -12,12 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.work.*
+import com.bumptech.glide.Glide
 import com.orbital.iptv.R
 import com.orbital.iptv.data.api.ApiClient
 import com.orbital.iptv.data.model.EpgListing
 import com.orbital.iptv.data.model.LiveCategory
 import com.orbital.iptv.data.model.LiveStream
 import com.orbital.iptv.data.model.ServerProfile
+import com.orbital.iptv.data.model.getDecodedDescription
 import com.orbital.iptv.data.model.getDecodedTitle
 import com.orbital.iptv.data.repository.XtreamRepository
 import com.orbital.iptv.databinding.ActivityHomeBinding
@@ -40,8 +46,10 @@ import com.orbital.iptv.ui.search.GlobalSearchActivity
 import com.orbital.iptv.ui.tv.TvModeActivity
 import com.orbital.iptv.ui.tv.TvModeHolder
 import com.orbital.iptv.utils.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -265,6 +273,9 @@ class HomeActivity : AppCompatActivity() {
         val subKeyLabel = if (PrefsManager.getOpenSubsApiKey(this) != null)
             "OPENSUBTITLES: KEY SET" else "OPENSUBTITLES: NO KEY SET"
         items += Item(subKeyLabel)                        { showOpenSubsKeyDialog() }
+        val tmdbKeyLabel = if (PrefsManager.getTmdbApiKey(this) != null)
+            "TMDB: KEY SET" else "TMDB: NO KEY SET"
+        items += Item(tmdbKeyLabel)                       { showTmdbKeyDialog() }
         val liveFormatLabel = "LIVE STREAM FORMAT: ${PrefsManager.getLiveFormat(this).uppercase()}"
         items += Item(liveFormatLabel) { toggleLiveFormat() }
         items += Item("PIN PROTECTED CATEGORIES")          { showPinProtectedCategories() }
@@ -325,6 +336,30 @@ class HomeActivity : AppCompatActivity() {
         if (current.isNotBlank()) {
             builder.setNeutralButton("REMOVE KEY") { _, _ ->
                 PrefsManager.setOpenSubsApiKey(this, "")
+            }
+        }
+        builder.show()
+    }
+
+    private fun showTmdbKeyDialog() {
+        val current = PrefsManager.getTmdbApiKey(this) ?: ""
+        val et = android.widget.EditText(this).apply {
+            setText(current)
+            hint = "PASTE API KEY HERE"
+            setPadding(48, 24, 48, 24)
+        }
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("TMDB API KEY")
+            .setMessage("Get a free key at themoviedb.org → Settings → API. Used for EPG posters/synopsis.")
+            .setView(et)
+            .setPositiveButton("SAVE") { _, _ ->
+                val key = et.text.toString().trim()
+                if (key.isNotBlank()) PrefsManager.setTmdbApiKey(this, key)
+            }
+            .setNegativeButton("CANCEL", null)
+        if (current.isNotBlank()) {
+            builder.setNeutralButton("REMOVE KEY") { _, _ ->
+                PrefsManager.setTmdbApiKey(this, "")
             }
         }
         builder.show()
@@ -787,12 +822,27 @@ class HomeActivity : AppCompatActivity() {
             val endStr  = if (endMs > 0L) timeFmt.format(Date(endMs)) else "?"
             "$dateStr  ${timeFmt.format(Date(startMs))} — $endStr"
         } else "Time unknown"
-        val msg = "$channelName\n$title\n$timeStr\n\nAvailable storage: ${"%.1f".format(availGb)} GB"
         val label = if (startMs > nowMs) "SCHEDULE RECORDING" else "RECORD NOW (ongoing)"
+
+        // The EPG listing's own description is the authoritative synopsis for THIS airing —
+        // available synchronously, no catalog guesswork needed. The VOD/series lookup below is
+        // now only used to fill in a poster + a short genre/year/rating line, and as a plot
+        // fallback for the (rare) case where the broadcaster's EPG feed sends no description.
+        val epgSynopsis = listing.getDecodedDescription().trim()
+
+        fun infoBody(catalogHeader: String?, catalogPlotFallback: String?) = listOfNotNull(
+            title, "$channelName\n$timeStr",
+            catalogHeader?.takeIf { it.isNotBlank() },
+            epgSynopsis.ifBlank { catalogPlotFallback ?: "" }.takeIf { it.isNotBlank() },
+            "Available storage: ${"%.1f".format(availGb)} GB"
+        ).joinToString("\n\n")
+
+        val (posterView, posterImg, infoTv) = buildProgrammeInfoView()
+        infoTv.text = infoBody(null, null)
 
         val builder = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
             .setTitle(label)
-            .setMessage(msg)
+            .setView(posterView)
             .setPositiveButton("RECORD") { _, _ ->
                 if (endMs > 0L) {
                     scheduleRecording(streamId, channelName, url, title, startMs.coerceAtLeast(nowMs), endMs)
@@ -809,6 +859,151 @@ class HomeActivity : AppCompatActivity() {
             }
         }
         builder.show()
+
+        // Best-effort VOD/series catalog lookup for a poster (+ genre/year/rating line) — never
+        // blocks the dialog, since it depends on the movies/series cache already being warm on disk.
+        val durationMinutes = if (startMs > 0L && endMs > startMs) (endMs - startMs) / 60_000L else -1L
+        lifecycleScope.launch {
+            val creds = PrefsManager.getCredentials(this@HomeActivity) ?: return@launch
+            val match = lookupShowPoster(creds.serverUrl, creds.username, creds.password, title, epgSynopsis, durationMinutes)
+                ?: return@launch
+            match.posterUrl?.takeIf { it.isNotBlank() }?.let { Glide.with(this@HomeActivity).load(it).into(posterImg) }
+            infoTv.text = infoBody(match.header, match.plot)
+        }
+    }
+
+    private enum class ShowKind { MOVIE, SERIES, UNKNOWN }
+
+    /**
+     * Xtream's EPG data has no explicit movie/series flag, so infer it from the listing text and
+     * runtime: season/episode markers ("S3 E12", "Series 3", "Ep 4/6") are the strongest, least
+     * ambiguous signal and always mean SERIES; failing that, a "(YYYY)" year suffix or a runtime
+     * over ~75 minutes leans MOVIE, and a short runtime leans SERIES. Used to search the more
+     * likely catalog first (and skip a wasted VOD-info lookup when we're confident it's a series).
+     */
+    private fun classifyShowKind(title: String, description: String, durationMinutes: Long): ShowKind {
+        val combined = "$title $description"
+        val seriesPattern = Regex(
+            """\bS\d{1,2}\s?[:\-]?\s?E\d{1,3}\b|\bSeries\s?\d+\b|\bSeason\s?\d+\b|\bEp(?:isode)?\.?\s?\d+(\s?/\s?\d+)?\b""",
+            RegexOption.IGNORE_CASE
+        )
+        val moviePattern = Regex("""\(\d{4}\)""")
+
+        return when {
+            seriesPattern.containsMatchIn(combined) -> ShowKind.SERIES
+            moviePattern.containsMatchIn(title) -> ShowKind.MOVIE
+            durationMinutes >= 75 -> ShowKind.MOVIE
+            durationMinutes in 1 until 70 -> ShowKind.SERIES
+            else -> ShowKind.UNKNOWN
+        }
+    }
+
+    private data class ShowPosterMatch(val posterUrl: String?, val header: String, val plot: String?)
+
+    /** Builds the poster (left) + info text (right) row used inside the programme-tap dialog. */
+    private fun buildProgrammeInfoView(): Triple<View, ImageView, TextView> {
+        val d = resources.displayMetrics.density
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding((4 * d).toInt(), (4 * d).toInt(), (4 * d).toInt(), (4 * d).toInt())
+        }
+        val poster = ImageView(this).apply {
+            layoutParams = LinearLayout.LayoutParams((90 * d).toInt(), (128 * d).toInt())
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setBackgroundColor(0xFF0A1628.toInt())
+        }
+        val infoTv = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = (12 * d).toInt()
+            }
+            setTextColor(0xFFCCDDEE.toInt())
+            textSize = 12f
+            typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
+        }
+        root.addView(poster)
+        root.addView(infoTv)
+        return Triple(root, poster, infoTv)
+    }
+
+    /**
+     * Matches a live-TV programme title against TMDB (if an API key is set) or, failing that,
+     * the cached VOD/series catalogs, to find a poster + synopsis.
+     */
+    private suspend fun lookupShowPoster(
+        serverUrl: String, username: String, password: String,
+        title: String, description: String, durationMinutes: Long
+    ): ShowPosterMatch? = withContext(Dispatchers.IO) {
+        val query = title.trim()
+        if (query.isBlank()) return@withContext null
+        val kind = classifyShowKind(title, description, durationMinutes)
+
+        val tmdbKey = PrefsManager.getTmdbApiKey(this@HomeActivity)
+        if (tmdbKey != null) {
+            val preferType = when (kind) {
+                ShowKind.MOVIE  -> "movie"
+                ShowKind.SERIES -> "tv"
+                ShowKind.UNKNOWN -> null
+            }
+            val candidates = com.orbital.iptv.data.tmdb.TmdbRepository.search(tmdbKey, query, preferType)
+            val tmdb = candidates.firstOrNull { isGoodTitleMatch(query, it.title) }
+            if (tmdb != null) {
+                val header = listOfNotNull(
+                    tmdb.year,
+                    tmdb.voteAverage?.let { "★ %.1f".format(it) }
+                ).joinToString("  •  ")
+                return@withContext ShowPosterMatch(tmdb.posterUrl, header, tmdb.overview)
+            }
+        }
+
+        fun header(genre: String?, releaseDate: String?, rating: String?): String = listOfNotNull(
+            genre?.takeIf { it.isNotBlank() },
+            releaseDate?.takeIf { it.isNotBlank() },
+            rating?.takeIf { it.isNotBlank() && it != "0" }?.let { "★ $it" }
+        ).joinToString("  •  ")
+
+        suspend fun trySeries(): ShowPosterMatch? {
+            val matches = ContentCache.searchSeries(this@HomeActivity, serverUrl, query)
+            val series = matches.firstOrNull { isGoodTitleMatch(query, it.name) } ?: return null
+            return ShowPosterMatch(series.cover, header(series.genre, series.releaseDate, series.rating), series.plot)
+        }
+
+        suspend fun tryMovie(): ShowPosterMatch? {
+            val matches = ContentCache.searchMovies(this@HomeActivity, serverUrl, query)
+            val movie = matches.firstOrNull { isGoodTitleMatch(query, it.name) } ?: return null
+            val info = repository.getVodInfo(serverUrl, username, password, movie.streamId).getOrNull()?.info
+            val poster = info?.coverBig?.takeIf { it.isNotBlank() }
+                ?: info?.movieImage?.takeIf { it.isNotBlank() }
+                ?: movie.streamIcon
+            val plot = info?.plot?.takeIf { it.isNotBlank() } ?: info?.description
+            return ShowPosterMatch(poster, header(info?.genre, info?.releaseDate, info?.rating ?: movie.rating), plot)
+        }
+
+        when (kind) {
+            ShowKind.MOVIE  -> tryMovie() ?: trySeries()
+            ShowKind.SERIES -> trySeries() ?: tryMovie()
+            ShowKind.UNKNOWN -> trySeries() ?: tryMovie()
+        }
+    }
+
+    private fun normalizeTitle(s: String): String = s.lowercase()
+        .replace(Regex("\\(\\d{4}\\)"), "")                              // "(2023)"
+        .replace(Regex("s\\d{1,2}\\s?e\\d{1,3}", RegexOption.IGNORE_CASE), "")  // "S01E02"
+        .replace(Regex("[^a-z0-9 ]"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+
+    /**
+     * Requires an exact match after normalising noise (years, S01E02, punctuation) — no partial
+     * or prefix matching. A word-boundary prefix rule was tried first but is unsafe for TV
+     * titles: "Hacks" ⊂ "Hacksaw Ridge" (no boundary — already excluded) is one failure mode, but
+     * "Prisoner" ⊂ "Prisoner: Cell Block H" (a genuinely different, unrelated show) DOES land on
+     * a word boundary and was a real false-positive match. Titles are short enough, and wrong
+     * posters bad enough, that only an exact match is worth showing.
+     */
+    private fun isGoodTitleMatch(epgTitle: String, candidateName: String): Boolean {
+        val a = normalizeTitle(epgTitle)
+        val b = normalizeTitle(candidateName)
+        return a.isNotBlank() && a == b
     }
 
     private fun scheduleReminder(channelName: String, title: String, startMs: Long, streamUrl: String, streamId: Int) {

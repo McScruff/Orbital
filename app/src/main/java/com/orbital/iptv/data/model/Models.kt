@@ -85,6 +85,12 @@ fun EpgListing.getDecodedTitle(): String {
     return android.util.Base64.decode(title ?: "", android.util.Base64.DEFAULT).decodeToString()
 }
 
+fun EpgListing.getDecodedDescription(): String {
+    return try {
+        android.util.Base64.decode(description ?: "", android.util.Base64.DEFAULT).decodeToString()
+    } catch (_: Exception) { description ?: "" }
+}
+
 data class VodCategory(
     @SerializedName("category_id") val categoryId: String,
     @SerializedName("category_name") val categoryName: String,

@@ -5,8 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.orbital.iptv.data.model.ServerProfile
@@ -65,14 +67,32 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupKeyboardOnFocus() {
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         listOf(binding.etProfileName, binding.etServerUrl, binding.etUsername, binding.etPassword).forEach { et ->
             et.setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus) {
-                    view.postDelayed({ imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT) }, 100)
-                }
+                if (hasFocus) view.postDelayed({ showKeyboard(view) }, 200)
             }
+            et.setOnClickListener { view -> showKeyboard(view) }
         }
+    }
+
+    private fun showKeyboard(view: View) {
+        view.requestFocus()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            view.windowInsetsController?.show(android.view.WindowInsets.Type.ime())
+        } else {
+            @Suppress("DEPRECATION")
+            (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+                .showSoftInput(view, InputMethodManager.SHOW_FORCED)
+        }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN &&
+            (event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || event.keyCode == KeyEvent.KEYCODE_ENTER)) {
+            val focused = currentFocus
+            if (focused is EditText) showKeyboard(focused)
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     private fun setupClickListeners() {

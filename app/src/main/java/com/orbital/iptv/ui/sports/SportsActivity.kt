@@ -17,6 +17,7 @@ import com.orbital.iptv.data.model.LiveStream
 import com.orbital.iptv.data.repository.XtreamRepository
 import com.orbital.iptv.databinding.ActivitySportsBinding
 import com.orbital.iptv.ui.player.PlayerActivity
+import com.orbital.iptv.utils.ContentCache
 import com.orbital.iptv.utils.PrefsManager
 import com.orbital.iptv.utils.TickerManager
 import kotlinx.coroutines.CoroutineScope
@@ -132,9 +133,17 @@ class SportsActivity : AppCompatActivity() {
             try {
                 val (tvChannels, debug) = withContext(Dispatchers.IO) { fetchTvChannels(event) }
                 debugInfo = debug
+                // Stream straight to disk (not through Retrofit/Gson) to avoid OOM on large
+                // catalogs, using the cached copy if one is already on disk.
                 val xtreamStreams = withContext(Dispatchers.IO) {
-                    xtreamRepository.getLiveStreams(creds.serverUrl, creds.username, creds.password)
-                        .getOrNull() ?: emptyList()
+                    ContentCache.getLiveStreams(this@SportsActivity, creds.serverUrl)
+                        ?: run {
+                            ContentCache.downloadAndSaveLiveStreams(
+                                this@SportsActivity, creds.serverUrl, creds.username, creds.password
+                            )
+                            ContentCache.getLiveStreams(this@SportsActivity, creds.serverUrl)
+                        }
+                        ?: emptyList()
                 }
                 val matched = tvChannels.mapNotNull { tvCh ->
                     xtreamStreams.firstOrNull { channelsMatch(tvCh, it.name) }?.let { Pair(tvCh, it) }

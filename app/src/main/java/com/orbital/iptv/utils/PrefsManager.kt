@@ -196,4 +196,15 @@ object PrefsManager {
     fun setLiveFormat(context: Context, format: String) =
         prefs(context).edit().putString("live_format", format).putBoolean("live_format_v2", true).apply()
 
+    // ── Audio ─────────────────────────────────────────────────────────────────
+    // Off by default: PcmOnlyRenderersFactory normally forces stereo-only PCM to avoid a
+    // silent-passthrough bug on some HDMI paths (see PcmOnlyRenderersFactory doc comment).
+    // This is a manual opt-in for testing real 5.1/7.1 output on setups known to handle it.
+
+    fun isSurroundEnabled(context: Context): Boolean =
+        prefs(context).getBoolean("surround_enabled", false)
+
+    fun setSurroundEnabled(context: Context, enabled: Boolean) =
+        prefs(context).edit().putBoolean("surround_enabled", enabled).apply()
+
 }

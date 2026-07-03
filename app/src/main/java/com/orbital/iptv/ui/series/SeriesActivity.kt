@@ -85,11 +85,10 @@ class SeriesActivity : AppCompatActivity() {
             if (cached != null) {
                 allShows = cached
             } else {
-                val result = viewModel.getAllSeriesForCache(creds.serverUrl, creds.username, creds.password)
-                result?.let {
-                    allShows = it
-                    ContentCache.saveSeries(this@SeriesActivity, creds.serverUrl, it)
-                }
+                // Stream straight to disk (not through Retrofit/Gson) to avoid OOM on large
+                // series catalogs, then read back via streaming JsonReader.
+                ContentCache.downloadAndSaveSeries(this@SeriesActivity, creds.serverUrl, creds.username, creds.password)
+                ContentCache.getSeries(this@SeriesActivity, creds.serverUrl)?.let { allShows = it }
             }
         }
     }

@@ -38,6 +38,9 @@ class EpgView @JvmOverloads constructor(
     private val headerHeight    = (44 * dp).toInt()
     private val textPad         = 8 * dp
     private val pxPerMin        = 4f * dp   // fixed: 4dp/min → ~4-5 h visible on a 1080-wide screen
+    private val cellGap         = 3f * dp   // gap between programme "bubbles"
+    private val cellRadius      = 10f * dp
+    private val cellRect        = RectF()   // reused per-cell to avoid onDraw allocations
 
     private val totalWindowMinutes = 7 * 24 * 60   // 7 days from today midnight
 
@@ -57,6 +60,7 @@ class EpgView @JvmOverloads constructor(
 
     private fun solidPaint(rgb: Int) = Paint().apply {
         color = Color.rgb((rgb shr 16) and 0xFF, (rgb shr 8) and 0xFF, rgb and 0xFF)
+        isAntiAlias = true
     }
     private fun textPaint(col: Int, sp: Float, style: Int) = Paint().apply {
         color = col; textSize = sp * dp; isAntiAlias = true
@@ -84,9 +88,9 @@ class EpgView @JvmOverloads constructor(
     private val focusRowBordPaint = Paint().apply {
         color = 0xFF3A9EFF.toInt(); strokeWidth = 2f * dp; style = Paint.Style.STROKE
     }
-    private val focusCellFillPaint = Paint().apply { color = 0x66FFFFFF.toInt() }
+    private val focusCellFillPaint = Paint().apply { color = 0x66FFFFFF.toInt(); isAntiAlias = true }
     private val focusCellBordPaint = Paint().apply {
-        color = 0xFFFFFFFF.toInt(); strokeWidth = 3f * dp; style = Paint.Style.STROKE
+        color = 0xFFFFFFFF.toInt(); strokeWidth = 3f * dp; style = Paint.Style.STROKE; isAntiAlias = true
     }
 
     // ── Geometry helpers ──────────────────────────────────────────────────────
@@ -113,7 +117,30 @@ class EpgView @JvmOverloads constructor(
     }
 
     fun updateRow(streamId: Int, listings: List<EpgListing>) {
-        rows.find { it.streamId == streamId }?.let { it.listings = listings; invalidate() }
+        rows.find { it.streamId == streamId }?.let { it.listings = dedupOverlaps(listings); invalidate() }
+    }
+
+    // Some servers send overlapping/duplicate listings for the same channel (e.g. a stale
+    // long-duration placeholder alongside the real, shorter programmes). Drawing every listing
+    // used to be harmless because cells butted together with no gap, so overlaps were fully
+    // painted over; now that cells have a gap (bubble style), an overlapping wide "now" entry
+    // shows through in the gaps behind the correct narrower ones. Fix at the data layer: keep
+    // the maximum set of non-overlapping listings (classic interval-scheduling greedy — sort by
+    // end time ascending, take any listing that starts at/after the last kept one's end). This
+    // naturally favours the many correct short entries over a single bogus wide one.
+    private fun dedupOverlaps(listings: List<EpgListing>): List<EpgListing> {
+        val valid = listings.mapNotNull { l ->
+            val s = l.startTimestamp?.toLongOrNull() ?: return@mapNotNull null
+            val e = l.stopTimestamp?.toLongOrNull() ?: return@mapNotNull null
+            if (e <= s) null else Triple(l, s, e)
+        }.sortedBy { it.third }
+
+        val kept = mutableListOf<Triple<EpgListing, Long, Long>>()
+        var lastEnd = Long.MIN_VALUE
+        for (item in valid) {
+            if (item.second >= lastEnd) { kept += item; lastEnd = item.third }
+        }
+        return kept.sortedBy { it.second }.map { it.first }
     }
 
     // ── Layout ────────────────────────────────────────────────────────────────
@@ -167,7 +194,8 @@ class EpgView @JvmOverloads constructor(
                 val bPaint = if (s <= nowSec && e > nowSec) progNowPaint
                              else if (altBar) progAltPaint else progPaint
                 altBar = !altBar
-                canvas.drawRect(bL + 1, rowTop + 2, bR - 1, rowBot - 2, bPaint)
+                cellRect.set(bL + cellGap, rowTop + cellGap, bR - cellGap, rowBot - cellGap)
+                canvas.drawRoundRect(cellRect, cellRadius, cellRadius, bPaint)
                 val textX = max(bL + textPad, chanW + textPad)
                 if (bR - textX > 4 * dp) {
                     canvas.save()
@@ -191,8 +219,10 @@ class EpgView @JvmOverloads constructor(
                         val cL = tsToX(fs, todayMidnight).coerceAtLeast(chanW)
                         val cR = tsToX(fe, todayMidnight)
                         if (cR > chanW && cL < w) {
-                            canvas.drawRect(cL + 1, rowTop + 2, cR - 1, rowBot - 2, focusCellFillPaint)
-                            canvas.drawRect(cL + 2, rowTop + 3, cR - 2, rowBot - 3, focusCellBordPaint)
+                            cellRect.set(cL + cellGap, rowTop + cellGap, cR - cellGap, rowBot - cellGap)
+                            canvas.drawRoundRect(cellRect, cellRadius, cellRadius, focusCellFillPaint)
+                            cellRect.set(cL + cellGap + 1f, rowTop + cellGap + 1f, cR - cellGap - 1f, rowBot - cellGap - 1f)
+                            canvas.drawRoundRect(cellRect, cellRadius, cellRadius, focusCellBordPaint)
                         }
                     }
                 }

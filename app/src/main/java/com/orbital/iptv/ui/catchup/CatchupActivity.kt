@@ -15,6 +15,7 @@ import com.orbital.iptv.data.model.LiveStream
 import com.orbital.iptv.data.model.mapCategoryToSky
 import com.orbital.iptv.data.repository.XtreamRepository
 import com.orbital.iptv.databinding.ActivityCatchupBinding
+import com.orbital.iptv.utils.ContentCache
 import com.orbital.iptv.utils.PrefsManager
 import com.orbital.iptv.utils.ThemeManager
 import kotlinx.coroutines.launch
@@ -62,33 +63,36 @@ class CatchupActivity : AppCompatActivity() {
     private fun loadCatchupChannels(serverUrl: String, username: String, password: String) {
         binding.progressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
-            val result = repository.getLiveStreams(serverUrl, username, password)
+            // Stream straight to disk (not through Retrofit/Gson) to avoid OOM on large catalogs,
+            // then read back via streaming JsonReader.
+            ContentCache.downloadAndSaveLiveStreams(this@CatchupActivity, serverUrl, username, password)
+            val streams = ContentCache.getLiveStreams(this@CatchupActivity, serverUrl)
             binding.progressBar.visibility = View.GONE
-            result.onSuccess { streams ->
-                allCatchupStreams = streams.filter { (it.tvArchive ?: 0) == 1 }
-                if (allCatchupStreams.isEmpty()) {
-                    binding.tvError.text = "NO CATCHUP CHANNELS FOUND ON THIS SERVER"
-                    binding.tvError.visibility = View.VISIBLE
-                    return@onSuccess
-                }
-                // Group by categoryId
-                categoryMap = allCatchupStreams.groupBy { it.categoryId ?: "" }
-
-                // Fetch live categories to get names
-                val catResult = repository.getLiveCategories(serverUrl, username, password)
-                categories = catResult.getOrNull()
-                    ?.filter { categoryMap.containsKey(it.categoryId) }
-                    ?: emptyList()
-
-                buildCategoryMenu()
-                // Auto-select first category
-                val firstId = categories.firstOrNull()?.categoryId
-                    ?: categoryMap.keys.firstOrNull() ?: ""
-                selectCategory(firstId)
-            }.onFailure {
-                binding.tvError.text = "FAILED TO LOAD: ${it.message?.uppercase()}"
+            if (streams == null) {
+                binding.tvError.text = "FAILED TO LOAD CHANNELS"
                 binding.tvError.visibility = View.VISIBLE
+                return@launch
             }
+            allCatchupStreams = streams.filter { (it.tvArchive ?: 0) == 1 }
+            if (allCatchupStreams.isEmpty()) {
+                binding.tvError.text = "NO CATCHUP CHANNELS FOUND ON THIS SERVER"
+                binding.tvError.visibility = View.VISIBLE
+                return@launch
+            }
+            // Group by categoryId
+            categoryMap = allCatchupStreams.groupBy { it.categoryId ?: "" }
+
+            // Fetch live categories to get names
+            val catResult = repository.getLiveCategories(serverUrl, username, password)
+            categories = catResult.getOrNull()
+                ?.filter { categoryMap.containsKey(it.categoryId) }
+                ?: emptyList()
+
+            buildCategoryMenu()
+            // Auto-select first category
+            val firstId = categories.firstOrNull()?.categoryId
+                ?: categoryMap.keys.firstOrNull() ?: ""
+            selectCategory(firstId)
         }
     }
 

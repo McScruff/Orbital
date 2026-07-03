@@ -87,11 +87,10 @@ class VodActivity : AppCompatActivity() {
             if (cached != null) {
                 allMovies = cached
             } else {
-                val result = viewModel.getAllMoviesForCache(creds.serverUrl, creds.username, creds.password)
-                result?.let {
-                    allMovies = it
-                    ContentCache.saveMovies(this@VodActivity, creds.serverUrl, it)
-                }
+                // Stream straight to disk (not through Retrofit/Gson) to avoid OOM on large
+                // VOD catalogs, then read back via streaming JsonReader.
+                ContentCache.downloadAndSaveMovies(this@VodActivity, creds.serverUrl, creds.username, creds.password)
+                ContentCache.getMovies(this@VodActivity, creds.serverUrl)?.let { allMovies = it }
             }
         }
     }

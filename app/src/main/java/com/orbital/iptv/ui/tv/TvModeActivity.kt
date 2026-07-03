@@ -34,6 +34,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.orbital.iptv.ui.player.PcmOnlyRenderersFactory
 import com.orbital.iptv.R
 import com.orbital.iptv.data.api.ApiClient
+import com.orbital.iptv.data.model.EpgListing
 import com.orbital.iptv.data.model.LiveCategory
 import com.orbital.iptv.data.model.LiveStream
 import com.orbital.iptv.data.model.ServerProfile
@@ -51,6 +52,7 @@ import com.orbital.iptv.ui.catchup.CatchupActivity
 import com.orbital.iptv.ui.favourites.FavouritesActivity
 import com.orbital.iptv.ui.emby.EmbyBrowserActivity
 import com.orbital.iptv.ui.emby.EmbyLoginActivity
+import com.orbital.iptv.ui.epg.EpgRow
 import com.orbital.iptv.ui.games.BubbleShooterActivity
 import com.orbital.iptv.ui.games.TeletextActivity
 import com.orbital.iptv.ui.home.HomeActivity
@@ -110,7 +112,7 @@ class TvModeActivity : AppCompatActivity() {
 
     // Three-level left-panel navigation.
     // NONE      – full-screen TV, no panel visible
-    // CHANNELS  – channel list for the current category
+    // CHANNELS  – channel list + live EPG column for focused channel
     // CATEGORIES– category picker
     // MAIN_MENU – top-level menu (Live TV / Box Office / Radio / Interactive / Settings)
     private enum class PanelState { NONE, CHANNELS, CATEGORIES, MAIN_MENU }
@@ -128,6 +130,18 @@ class TvModeActivity : AppCompatActivity() {
 
     private var epgLoadingJob: Job? = null
     private var channelPanelAdapter: NowNextAdapter? = null
+    private var focusedChannelStreamId = -1
+    private val inlineEpgHandler = Handler(Looper.getMainLooper())
+
+    // Previous channel — for RIGHT-key "last channel" toggle
+    private var prevStreamId    = -1
+    private var prevStreamUrl   = ""
+    private var prevChannelName = ""
+    private var prevCategoryId  = ""
+
+    // Full EPG guide overlay
+    private var guideCategoryId = ""
+    private var guideLoadJob: Job? = null
 
     private val hudHandler  = Handler(Looper.getMainLooper())
     private val hideHud     = Runnable { hideHudOverlay() }
@@ -193,10 +207,12 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     private fun initPlayer() {
-        val httpFactory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
+        val httpFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .setAllowCrossProtocolRedirects(true)
         player = ExoPlayer.Builder(this)
             .setRenderersFactory(
-                PcmOnlyRenderersFactory(this)
+                PcmOnlyRenderersFactory(this, PrefsManager.isSurroundEnabled(this))
                     .setEnableDecoderFallback(true)
                     .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
             )
@@ -217,13 +233,79 @@ class TvModeActivity : AppCompatActivity() {
         }
     }
 
+    /** Toggles PcmOnlyRenderersFactory's stereo-only lock — see its doc comment for the tradeoff. */
+    private fun toggleSurroundSound() {
+        if (!hasSurroundAudioTrack()) {
+            Toast.makeText(this, "NO 5.1/SURROUND AUDIO TRACK ON THIS CHANNEL", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val newState = !PrefsManager.isSurroundEnabled(this)
+        PrefsManager.setSurroundEnabled(this, newState)
+        updateSurroundButton()
+        // RenderersFactory is baked in at ExoPlayer construction, so the only way to apply the
+        // new capability setting is to release and rebuild the player against the same channel.
+        // initPlayer() reattaches via exo.setVideoSurfaceView(), which (unlike a hand-rolled
+        // SurfaceHolder.Callback — see PlayerActivity.initExoPlayer()) attaches immediately when
+        // the surface is already valid, so no extra surface handling is needed here.
+        player?.clearVideoSurface()
+        player?.release()
+        initPlayer()
+        Toast.makeText(
+            this,
+            if (newState) "SURROUND: ON — testing real device audio capabilities" else "SURROUND: OFF — forced stereo",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun updateSurroundButton() {
+        val on = PrefsManager.isSurroundEnabled(this)
+        binding.btnHudSurround.text = if (on) "5.1 ✓" else "5.1"
+        val available = hasSurroundAudioTrack()
+        binding.btnHudSurround.isEnabled = available
+        binding.btnHudSurround.visibility = if (available) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * True if the audio track actually SELECTED for playback right now is 5.1/7.1+ (channel
+     * count) or explicitly labelled surround — not just any track the stream happens to offer.
+     * Many IPTV channels bundle a stereo AAC track alongside a 5.1 AC3 alternate, and
+     * setPreferredAudioMimeTypes() picks AAC first, so checking "any available track" let the
+     * button light up even while a plain stereo track was the one actually playing.
+     */
+    private fun hasSurroundAudioTrack(): Boolean {
+        val exo = player ?: return false
+        return exo.currentTracks.groups.any { group ->
+            group.type == C.TRACK_TYPE_AUDIO && (0 until group.length).any { i ->
+                group.isTrackSelected(i) && run {
+                    val fmt = group.getTrackFormat(i)
+                    fmt.channelCount >= 6 ||
+                        fmt.label?.contains("5.1", ignoreCase = true) == true ||
+                        fmt.label?.contains("surround", ignoreCase = true) == true
+                }
+            }
+        }
+    }
+
     private fun playChannel(url: String, name: String) {
         val exo = player ?: return
+        switchStream(exo, url)
+        showInfoBar(name)
+        loadEpgForCurrentChannel()
+    }
+
+    /**
+     * Fully tears down the current playlist/decoders before loading [url]. A seamless
+     * setMediaItem() while playing can leave the video renderer holding its last decoded
+     * frame (stale picture) while the audio renderer moves on to the new stream — stop()
+     * alone doesn't release decoders, so clearMediaItems() is required to force ExoPlayer
+     * to rebuild fresh MediaCodec instances on the next prepare().
+     */
+    private fun switchStream(exo: ExoPlayer, url: String) {
+        exo.stop()
+        exo.clearMediaItems()
         exo.setMediaItem(MediaItem.fromUri(url))
         exo.prepare()
         exo.play()
-        showInfoBar(name)
-        loadEpgForCurrentChannel()
     }
 
     private fun setupButtons() {
@@ -238,12 +320,14 @@ class TvModeActivity : AppCompatActivity() {
             }
         }
         binding.menuItemLiveTv.tag      = 0xFF0A1628.toInt()
-        binding.menuItemBoxOffice.tag   = 0xFF0D1E38.toInt()
-        binding.menuItemRadio.tag       = 0xFF0A1628.toInt()
-        binding.menuItemInteractive.tag = 0xFF0D1E38.toInt()
-        binding.menuItemSettings.tag    = 0xFF0A1628.toInt()
+        binding.menuItemGuide.tag       = 0xFF0D1E38.toInt()
+        binding.menuItemBoxOffice.tag   = 0xFF0A1628.toInt()
+        binding.menuItemRadio.tag       = 0xFF0D1E38.toInt()
+        binding.menuItemInteractive.tag = 0xFF0A1628.toInt()
+        binding.menuItemSettings.tag    = 0xFF0D1E38.toInt()
 
         menuItem(binding.menuItemLiveTv)      { hidePanel() }
+        menuItem(binding.menuItemGuide)       { showGuideOverlay() }
         menuItem(binding.menuItemBoxOffice)   { showBoxOfficeMenu() }
         menuItem(binding.menuItemRadio)       { showRadioMenu() }
         menuItem(binding.menuItemInteractive) { showInteractiveMenu() }
@@ -266,6 +350,10 @@ class TvModeActivity : AppCompatActivity() {
 
         binding.btnHudAudio.setOnClickListener { showAudioPicker() }
         timerReset(binding.btnHudAudio)
+
+        updateSurroundButton()
+        binding.btnHudSurround.setOnClickListener { toggleSurroundSound() }
+        timerReset(binding.btnHudSurround)
 
         updateRecordButton()
         binding.btnHudRecord.setOnFocusChangeListener { _, hasFocus ->
@@ -310,6 +398,7 @@ class TvModeActivity : AppCompatActivity() {
         hudHandler.removeCallbacks(hideHud)
         hudHandler.postDelayed(hideHud, 5000L)
         binding.btnHudMenu.requestFocus()
+        updateSurroundButton()
     }
 
     private fun hideHudOverlay() {
@@ -704,15 +793,15 @@ class TvModeActivity : AppCompatActivity() {
 
     // ── Left-panel navigation state machine ───────────────────────────────────
 
-    /** Open the CHANNELS panel (channel list for the current category). */
+    /** Open the CHANNELS panel (channel list + inline EPG column). */
     private fun showChannelPanel() {
         hideHudOverlay()
         zapHandler.removeCallbacks(hideZap)
         panelState = PanelState.CHANNELS
-        binding.leftPanel.visibility         = View.VISIBLE
-        binding.rvPanelChannels.visibility   = View.VISIBLE
-        binding.rvPanelCategories.visibility = View.GONE
-        binding.panelMainMenu.visibility     = View.GONE
+        binding.leftPanel.visibility           = View.VISIBLE
+        binding.layoutChannelsSplit.visibility = View.VISIBLE
+        binding.rvPanelCategories.visibility   = View.GONE
+        binding.panelMainMenu.visibility       = View.GONE
 
         val catName = when {
             currentCategoryId == FAV_CATEGORY_ID -> "★  FAVOURITES"
@@ -730,23 +819,64 @@ class TvModeActivity : AppCompatActivity() {
     /** Open the CATEGORIES panel (category picker). */
     private fun showCategoryPanel() {
         panelState = PanelState.CATEGORIES
-        binding.leftPanel.visibility         = View.VISIBLE
-        binding.rvPanelChannels.visibility   = View.GONE
-        binding.rvPanelCategories.visibility = View.VISIBLE
-        binding.panelMainMenu.visibility     = View.GONE
-        binding.panelHeader.text             = "CATEGORIES"
+        binding.leftPanel.visibility           = View.VISIBLE
+        binding.layoutChannelsSplit.visibility = View.GONE
+        binding.rvPanelCategories.visibility   = View.VISIBLE
+        binding.panelMainMenu.visibility       = View.GONE
+        binding.panelHeader.text               = "CATEGORIES"
         loadCategoryPanel()
     }
 
     /** Open the MAIN_MENU panel (Live TV / Box Office / Radio / Interactive / Settings). */
     private fun showMainMenuPanel() {
         panelState = PanelState.MAIN_MENU
-        binding.leftPanel.visibility         = View.VISIBLE
-        binding.rvPanelChannels.visibility   = View.GONE
-        binding.rvPanelCategories.visibility = View.GONE
-        binding.panelMainMenu.visibility     = View.VISIBLE
-        binding.panelHeader.text             = "ORBITAL"
+        binding.leftPanel.visibility           = View.VISIBLE
+        binding.layoutChannelsSplit.visibility = View.GONE
+        binding.rvPanelCategories.visibility   = View.GONE
+        binding.panelMainMenu.visibility       = View.VISIBLE
+        binding.panelHeader.text               = "ORBITAL"
         binding.panelMainMenu.post { binding.menuItemLiveTv.requestFocus() }
+    }
+
+    /** Load EPG for [streamId] into the inline EPG column, debounced to avoid thrash while scrolling. */
+    private fun scheduleInlineEpg(streamId: Int) {
+        inlineEpgHandler.removeCallbacksAndMessages(null)
+        inlineEpgHandler.postDelayed({ loadInlineEpg(streamId) }, 250)
+    }
+
+    private fun loadInlineEpg(streamId: Int) {
+        epgLoadingJob?.cancel()
+        val creds = PrefsManager.getCredentials(this) ?: return
+        epgLoadingJob = lifecycleScope.launch {
+            val cached = withContext(Dispatchers.IO) {
+                EpgCache.get(this@TvModeActivity, streamId, minCount = 50)
+            }
+            val listings = cached ?: withContext(Dispatchers.IO) {
+                repository.getFullChannelEpg(
+                    creds.serverUrl, creds.username, creds.password, streamId
+                ).getOrNull()?.listings?.also { l ->
+                    EpgCache.put(this@TvModeActivity, streamId, l)
+                } ?: emptyList()
+            }
+
+            val nowSec = System.currentTimeMillis() / 1000
+            val horizonSec = nowSec + 24 * 3600
+            val sorted = listings
+                .sortedBy { it.startTimestamp?.toLongOrNull() ?: 0L }
+                .filter { (it.startTimestamp?.toLongOrNull() ?: 0L) < horizonSec }
+            val currentIdx = sorted.indexOfFirst { l ->
+                val start = l.startTimestamp?.toLongOrNull() ?: return@indexOfFirst false
+                val end   = l.stopTimestamp?.toLongOrNull()  ?: return@indexOfFirst false
+                nowSec in start..end
+            }
+
+            if (binding.layoutChannelsSplit.visibility != View.VISIBLE) return@launch
+            binding.rvChannelEpg.layoutManager = LinearLayoutManager(this@TvModeActivity)
+            binding.rvChannelEpg.itemAnimator  = null
+            binding.rvChannelEpg.adapter       = EpgListAdapter(sorted, currentIdx, nowSec)
+            (binding.rvChannelEpg.layoutManager as? LinearLayoutManager)
+                ?.scrollToPositionWithOffset(currentIdx.coerceAtLeast(0), 0)
+        }
     }
 
     /** Close all panels and return to full-screen TV. */
@@ -762,16 +892,22 @@ class TvModeActivity : AppCompatActivity() {
     private fun loadChannelPanel(channels: List<LiveStream>) {
         val items = channels.map { ch -> NowNextItem(ch.streamId, ch.name) }.toMutableList()
 
-        channelPanelAdapter = NowNextAdapter(items, currentStreamId) { streamId ->
+        channelPanelAdapter = NowNextAdapter(items, currentStreamId, onFocus = { id ->
+            focusedChannelStreamId = id
+            scheduleInlineEpg(id)
+        }) { streamId ->
             val ch    = channels.find { it.streamId == streamId } ?: return@NowNextAdapter
             val creds = PrefsManager.getCredentials(this) ?: return@NowNextAdapter
             val url   = repository.buildStreamUrl(creds.serverUrl, creds.username, creds.password, ch.streamId)
+            prevStreamId    = currentStreamId
+            prevStreamUrl   = currentStreamUrl
+            prevChannelName = currentChannelName
+            prevCategoryId  = currentCategoryId
             currentStreamId    = ch.streamId
             currentStreamUrl   = url
             currentChannelName = ch.name
             PrefsManager.setLastTvChannel(this, url, ch.name, ch.streamId, currentCategoryId)
             playChannel(url, ch.name)
-            // Panel stays open — update the highlight
             channelPanelAdapter?.setCurrentId(currentStreamId)
         }
 
@@ -783,47 +919,13 @@ class TvModeActivity : AppCompatActivity() {
         (binding.rvPanelChannels.layoutManager as? LinearLayoutManager)
             ?.scrollToPositionWithOffset(idx, 0)
 
-        // Focus current channel row after layout
         binding.rvPanelChannels.post {
             (binding.rvPanelChannels.findViewHolderForAdapterPosition(idx)?.itemView
                 ?: binding.rvPanelChannels.getChildAt(0))?.requestFocus()
         }
 
-        // Load EPG for all channels in the background
-        epgLoadingJob?.cancel()
-        val creds = PrefsManager.getCredentials(this) ?: return
-        epgLoadingJob = lifecycleScope.launch {
-            channels.forEach { stream ->
-                launch {
-                    val nowSec = System.currentTimeMillis() / 1000
-                    val cached = EpgCache.get(this@TvModeActivity, stream.streamId, minCount = 2)
-                    val listings = if (cached != null) cached else {
-                        repository.getFullChannelEpg(
-                            creds.serverUrl, creds.username, creds.password, stream.streamId
-                        ).getOrNull()?.listings?.also { l ->
-                            EpgCache.put(this@TvModeActivity, stream.streamId, l)
-                        } ?: emptyList()
-                    }
-                    val sorted = listings.sortedBy { it.startTimestamp?.toLongOrNull() ?: 0L }
-                    val curIdx = sorted.indexOfFirst { l ->
-                        val s = l.startTimestamp?.toLongOrNull() ?: return@indexOfFirst false
-                        val e = l.stopTimestamp?.toLongOrNull()  ?: return@indexOfFirst false
-                        nowSec in s..e
-                    }
-                    val cur  = if (curIdx >= 0) sorted[curIdx] else null
-                    val next = if (curIdx >= 0 && curIdx + 1 < sorted.size) sorted[curIdx + 1] else null
-                    val nowTitle  = cur?.getDecodedTitle().orEmpty()
-                    val nextTitle = next?.getDecodedTitle().orEmpty()
-                    val nextTime  = next?.startTimestamp?.toLongOrNull()?.let { sec ->
-                        val cal = Calendar.getInstance().apply { timeInMillis = sec * 1000 }
-                        val h   = cal.get(Calendar.HOUR_OF_DAY)
-                        val m   = cal.get(Calendar.MINUTE)
-                        "%d:%02d%s".format(if (h % 12 == 0) 12 else h % 12, m, if (h < 12) "am" else "pm")
-                    } ?: ""
-                    channelPanelAdapter?.updateEpg(stream.streamId, nowTitle, nextTitle, nextTime)
-                }
-            }
-        }
+        // Seed the EPG column with the current channel immediately
+        scheduleInlineEpg(currentStreamId)
     }
 
     // ── Category panel ────────────────────────────────────────────────────────
@@ -861,6 +963,111 @@ class TvModeActivity : AppCompatActivity() {
     private fun visibleCategories(): List<LiveCategory> {
         val hidden = CategoryPrefs.getHiddenServerCatIds(this)
         return TvModeHolder.categories.filter { it.categoryId !in hidden }
+    }
+
+    // ── Full EPG guide overlay ──────────────────────────────────────────────────
+
+    private fun showGuideOverlay() {
+        hidePanel()
+        binding.guideOverlay.visibility = View.VISIBLE
+        guideCategoryId = currentCategoryId.ifBlank { visibleCategories().firstOrNull()?.categoryId ?: "" }
+        loadGuideCategories()
+        loadGuideEpg(guideCategoryId)
+    }
+
+    private fun hideGuideOverlay() {
+        guideLoadJob?.cancel()
+        binding.guideOverlay.visibility = View.GONE
+        binding.surfaceView.requestFocus()
+    }
+
+    private fun loadGuideCategories() {
+        val favCat  = LiveCategory(FAV_CATEGORY_ID, "★  FAVOURITES", 0)
+        val allCats = listOf(favCat) + visibleCategories()
+        val countMap = TvModeHolder.allChannels.groupingBy { it.categoryId }.eachCount()
+
+        val adapter = CategoryPanelAdapter(allCats, guideCategoryId, countMap.mapKeys { it.key ?: "" }) { cat ->
+            fun openCategory() {
+                guideCategoryId = cat.categoryId
+                loadGuideCategories()
+                loadGuideEpg(guideCategoryId)
+            }
+            if (PinManager.isCategoryLocked(this, cat.categoryId)) {
+                tvPromptPin("ENTER PIN TO VIEW CATEGORY") { openCategory() }
+            } else {
+                openCategory()
+            }
+        }
+        binding.rvGuideCategories.layoutManager = TvLayoutManager(this)
+        binding.rvGuideCategories.itemAnimator  = null
+        binding.rvGuideCategories.adapter       = adapter
+
+        val idx = allCats.indexOfFirst { it.categoryId == guideCategoryId }.coerceAtLeast(0)
+        (binding.rvGuideCategories.layoutManager as? LinearLayoutManager)
+            ?.scrollToPositionWithOffset(idx, 0)
+    }
+
+    private fun loadGuideEpg(categoryId: String) {
+        guideLoadJob?.cancel()
+        val creds = PrefsManager.getCredentials(this) ?: return
+
+        val channels = when {
+            categoryId == FAV_CATEGORY_ID -> {
+                val favIds = FavouritesManager.getLiveChannels(this).map { it.streamId }.toSet()
+                TvModeHolder.allChannels.filter { it.streamId in favIds }
+            }
+            categoryId.isBlank() -> TvModeHolder.allChannels
+            else -> TvModeHolder.allChannels.filter { it.categoryId == categoryId }
+        }
+
+        val catName = when (categoryId) {
+            FAV_CATEGORY_ID -> "FAVOURITES"
+            else -> visibleCategories().find { it.categoryId == categoryId }?.categoryName?.uppercase() ?: "GUIDE"
+        }
+        binding.guideHeader.text = "GUIDE — $catName"
+
+        val rows = channels.map { EpgRow(streamId = it.streamId, channelName = it.name) }
+        binding.epgViewGuide.setRows(rows)
+        binding.epgViewGuide.onRequestFocusLeft = { binding.rvGuideCategories.requestFocus() }
+        binding.epgViewGuide.onChannelSelected   = { streamId -> tuneFromGuide(streamId) }
+        binding.epgViewGuide.onProgrammeSelected = { streamId, _, _ -> tuneFromGuide(streamId) }
+
+        guideLoadJob = lifecycleScope.launch {
+            rows.forEach { row ->
+                launch {
+                    val cached = withContext(Dispatchers.IO) {
+                        EpgCache.get(this@TvModeActivity, row.streamId, minCount = 50)
+                    }
+                    val listings = cached ?: withContext(Dispatchers.IO) {
+                        repository.getFullChannelEpg(
+                            creds.serverUrl, creds.username, creds.password, row.streamId
+                        ).getOrNull()?.listings?.also { l ->
+                            EpgCache.put(this@TvModeActivity, row.streamId, l)
+                        } ?: emptyList()
+                    }
+                    binding.epgViewGuide.updateRow(row.streamId, listings)
+                }
+            }
+        }
+
+        binding.epgViewGuide.post { binding.epgViewGuide.requestFocus() }
+    }
+
+    private fun tuneFromGuide(streamId: Int) {
+        val stream = TvModeHolder.allChannels.find { it.streamId == streamId } ?: return
+        val creds  = PrefsManager.getCredentials(this) ?: return
+        val url    = repository.buildStreamUrl(creds.serverUrl, creds.username, creds.password, stream.streamId)
+        prevStreamId    = currentStreamId
+        prevStreamUrl   = currentStreamUrl
+        prevChannelName = currentChannelName
+        prevCategoryId  = currentCategoryId
+        currentStreamId    = stream.streamId
+        currentStreamUrl   = url
+        currentChannelName = stream.name
+        currentCategoryId  = stream.categoryId ?: currentCategoryId
+        PrefsManager.setLastTvChannel(this, url, stream.name, stream.streamId, currentCategoryId)
+        hideGuideOverlay()
+        playChannel(url, stream.name)
     }
 
     // ── Dialogs ───────────────────────────────────────────────────────────────
@@ -1045,6 +1252,9 @@ class TvModeActivity : AppCompatActivity() {
         items += Item(if (PrefsManager.getOpenSubsApiKey(this) != null) "OPENSUBTITLES: KEY SET" else "OPENSUBTITLES: NO KEY SET") {
             showOpenSubsKeyDialog()
         }
+        items += Item(if (PrefsManager.getTmdbApiKey(this) != null) "TMDB: KEY SET" else "TMDB: NO KEY SET") {
+            showTmdbKeyDialog()
+        }
         items += Item("LIVE STREAM FORMAT: ${PrefsManager.getLiveFormat(this).uppercase()}") { toggleLiveFormat() }
         items += Item("PIN PROTECTED CATEGORIES")       { showPinProtectedCategories() }
         items += Item("CHANGE PIN")                    { showChangePinDialog() }
@@ -1219,6 +1429,30 @@ class TvModeActivity : AppCompatActivity() {
         showTvDialog(builder)
     }
 
+    private fun showTmdbKeyDialog() {
+        val current = PrefsManager.getTmdbApiKey(this) ?: ""
+        val et = android.widget.EditText(this).apply {
+            setText(current)
+            hint = "PASTE API KEY HERE"
+            setPadding(48, 24, 48, 24)
+        }
+        val builder = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            .setTitle("TMDB API KEY")
+            .setMessage("Get a free key at themoviedb.org → Settings → API. Used for EPG posters/synopsis.")
+            .setView(et)
+            .setPositiveButton("SAVE") { _, _ ->
+                val key = et.text.toString().trim()
+                if (key.isNotBlank()) PrefsManager.setTmdbApiKey(this, key)
+            }
+            .setNegativeButton("CANCEL", null)
+        if (current.isNotBlank()) {
+            builder.setNeutralButton("REMOVE KEY") { _, _ ->
+                PrefsManager.setTmdbApiKey(this, "")
+            }
+        }
+        showTvDialog(builder)
+    }
+
     private fun toggleLiveFormat() {
         val next = if (PrefsManager.getLiveFormat(this) == "ts") "m3u8" else "ts"
         PrefsManager.setLiveFormat(this, next)
@@ -1347,16 +1581,17 @@ class TvModeActivity : AppCompatActivity() {
             }
             if (cats != null) TvModeHolder.categories = cats
 
-            // Full stream list can be several MB on large servers — fetched after cats
+            // Full stream list can be several MB on large servers — stream straight to disk
+            // rather than through Retrofit/Gson (avoids OOM on low-heap TV devices), then
+            // read it back with the memory-cheap streaming JsonReader.
+            withContext(Dispatchers.IO) {
+                ContentCache.downloadAndSaveLiveStreams(this@TvModeActivity, creds.serverUrl, creds.username, creds.password)
+            }
             val streams = withContext(Dispatchers.IO) {
-                repository.getLiveStreams(creds.serverUrl, creds.username, creds.password).getOrNull()
+                ContentCache.getLiveStreams(this@TvModeActivity, creds.serverUrl)
             }
             if (streams != null) {
                 TvModeHolder.allChannels = streams
-                // Keep the cache warm for subsequent cold-starts (mirrors HomeViewModel behaviour)
-                withContext(Dispatchers.IO) {
-                    ContentCache.saveLiveStreams(this@TvModeActivity, creds.serverUrl, streams)
-                }
             }
             refreshCategoryChannels()
             onLoaded?.invoke()
@@ -1366,15 +1601,25 @@ class TvModeActivity : AppCompatActivity() {
     // ── Key dispatch ──────────────────────────────────────────────────────────
     //
     // Navigation summary:
-    //   NONE        + LEFT  → CHANNELS panel
-    //   CHANNELS    + LEFT  → CATEGORIES panel
-    //   CHANNELS    + RIGHT → close panel (NONE)
-    //   CATEGORIES  + LEFT  → MAIN_MENU panel
-    //   CATEGORIES  + RIGHT → CHANNELS panel (current category)
-    //   MAIN_MENU   + RIGHT → CATEGORIES panel
-    //   BACK (any)          → close panel / exit dialog
+    //   NONE        + LEFT   → CHANNELS panel (channel list + inline EPG column)
+    //   NONE        + RIGHT  → previous channel (same as UP)
+    //   CHANNELS    + LEFT   → CATEGORIES panel
+    //   CHANNELS    + RIGHT  → close panel (NONE)
+    //   CATEGORIES  + LEFT   → MAIN_MENU panel
+    //   CATEGORIES  + RIGHT  → CHANNELS panel (current category)
+    //   MAIN_MENU   + RIGHT  → CATEGORIES panel
+    //   BACK (any)           → close panel / exit dialog
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (binding.guideOverlay.visibility == View.VISIBLE) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_BACK) {
+                if (event.repeatCount > 0) return true
+                hideGuideOverlay(); return true
+            }
+            // All other keys go to whichever child (EpgView or category list) has focus —
+            // both already implement their own D-pad navigation.
+            return super.dispatchKeyEvent(event)
+        }
         if (event.action == KeyEvent.ACTION_DOWN) {
             val hudVisible = binding.hudTop.visibility == View.VISIBLE
             when (event.keyCode) {
@@ -1432,7 +1677,7 @@ class TvModeActivity : AppCompatActivity() {
                         PanelState.CHANNELS   -> { hidePanel(); return true }
                         PanelState.CATEGORIES -> { showChannelPanel(); return true }
                         PanelState.MAIN_MENU  -> { showCategoryPanel(); return true }
-                        PanelState.NONE       -> { /* normal right navigation */ }
+                        PanelState.NONE       -> { switchToPrevChannel(); return true }
                     }
                 }
             }
@@ -1448,15 +1693,29 @@ class TvModeActivity : AppCompatActivity() {
         val stream = categoryChannels[newIdx]
         val creds = PrefsManager.getCredentials(this) ?: return
         val url = repository.buildStreamUrl(creds.serverUrl, creds.username, creds.password, stream.streamId)
+        prevStreamId    = currentStreamId
+        prevStreamUrl   = currentStreamUrl
+        prevChannelName = currentChannelName
+        prevCategoryId  = currentCategoryId
         currentStreamId    = stream.streamId
         currentStreamUrl   = url
         currentChannelName = stream.name
         PrefsManager.setLastTvChannel(this, url, stream.name, stream.streamId, currentCategoryId)
-        // Play without opening the full HUD — show lightweight zap bar instead
-        player?.setMediaItem(MediaItem.fromUri(url))
-        player?.prepare()
-        player?.play()
+        player?.let { switchStream(it, url) }
         showZapBar(stream.name)
+    }
+
+    private fun switchToPrevChannel() {
+        if (prevStreamUrl.isBlank()) return
+        val newUrl  = prevStreamUrl;  val newName  = prevChannelName
+        val newId   = prevStreamId;   val newCatId = prevCategoryId
+        prevStreamUrl   = currentStreamUrl;  prevChannelName = currentChannelName
+        prevStreamId    = currentStreamId;   prevCategoryId  = currentCategoryId
+        currentStreamUrl   = newUrl;  currentChannelName = newName
+        currentStreamId    = newId;   currentCategoryId  = newCatId
+        PrefsManager.setLastTvChannel(this, newUrl, newName, newId, newCatId)
+        player?.let { switchStream(it, newUrl) }
+        showZapBar(newName)
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -1484,6 +1743,8 @@ class TvModeActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         epgLoadingJob?.cancel()
+        guideLoadJob?.cancel()
+        inlineEpgHandler.removeCallbacksAndMessages(null)
         hudHandler.removeCallbacksAndMessages(null)
         tickerHandler.removeCallbacksAndMessages(null)
         newsHandler.removeCallbacksAndMessages(null)
@@ -1509,22 +1770,23 @@ data class NowNextItem(
 class NowNextAdapter(
     private val items: MutableList<NowNextItem>,
     private var currentId: Int,
+    private val onFocus: ((Int) -> Unit)? = null,
     private val onSelect: (Int) -> Unit
 ) : RecyclerView.Adapter<NowNextAdapter.VH>() {
 
-    inner class VH(root: LinearLayout, val chanTv: TextView, val nowTv: TextView, val nextTv: TextView)
-        : RecyclerView.ViewHolder(root)
+    inner class VH(root: LinearLayout, val chanTv: TextView) : RecyclerView.ViewHolder(root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val d = parent.resources.displayMetrics.density
         val root = LinearLayout(parent.context).apply {
             orientation = LinearLayout.HORIZONTAL
-            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (58 * d).toInt())
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (46 * d).toInt())
             isFocusable = true; isClickable = true
             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         }
         val chanTv = TextView(parent.context).apply {
-            layoutParams = LinearLayout.LayoutParams((170 * d).toInt(), LinearLayout.LayoutParams.MATCH_PARENT)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
             gravity = Gravity.CENTER_VERTICAL
             setPadding((10 * d).toInt(), 0, (8 * d).toInt(), 0)
             textSize = 11f
@@ -1532,31 +1794,8 @@ class NowNextAdapter(
             setTextColor(0xFFFFFFFF.toInt())
             maxLines = 2
         }
-        val epgCol = LinearLayout(parent.context).apply {
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding((8 * d).toInt(), 0, (8 * d).toInt(), 0)
-        }
-        val nowTv = TextView(parent.context).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            textSize = 10f
-            typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
-            setTextColor(0xFFCCDDEE.toInt())
-            maxLines = 1; ellipsize = TextUtils.TruncateAt.END
-        }
-        val nextTv = TextView(parent.context).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            textSize = 9f
-            typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
-            setTextColor(0xFF7799BB.toInt())
-            maxLines = 1; ellipsize = TextUtils.TruncateAt.END
-        }
-        epgCol.addView(nowTv)
-        epgCol.addView(nextTv)
         root.addView(chanTv)
-        root.addView(epgCol)
-        return VH(root, chanTv, nowTv, nextTv)
+        return VH(root, chanTv)
     }
 
     override fun getItemCount() = items.size
@@ -1570,30 +1809,13 @@ class NowNextAdapter(
 
         holder.chanTv.text = item.channelName
         holder.chanTv.setTextColor(if (isPlaying) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
-        holder.nowTv.text  = if (item.nowTitle.isBlank())  "" else "▶  ${item.nowTitle}"
-        holder.nowTv.setTextColor(if (isPlaying) 0xFF333333.toInt() else 0xFFCCDDEE.toInt())
-        holder.nextTv.text = when {
-            item.nextTitle.isBlank() -> ""
-            item.nextTime.isNotBlank() -> "${item.nextTime}  ${item.nextTitle}"
-            else -> item.nextTitle
-        }
-        holder.nextTv.setTextColor(if (isPlaying) 0xFF555555.toInt() else 0xFF7799BB.toInt())
 
         holder.itemView.background = ThemeManager.roundedBg(normalBg, d)
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->
             if (!isPlaying) holder.itemView.background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, d)
+            if (hasFocus) onFocus?.invoke(item.streamId)
         }
         holder.itemView.setOnClickListener { onSelect(item.streamId) }
-    }
-
-    fun updateEpg(streamId: Int, nowTitle: String, nextTitle: String, nextTime: String) {
-        val idx = items.indexOfFirst { it.streamId == streamId }
-        if (idx >= 0) {
-            items[idx].nowTitle  = nowTitle
-            items[idx].nextTitle = nextTitle
-            items[idx].nextTime  = nextTime
-            notifyItemChanged(idx)
-        }
     }
 
     /** Update the currently-playing highlight without closing the panel. */
@@ -1649,6 +1871,90 @@ class CategoryPanelAdapter(
     }
 }
 
+// ── Full EPG list adapter ─────────────────────────────────────────────────────
+
+class EpgListAdapter(
+    private val items: List<EpgListing>,
+    private val currentIdx: Int,
+    private val nowSec: Long
+) : RecyclerView.Adapter<EpgListAdapter.VH>() {
+
+    inner class VH(val timeTv: TextView, val titleTv: TextView, root: LinearLayout)
+        : RecyclerView.ViewHolder(root)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val d = parent.resources.displayMetrics.density
+        val root = LinearLayout(parent.context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (48 * d).toInt())
+            isFocusable = true
+            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        }
+        val timeTv = TextView(parent.context).apply {
+            layoutParams = LinearLayout.LayoutParams((58 * d).toInt(), LinearLayout.LayoutParams.MATCH_PARENT)
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            setPadding(0, 0, (10 * d).toInt(), 0)
+            textSize = 11f
+            typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+        }
+        val titleTv = TextView(parent.context).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding((8 * d).toInt(), 0, (8 * d).toInt(), 0)
+            textSize = 11f
+            typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
+            maxLines = 2
+        }
+        root.addView(timeTv)
+        root.addView(titleTv)
+        return VH(timeTv, titleTv, root)
+    }
+
+    override fun getItemCount() = items.size
+
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val item      = items[position]
+        val p         = ThemeManager.palette()
+        val d         = holder.itemView.resources.displayMetrics.density
+        val isCurrent = position == currentIdx
+        val isPast    = (item.stopTimestamp?.toLongOrNull() ?: Long.MAX_VALUE) < nowSec
+
+        val startSec = item.startTimestamp?.toLongOrNull()
+        if (startSec != null) {
+            val cal = Calendar.getInstance().apply { timeInMillis = startSec * 1000 }
+            holder.timeTv.text = "%02d:%02d".format(
+                cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE)
+            )
+        } else {
+            holder.timeTv.text = "--:--"
+        }
+
+        holder.titleTv.text = item.getDecodedTitle().ifBlank { "—" }
+
+        val normalBg = when {
+            isCurrent -> p.highlight
+            isPast    -> if (position % 2 == 0) 0xFF060C06.toInt() else 0xFF090F09.toInt()
+            else      -> if (position % 2 == 0) 0xFF0A1628.toInt() else 0xFF0D1E38.toInt()
+        }
+        holder.timeTv.setTextColor(when {
+            isCurrent -> 0xFF000000.toInt()
+            isPast    -> 0xFF446644.toInt()
+            else      -> 0xFF00CCCC.toInt()
+        })
+        holder.titleTv.setTextColor(when {
+            isCurrent -> 0xFF000000.toInt()
+            isPast    -> 0xFF558855.toInt()
+            else      -> 0xFFEEEEEE.toInt()
+        })
+        holder.itemView.background = ThemeManager.roundedBg(normalBg, d)
+        holder.itemView.setOnFocusChangeListener { _, hasFocus ->
+            if (!isCurrent) holder.itemView.background = ThemeManager.roundedBg(
+                if (hasFocus) p.focus else normalBg, d
+            )
+        }
+    }
+}
+
 // ── TV-friendly RecyclerView LayoutManager ────────────────────────────────────
 
 private class TvLayoutManager(ctx: android.content.Context) : LinearLayoutManager(ctx) {
@@ -1656,16 +1962,18 @@ private class TvLayoutManager(ctx: android.content.Context) : LinearLayoutManage
         parent: RecyclerView, state: RecyclerView.State,
         child: android.view.View, focused: android.view.View?
     ): Boolean {
-        val pos          = getPosition(child)
+        val pos           = getPosition(child)
         val firstComplete = findFirstCompletelyVisibleItemPosition()
         val lastComplete  = findLastCompletelyVisibleItemPosition()
         when {
             pos < firstComplete -> {
-                // Scroll only enough to reveal the top of the item — avoids snapping to y=0 when item is partially visible
                 val dy = child.top
-                if (dy < 0) parent.scrollBy(0, dy) else scrollToPositionWithOffset(pos, 0)
+                if (dy < 0) parent.scrollBy(0, dy)
             }
-            pos > lastComplete  -> scrollToPositionWithOffset(pos, (parent.height - child.height).coerceAtLeast(0))
+            pos > lastComplete -> {
+                val dy = child.bottom - parent.height
+                if (dy > 0) parent.scrollBy(0, dy)
+            }
         }
         return true
     }
