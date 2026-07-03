@@ -1820,8 +1820,15 @@ class NowNextAdapter(
 
     /** Update the currently-playing highlight without closing the panel. */
     fun setCurrentId(id: Int) {
+        val oldId = currentId
         currentId = id
-        notifyDataSetChanged()
+        // notifyDataSetChanged() would detach/reattach every row during layout, which clears
+        // Android focus from whichever item the user is on — breaking further D-pad UP/DOWN
+        // navigation until the panel is closed and reopened. Rebind only the two affected rows.
+        val oldPos = items.indexOfFirst { it.streamId == oldId }
+        val newPos = items.indexOfFirst { it.streamId == id }
+        if (oldPos >= 0) notifyItemChanged(oldPos)
+        if (newPos >= 0) notifyItemChanged(newPos)
     }
 }
 

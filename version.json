@@ -1,6 +1,6 @@
 {
-  "version_code": 17,
-  "version_name": "1.4.0",
+  "version_code": 18,
+  "version_name": "1.4.1",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "TV Mode: short EPG on-channel + full EPG guide from the left menu; RIGHT toggles back to your previous channel. Normal mode: GUI improvements; tapping a show in the EPG shows info + a poster (via TMDB, falls back to VOD search). Dolby 5.1/7.1 toggle in the top menu while playing (only shown when the stream actually supports it). Various memory/stability fixes, and another attempt at the Firestick keyboard issue on the add-server screen."
+  "release_notes": "Patch: fixed TV Mode channel panel losing D-pad UP/DOWN navigation after picking a channel (had to back out and back in to move again)."
 }
