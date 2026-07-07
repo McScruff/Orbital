@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.OverScroller
 import com.orbital.iptv.data.model.EpgListing
 import com.orbital.iptv.data.model.getDecodedTitle
+import com.orbital.iptv.utils.ThemeManager
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.max
@@ -67,26 +68,32 @@ class EpgView @JvmOverloads constructor(
         typeface = Typeface.create("sans-serif-condensed", style)
     }
 
-    private val bgPaint           = solidPaint(0x0A1628)
-    private val headerBgPaint     = solidPaint(0x001133)
-    private val chanEvenPaint     = solidPaint(0x1A3A6A)
-    private val chanOddPaint      = solidPaint(0x122850)
-    private val progPaint         = solidPaint(0x243E6A)
-    private val progAltPaint      = solidPaint(0x1A3258)
-    private val progNowPaint      = solidPaint(0x2A5C2A)
-    private val noDataPaint       = solidPaint(0x080F20)
-    private val dividerPaint      = Paint().apply { color = Color.parseColor("#00CCFF"); strokeWidth = dp; alpha = 60 }
-    private val mainDivPaint      = Paint().apply { color = Color.parseColor("#00CCFF"); strokeWidth = 2 * dp }
-    private val dayDivPaint       = Paint().apply { color = Color.parseColor("#FFD700"); strokeWidth = 1.5f * dp; alpha = 200 }
+    // Colours are pulled from the app theme so the guide follows whatever the user picked in
+    // Settings (e.g. ORBITAL's blues vs. BLACK & WHITE) instead of a fixed dark-blue scheme.
+    private val palette = ThemeManager.palette()
+
+    private val bgPaint           = solidPaint(palette.bgPrimary)
+    private val headerBgPaint     = solidPaint(palette.bgHeader)
+    private val chanEvenPaint     = solidPaint(palette.rowEven)
+    private val chanOddPaint      = solidPaint(palette.rowOdd)
+    private val progPaint         = solidPaint(palette.bgMid)
+    private val progAltPaint      = solidPaint(ThemeManager.lighten(palette.bgMid, 14))
+    private val progNowPaint      = solidPaint(palette.focus)
+    private val noDataPaint       = solidPaint(palette.bgPrimary)
+    private val dividerPaint      = Paint().apply { color = palette.accent; strokeWidth = dp; alpha = 60 }
+    private val mainDivPaint      = Paint().apply { color = palette.accent; strokeWidth = 2 * dp }
+    private val dayDivPaint       = Paint().apply { color = palette.accent; strokeWidth = 1.5f * dp; alpha = 200 }
+    // Live "now" marker stays red regardless of theme — a universal, always-legible attention
+    // colour, same precedent as the recording indicator elsewhere in the app.
     private val nowLinePaint      = Paint().apply { color = Color.parseColor("#FF3333"); strokeWidth = 2 * dp }
     private val chanTextPaint     = textPaint(Color.WHITE, 11f, Typeface.BOLD)
     private val progTextPaint     = textPaint(Color.WHITE, 10f, Typeface.NORMAL)
-    private val timeTextPaint     = textPaint(Color.parseColor("#00CCFF"), 10f, Typeface.BOLD)
-    private val dayLabelPaint     = textPaint(Color.parseColor("#FFD700"), 9f, Typeface.BOLD)
+    private val timeTextPaint     = textPaint(palette.accent, 10f, Typeface.BOLD)
+    private val dayLabelPaint     = textPaint(palette.accent, 9f, Typeface.BOLD)
     private val nowLabelPaint     = textPaint(Color.parseColor("#FF5555"), 9f, Typeface.BOLD)
-    private val focusRowFillPaint = Paint().apply { color = 0x443A9EFF.toInt() }
+    private val focusRowFillPaint = Paint().apply { color = palette.accent; alpha = 0x44 }
     private val focusRowBordPaint = Paint().apply {
-        color = 0xFF3A9EFF.toInt(); strokeWidth = 2f * dp; style = Paint.Style.STROKE
+        color = palette.accent; strokeWidth = 2f * dp; style = Paint.Style.STROKE
     }
     private val focusCellFillPaint = Paint().apply { color = 0x66FFFFFF.toInt(); isAntiAlias = true }
     private val focusCellBordPaint = Paint().apply {
@@ -398,6 +405,12 @@ class EpgView @JvmOverloads constructor(
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) && focusedCellIndex < 0) {
+            // event.isTracking() is only true if THIS view's onKeyDown actually called
+            // startTracking() on the matching key-down. Without this guard, a stray key-up that
+            // arrives just after this view gains focus (e.g. right after opening the full guide,
+            // some remotes deliver a leftover up event with no matching down) gets misread as a
+            // deliberate channel selection — instantly tuning away and closing whatever just opened.
+            if (!event.isTracking()) return true
             if (!okLongPressFired) {
                 rows.getOrNull(focusedRowIndex)?.let { onChannelSelected?.invoke(it.streamId) }
             }

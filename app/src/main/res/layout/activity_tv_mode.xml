@@ -47,6 +47,7 @@
             android:ellipsize="end" />
 
         <View
+            android:id="@+id/divider_panel_header"
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:background="@color/sky_cyan" />
@@ -67,6 +68,7 @@
                 android:focusable="true" />
 
             <View
+                android:id="@+id/divider_channels_split"
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
                 android:background="@color/sky_cyan" />
@@ -114,7 +116,7 @@
                 android:clickable="true"
                 android:background="#0A1628" />
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+            <View android:id="@+id/divider_menu_1" android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
             <TextView
                 android:id="@+id/menu_item_guide"
@@ -132,7 +134,7 @@
                 android:clickable="true"
                 android:background="#0D1E38" />
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+            <View android:id="@+id/divider_menu_2" android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
             <TextView
                 android:id="@+id/menu_item_box_office"
@@ -150,7 +152,7 @@
                 android:clickable="true"
                 android:background="#0A1628" />
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+            <View android:id="@+id/divider_menu_3" android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
             <TextView
                 android:id="@+id/menu_item_radio"
@@ -168,7 +170,7 @@
                 android:clickable="true"
                 android:background="#0D1E38" />
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+            <View android:id="@+id/divider_menu_4" android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
             <TextView
                 android:id="@+id/menu_item_interactive"
@@ -186,7 +188,7 @@
                 android:clickable="true"
                 android:background="#0A1628" />
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
+            <View android:id="@+id/divider_menu_5" android:layout_width="match_parent" android:layout_height="1dp" android:background="#1A3560" />
 
             <TextView
                 android:id="@+id/menu_item_settings"
@@ -239,6 +241,7 @@
             android:ellipsize="end" />
 
         <View
+            android:id="@+id/divider_guide_header"
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:background="@color/sky_cyan" />
@@ -256,6 +259,7 @@
                 android:focusable="true" />
 
             <View
+                android:id="@+id/divider_guide_split"
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
                 android:background="@color/sky_cyan" />
@@ -432,11 +436,13 @@
             android:visibility="gone">
 
             <View
+                android:id="@+id/divider_hud_bottom"
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
                 android:background="@color/sky_cyan" />
 
             <LinearLayout
+                android:id="@+id/row_hud_channel_info"
                 android:layout_width="match_parent"
                 android:layout_height="26dp"
                 android:orientation="horizontal"
@@ -470,6 +476,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/row_hud_now"
                 android:layout_width="match_parent"
                 android:layout_height="42dp"
                 android:orientation="horizontal"
@@ -479,6 +486,7 @@
                 android:paddingEnd="12dp">
 
                 <TextView
+                    android:id="@+id/label_hud_now"
                     android:layout_width="52dp"
                     android:layout_height="wrap_content"
                     android:text="NOW"
@@ -523,6 +531,7 @@
                     android:letterSpacing="0.03" />
 
                 <TextView
+                    android:id="@+id/label_hud_next"
                     android:layout_width="32dp"
                     android:layout_height="wrap_content"
                     android:text="NEXT"

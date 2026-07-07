@@ -119,7 +119,7 @@ class RecordingsActivity : AppCompatActivity() {
     }
 
     private fun confirmDelete(rec: RecordingEntity) {
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("DELETE RECORDING")
             .setMessage("Delete '${rec.epgTitle}'?\nThis will also remove the recorded file.")
             .setPositiveButton("DELETE") { _, _ ->
@@ -215,7 +215,7 @@ class RecordingAdapter(
             if (canPlay) add("▶  PLAY RECORDING")
             add(if (rec.status == RecordingStatus.SCHEDULED) "✕  CANCEL SCHEDULE" else "✕  DELETE RECORDING")
         }
-        AlertDialog.Builder(context, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(context, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle(rec.epgTitle.ifBlank { rec.channelName }.uppercase())
             .setItems(options.toTypedArray()) { _, which ->
                 if (options[which].startsWith("▶")) onPlay(rec) else onDelete(rec)

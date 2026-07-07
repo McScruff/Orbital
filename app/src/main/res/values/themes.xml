@@ -18,4 +18,16 @@
         <item name="android:fontFamily">sans-serif-condensed</item>
         <item name="android:textSize">13sp</item>
     </style>
+
+    <!-- Selected at runtime via ThemeManager.dialogStyle() when the BLACK & WHITE app theme is
+         active — AlertDialog styles are static XML and can't read the Kotlin palette directly,
+         so every AlertDialog.Builder(context, R.style...) call site uses that helper instead of
+         referencing either style name directly. -->
+    <style name="Theme.Orbital.Dialog.Mono" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog_mono</item>
+        <item name="android:textColorPrimary">@color/sky_white</item>
+        <item name="android:colorAccent">#FFFFFF</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textSize">13sp</item>
+    </style>
 </resources>

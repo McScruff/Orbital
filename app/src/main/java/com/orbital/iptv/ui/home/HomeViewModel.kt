@@ -126,10 +126,15 @@ class HomeViewModel(application: android.app.Application) : AndroidViewModel(app
         fetchEpgForCurrentList(filtered)
     }
 
-    fun selectFavouriteChannels(ids: Set<Int>) {
-        val filtered = allStreams.filter { it.streamId in ids }
-        _uiState.value = _uiState.value?.copy(selectedXtreamCategory = FAV_CATEGORY, channels = filtered)
-        fetchEpgForCurrentList(filtered)
+    /** [recentIds] (most-recently-watched first) are shown ahead of the rest of the favourited
+     *  channels, deduplicated against [favIds] so a channel that's both recent and favourited only
+     *  appears once. */
+    fun selectFavouriteChannels(favIds: Set<Int>, recentIds: List<Int> = emptyList()) {
+        val recentChannels = recentIds.mapNotNull { id -> allStreams.find { it.streamId == id } }
+        val favChannels = allStreams.filter { it.streamId in favIds && it.streamId !in recentIds }
+        val combined = recentChannels + favChannels
+        _uiState.value = _uiState.value?.copy(selectedXtreamCategory = FAV_CATEGORY, channels = combined)
+        fetchEpgForCurrentList(combined)
     }
 
     private fun fetchEpgForCurrentList(channels: List<LiveStream>) {

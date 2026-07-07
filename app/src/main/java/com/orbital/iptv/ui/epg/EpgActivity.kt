@@ -117,7 +117,7 @@ class EpgActivity : AppCompatActivity() {
         val nowMs    = System.currentTimeMillis()
 
         if (endMs > 0L && endMs <= nowMs) {
-            AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                 .setTitle("CANNOT RECORD")
                 .setMessage("'$title' has already finished.")
                 .setPositiveButton("OK", null)
@@ -138,7 +138,7 @@ class EpgActivity : AppCompatActivity() {
         val msg = "$channelName\n$title\n$timeStr\n\nAvailable storage: ${"%.1f".format(availGb)} GB"
 
         val label = if (startMs > nowMs) "SCHEDULE RECORDING" else "RECORD NOW (ongoing)"
-        val builder = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val builder = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle(label)
             .setMessage(msg)
             .setPositiveButton("RECORD") { _, _ ->
@@ -181,7 +181,7 @@ class EpgActivity : AppCompatActivity() {
     private fun askForDuration(onChosen: (Long) -> Unit) {
         val options = arrayOf("30 minutes", "1 hour", "1 hour 30 min", "2 hours", "3 hours")
         val durations = longArrayOf(30, 60, 90, 120, 180)
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("RECORDING DURATION")
             .setMessage("No end time found in EPG. How long should we record?")
             .setItems(options) { _, i -> onChosen(durations[i] * 60_000L) }

@@ -57,7 +57,7 @@ object SubtitlePicker {
     ) {
         // If subtitle already selected, offer change or remove
         if (current != null) {
-            AlertDialog.Builder(activity, R.style.Theme_Orbital_Dialog)
+            AlertDialog.Builder(activity, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                 .setTitle("SUBTITLES")
                 .setItems(arrayOf("CHANGE SUBTITLE", "REMOVE SUBTITLE")) { _, which ->
                     if (which == 0) searchAndPick(activity, query, year, season, episode, onResult)
@@ -91,7 +91,7 @@ object SubtitlePicker {
         episode: Int,
         onResult: (File?) -> Unit
     ) {
-        val loading = AlertDialog.Builder(activity, R.style.Theme_Orbital_Dialog)
+        val loading = AlertDialog.Builder(activity, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SEARCHING SUBTITLES...")
             .setCancelable(false)
             .create()
@@ -114,7 +114,7 @@ object SubtitlePicker {
                 "${langLabel(h.language)}  —  ${h.releaseName.take(52).ifBlank { h.fileName }}"
             }.toTypedArray()
 
-            AlertDialog.Builder(activity, R.style.Theme_Orbital_Dialog)
+            AlertDialog.Builder(activity, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                 .setTitle("SELECT SUBTITLE (${hits.size})")
                 .setItems(labels) { _, i -> downloadAndReturn(activity, apiKey, hits[i], onResult) }
                 .setNegativeButton("CANCEL", null)
@@ -128,7 +128,7 @@ object SubtitlePicker {
         hit: SubtitleHit,
         onResult: (File?) -> Unit
     ) {
-        val loading = AlertDialog.Builder(activity, R.style.Theme_Orbital_Dialog)
+        val loading = AlertDialog.Builder(activity, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("DOWNLOADING...")
             .setCancelable(false)
             .create()

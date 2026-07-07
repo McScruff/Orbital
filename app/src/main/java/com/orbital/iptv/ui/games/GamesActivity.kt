@@ -85,7 +85,7 @@ class GamesActivity : AppCompatActivity() {
         val checked = feeds.map { it.id in selectedIds }.toBooleanArray()
         val labels = feeds.map { "${it.emoji} ${it.name}" }.toTypedArray()
 
-        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SELECT SPORTS FOR NEWS TICKER")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
                 if (isChecked) selectedIds.add(feeds[which].id)

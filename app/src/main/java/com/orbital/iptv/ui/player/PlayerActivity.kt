@@ -96,6 +96,8 @@ class PlayerActivity : AppCompatActivity() {
         private const val SEEK_COMMIT_DELAY_MS   = 400L
         private const val SEEK_INDICATOR_HIDE_MS = 1200L
         private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        private const val MAX_IO_RETRIES = 5
+        private const val MAX_AUDIO_SINK_ERRORS = 8
 
         private val COLOR_BUFFERING = 0xFFFFCC00.toInt()
         private val COLOR_PLAYING   = 0xFF44CC44.toInt()
@@ -130,6 +132,11 @@ class PlayerActivity : AppCompatActivity() {
     private var hasError = false
     private var audioRecoveryAttempted = false
     private var liveHlsFallbackAttempted = false
+    private var ioRetryCount = 0
+    private var retryPositionMs = 0L
+    private val ioRetryHandler = Handler(Looper.getMainLooper())
+    private var audioSinkErrorCount = 0
+    private var audioDisabledForSinkErrors = false
     private var embyItemId = ""
     private val embyRepo = EmbyRepository()
     private var plexRatingKey = ""
@@ -230,6 +237,7 @@ class PlayerActivity : AppCompatActivity() {
         binding.btnOpenIn.setOnClickListener { launchExternalPlayer() }
         binding.root.setOnClickListener {
             if (hasError) {
+                if (!isLive && retryPositionMs > 0L) resumeMs = retryPositionMs
                 playMedia()
             } else {
                 showOverlay()
@@ -315,7 +323,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun showRecordConfirmDialog() {
         val availGb  = RecordingRepository.availableGb(this)
         val epgTitle = binding.tvNowTitle.text.toString().ifBlank { channelName }
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("● START RECORDING")
             .setMessage(
                 "Channel: $channelName\n" +
@@ -539,6 +547,35 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    // Some E-AC3 streams hit a timestamp-discontinuity bug in the FFmpeg audio decoder
+    // (org.jellyfin.media3:media3-ffmpeg-decoder) that isn't fixable from app code — it's inside a
+    // prebuilt third-party decoder, not something Orbital compiles. The bug doesn't crash playback
+    // (onPlayerError never fires) and it doesn't stop on its own; it repeats on essentially every
+    // decoded buffer, so once it starts it's continuous for the rest of the file. Rather than let
+    // that stutter forever, disable the audio track after enough consecutive errors so at least the
+    // video is watchable — the user's only real fix for the audio itself is an external player (the
+    // "OPEN IN" button) with its own decoder.
+    private val audioSinkErrorListener = object : androidx.media3.exoplayer.analytics.AnalyticsListener {
+        override fun onAudioSinkError(eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime, audioSinkError: Exception) {
+            android.util.Log.w("OrbitalPlayer", "onAudioSinkError #$audioSinkErrorCount disabled=$audioDisabledForSinkErrors: $audioSinkError")
+            if (audioDisabledForSinkErrors) return
+            audioSinkErrorCount++
+            if (audioSinkErrorCount < MAX_AUDIO_SINK_ERRORS) return
+            audioDisabledForSinkErrors = true
+            runOnUiThread {
+                if (!::player.isInitialized) return@runOnUiThread
+                player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                    .build()
+                setStatus("NO AUDIO — DECODER ERROR (EAC3)", COLOR_WARNING)
+                binding.hudOverlay.visibility = View.VISIBLE
+                binding.bottomBar.visibility = View.VISIBLE
+                overlayHandler.removeCallbacks(hideOverlayRunnable)
+                overlayHandler.postDelayed(hideOverlayRunnable, 8_000L)
+            }
+        }
+    }
+
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
             when (state) {
@@ -628,6 +665,7 @@ class PlayerActivity : AppCompatActivity() {
             runOnUiThread {
                 if (isPlaying) {
                     hasError = false
+                    ioRetryCount = 0
                     binding.progressBar.visibility = View.GONE
                     setStatus(if (isLive) "● LIVE" else "▶ PLAYING", if (isLive) COLOR_LIVE else COLOR_PLAYING)
                     if (!isLive) {
@@ -646,6 +684,7 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onPlayerError(error: PlaybackException) {
             runOnUiThread {
+                android.util.Log.w("OrbitalPlayer", "onPlayerError code=${error.errorCode} name=${error.errorCodeName} msg=${error.message} cause=${error.cause}")
                 binding.progressBar.visibility = View.GONE
                 positionHandler.removeCallbacks(positionRunnable)
 
@@ -671,6 +710,31 @@ class PlayerActivity : AppCompatActivity() {
                     overlayHandler.removeCallbacks(hideOverlayRunnable)
                     overlayHandler.postDelayed(hideOverlayRunnable, 8_000L)
                 } else {
+                    retryPositionMs = if (::player.isInitialized) player.currentPosition else 0L
+
+                    // Remote HTTP sources (TorBox CDN links, etc.) can drop a connection mid-stream
+                    // without the file actually being gone — retrying transparently from the same
+                    // position avoids what otherwise looks like the player "glitching" back to 0:00
+                    // every time a transient read/connect failure happens. VOD-only: a dead live
+                    // channel should still surface immediately rather than retry silently forever.
+                    val isRetryableIoError = !isLive && (
+                        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ||
+                        error.errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED
+                    )
+
+                    if (isRetryableIoError && ioRetryCount < MAX_IO_RETRIES) {
+                        ioRetryCount++
+                        binding.progressBar.visibility = View.VISIBLE
+                        setStatus("RECONNECTING…", COLOR_BUFFERING)
+                        ioRetryHandler.removeCallbacksAndMessages(null)
+                        ioRetryHandler.postDelayed({
+                            resumeMs = retryPositionMs
+                            playMedia()
+                        }, 1000L * ioRetryCount)
+                        return@runOnUiThread
+                    }
+
                     hasError = true
                     val reason = when (error.errorCode) {
                         PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "NO NETWORK"
@@ -940,6 +1004,12 @@ class PlayerActivity : AppCompatActivity() {
             .setRenderersFactory(
                 PcmOnlyRenderersFactory(this, PrefsManager.isSurroundEnabled(this))
                     .setEnableDecoderFallback(true)
+                    // Tried EXTENSION_RENDERER_MODE_ON (prefer the platform decoder) to dodge a
+                    // timestamp-discontinuity bug in the FFmpeg EAC3 decoder — confirmed via logcat
+                    // this device has no platform EAC3 MediaCodec, so it fell back to the same
+                    // FFmpeg decoder anyway. Reverted to PREFER; the real mitigation is the
+                    // repeated-audio-sink-error handling below (auto-disables audio rather than
+                    // looping forever on an undecodable track).
                     .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
             )
             .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
@@ -948,6 +1018,7 @@ class PlayerActivity : AppCompatActivity() {
             .setPreferredAudioMimeTypes(MimeTypes.AUDIO_AAC, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_AC3)
             .build()
         player.addListener(playerListener)
+        player.addAnalyticsListener(audioSinkErrorListener)
         binding.surfaceView.holder.removeCallback(surfaceCallback)
         binding.surfaceView.holder.addCallback(surfaceCallback)
         // addCallback() alone only fires surfaceCreated() when the native surface doesn't exist
@@ -1023,6 +1094,8 @@ class PlayerActivity : AppCompatActivity() {
         if (!::player.isInitialized) return
         hasError = false
         audioRecoveryAttempted = false
+        audioSinkErrorCount = 0
+        audioDisabledForSinkErrors = false
         player.stop()
         player.clearMediaItems()
         player.setMediaItem(MediaItem.fromUri(streamUrl))
@@ -1051,6 +1124,8 @@ class PlayerActivity : AppCompatActivity() {
         streamId    = entry.streamId
         hasError          = false
         audioRecoveryAttempted = false
+        audioSinkErrorCount = 0
+        audioDisabledForSinkErrors = false
         liveHlsFallbackAttempted = false
         episodeCompleted  = false
 
@@ -1162,7 +1237,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         val labels = entries.map { "${if (it.selected) "●" else "○"}  ${it.label}" }
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("AUDIO LANGUAGE")
             .setItems(labels.toTypedArray()) { _, which ->
                 val entry = entries[which]
@@ -1204,7 +1279,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         val labels = entries.map { "${if (it.selected) "●" else "○"}  ${it.label}" }
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SUBTITLES")
             .setItems(labels.toTypedArray()) { _, which ->
                 val entry = entries[which]
@@ -1400,7 +1475,7 @@ class PlayerActivity : AppCompatActivity() {
             if (r.channelName.isNotBlank()) append("\n${r.channelName}")
             append("\n\nThis programme is starting now.")
         }
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("📺  PROGRAMME STARTING")
             .setMessage(msg)
             .setPositiveButton("WATCH NOW") { _, _ ->
@@ -1454,6 +1529,7 @@ class PlayerActivity : AppCompatActivity() {
         seekHandler.removeCallbacksAndMessages(null)
         tickerHandler.removeCallbacksAndMessages(null)
         newsHandler.removeCallbacksAndMessages(null)
+        ioRetryHandler.removeCallbacksAndMessages(null)
         binding.surfaceView.holder.removeCallback(surfaceCallback)
         if (::player.isInitialized) {
             player.removeListener(playerListener)

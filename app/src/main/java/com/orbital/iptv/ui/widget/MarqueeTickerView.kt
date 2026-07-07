@@ -52,6 +52,13 @@ class MarqueeTickerView @JvmOverloads constructor(
             invalidate()
         }
 
+    var textColor: Int = 0xFFFFCC00.toInt()
+        set(value) {
+            field = value
+            paint.color = value
+            invalidate()
+        }
+
     fun start() {
         if (running) return
         running = true

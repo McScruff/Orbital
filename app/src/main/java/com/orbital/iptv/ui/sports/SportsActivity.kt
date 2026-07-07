@@ -122,7 +122,7 @@ class SportsActivity : AppCompatActivity() {
             Toast.makeText(this, "NOT LOGGED IN TO XTREAM", Toast.LENGTH_SHORT).show()
             return
         }
-        val loadingDialog = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val loadingDialog = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("📺  FINDING TV CHANNELS")
             .setMessage("${event.homeTeam} vs ${event.awayTeam}\n\nSearching listings...")
             .setCancelable(true)
@@ -336,7 +336,7 @@ class SportsActivity : AppCompatActivity() {
             }
         }
 
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("${event.homeTeam} vs ${event.awayTeam}")
             .setView(scroll)
             .setNegativeButton("CLOSE", null)

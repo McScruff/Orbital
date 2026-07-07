@@ -16,6 +16,7 @@
 
         <!-- Orbital Logo -->
         <LinearLayout
+            android:id="@+id/logo_container"
             android:layout_width="110dp"
             android:layout_height="match_parent"
             android:background="@color/orbital_dark_blue"
@@ -25,7 +26,7 @@
             <ImageView
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:src="@drawable/orbital_logo"
+                android:src="@drawable/orbital_logo_mark"
                 android:scaleType="fitCenter"
                 android:contentDescription="Orbital" />
         </LinearLayout>
@@ -36,12 +37,15 @@
             android:layout_height="match_parent"
             android:background="#22FFFFFF" />
 
-        <!-- Top Nav Tabs -->
+        <!-- Top Nav Tabs — rounded "bubble" pills, floating within the bar with gaps on all
+             sides rather than flush edge-to-edge rectangles. -->
         <TextView
             android:id="@+id/tab_tv_guide"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
             android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="4dp"
             android:gravity="center"
             android:text="TV GUIDE"
             android:textColor="@color/sky_yellow"
@@ -49,7 +53,6 @@
             android:fontFamily="sans-serif-condensed"
             android:textStyle="bold"
             android:letterSpacing="0.05"
-            android:background="@drawable/bg_tab_selected"
             android:focusable="true"
             android:clickable="true"
             android:nextFocusDown="@id/header_tv_listings" />
@@ -57,15 +60,16 @@
         <TextView
             android:id="@+id/tab_box_office"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:gravity="center"
             android:text="BOX OFFICE"
             android:textColor="@color/sky_white"
             android:textSize="12sp"
             android:fontFamily="sans-serif-condensed"
             android:letterSpacing="0.05"
-            android:background="@color/sky_header_blue"
             android:focusable="true"
             android:clickable="true"
             android:nextFocusDown="@id/header_tv_listings" />
@@ -73,15 +77,16 @@
         <TextView
             android:id="@+id/tab_radio"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:gravity="center"
             android:text="RADIO"
             android:textColor="@color/sky_white"
             android:textSize="12sp"
             android:fontFamily="sans-serif-condensed"
             android:letterSpacing="0.05"
-            android:background="@color/sky_header_blue"
             android:focusable="true"
             android:clickable="true"
             android:nextFocusDown="@id/header_tv_listings" />
@@ -89,15 +94,16 @@
         <TextView
             android:id="@+id/tab_interactive"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:gravity="center"
             android:text="INTERACTIVE"
             android:textColor="@color/sky_white"
             android:textSize="12sp"
             android:fontFamily="sans-serif-condensed"
             android:letterSpacing="0.05"
-            android:background="@color/sky_header_blue"
             android:focusable="true"
             android:clickable="true"
             android:nextFocusDown="@id/header_tv_listings" />
@@ -105,15 +111,16 @@
         <TextView
             android:id="@+id/tab_services"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="6dp"
             android:gravity="center"
             android:text="SETTINGS"
             android:textColor="@color/sky_white"
             android:textSize="12sp"
             android:fontFamily="sans-serif-condensed"
             android:letterSpacing="0.05"
-            android:background="@color/sky_header_blue"
             android:focusable="true"
             android:clickable="true"
             android:nextFocusDown="@id/header_tv_listings" />
@@ -376,6 +383,7 @@
 
     <!-- ═══ BOTTOM STATUS BAR ═══ -->
     <LinearLayout
+        android:id="@+id/bottom_status_bar"
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:background="#070F1E"
@@ -385,6 +393,7 @@
         android:paddingEnd="14dp">
 
         <TextView
+            android:id="@+id/tv_status_hint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

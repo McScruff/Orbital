@@ -241,7 +241,7 @@ class SeriesDetailActivity : AppCompatActivity() {
         else
             arrayOf("▶ PLAY", "CC PLAY WITH SUBTITLES", "★ ADD TO FAVOURITES", "CANCEL")
 
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("${binding.tvTitle.text} — ${episodeDisplayTitle(ep)}")
             .setItems(options) { _, which ->
                 when (options[which]) {

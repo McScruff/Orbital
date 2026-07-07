@@ -14,10 +14,12 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.bumptech.glide.Glide
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
@@ -39,6 +41,7 @@ import com.orbital.iptv.data.model.LiveCategory
 import com.orbital.iptv.data.model.LiveStream
 import com.orbital.iptv.data.model.ServerProfile
 import com.orbital.iptv.data.model.getDecodedTitle
+import com.orbital.iptv.data.model.getDecodedDescription
 import com.orbital.iptv.data.repository.XtreamRepository
 import com.orbital.iptv.utils.CategoryPrefs
 import com.orbital.iptv.utils.ContentCache
@@ -73,8 +76,11 @@ import com.orbital.iptv.utils.ThemeManager
 import com.orbital.iptv.utils.TickerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -131,6 +137,7 @@ class TvModeActivity : AppCompatActivity() {
     private var epgLoadingJob: Job? = null
     private var channelPanelAdapter: NowNextAdapter? = null
     private var focusedChannelStreamId = -1
+    private var inlineEpgCurrentIdx = 0
     private val inlineEpgHandler = Handler(Looper.getMainLooper())
 
     // Previous channel — for RIGHT-key "last channel" toggle
@@ -176,9 +183,13 @@ class TvModeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Load before inflating — EpgView (in guide_overlay) reads ThemeManager.palette() once
+        // in its constructor, so a cold start would otherwise bake in the default ORBITAL
+        // palette regardless of the user's saved theme (see HomeActivity.onCreate for the same fix).
+        ThemeManager.load(this)
         binding = ActivityTvModeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        ThemeManager.load(this)
+        applyTvTheme()
 
         window.decorView.systemUiVisibility = (
             View.SYSTEM_UI_FLAG_FULLSCREEN or
@@ -291,6 +302,14 @@ class TvModeActivity : AppCompatActivity() {
         switchStream(exo, url)
         showInfoBar(name)
         loadEpgForCurrentChannel()
+        recordRecentChannel(currentStreamId, name, url)
+    }
+
+    /** Radio (currentStreamId == -1) is deliberately excluded — "recently watched" means live TV. */
+    private fun recordRecentChannel(streamId: Int, name: String, url: String) {
+        if (streamId < 0) return
+        val icon = TvModeHolder.allChannels.find { it.streamId == streamId }?.streamIcon
+        com.orbital.iptv.utils.RecentChannelsManager.record(this, name, streamId, url, icon)
     }
 
     /**
@@ -308,34 +327,88 @@ class TvModeActivity : AppCompatActivity() {
         exo.play()
     }
 
+    /**
+     * Recolours every static chrome view (panels, HUD, tickers) from the current
+     * [ThemeManager] palette. These were originally hardcoded to a fixed dark-blue XML
+     * colour, so switching themes (e.g. to BLACK & WHITE) had no visible effect on them.
+     * Called once from onCreate — a theme change always goes through showThemePicker()'s
+     * recreate(), so onCreate (and this) reruns with the freshly-selected palette.
+     */
+    /** 0 (fully opaque) – 255 (fully see-through), derived from the TRANSPARENCY setting. */
+    private fun panelAlpha(): Int = 255 - (PrefsManager.getTvPanelTransparency(this) * 255 / 100)
+
+    private fun applyTvTheme() {
+        val p = ThemeManager.palette()
+        val density = resources.displayMetrics.density
+
+        // System-drawn, not a View — normally hidden by the immersive flags below, but still
+        // worth matching in case it flashes during a system-UI transition.
+        window.statusBarColor = p.bgPrimary
+        window.navigationBarColor = p.bgPrimary
+
+        binding.leftPanel.setBackgroundColor(ThemeManager.withAlpha(p.bgHeader, panelAlpha()))
+        binding.panelHeader.setBackgroundColor(p.bgHeader)
+        binding.panelHeader.setTextColor(p.accent)
+        binding.dividerPanelHeader.setBackgroundColor(p.accent)
+        binding.dividerChannelsSplit.setBackgroundColor(p.accent)
+        val menuDividerColor = ThemeManager.withAlpha(p.accent, 0x40)
+        listOf(
+            binding.dividerMenu1, binding.dividerMenu2, binding.dividerMenu3,
+            binding.dividerMenu4, binding.dividerMenu5
+        ).forEach { it.setBackgroundColor(menuDividerColor) }
+
+        binding.guideOverlay.setBackgroundColor(p.bgPrimary)
+        binding.guideHeader.setBackgroundColor(p.bgHeader)
+        binding.guideHeader.setTextColor(p.accent)
+        binding.dividerGuideHeader.setBackgroundColor(p.accent)
+        binding.dividerGuideSplit.setBackgroundColor(p.accent)
+
+        binding.hudTop.setBackgroundColor(ThemeManager.withAlpha(p.bgHeader, panelAlpha()))
+        binding.tvChannelName.setTextColor(p.accent)
+        binding.btnHudMenu.background = ThemeManager.hudButtonDrawable(density, withAccentStroke = false)
+        listOf(binding.btnHudAudio, binding.btnHudSurround, binding.btnHudScores, binding.btnHudNews).forEach {
+            it.background = ThemeManager.hudButtonDrawable(density)
+        }
+
+        binding.hudBottom.setBackgroundColor(p.bgHeader)
+        binding.dividerHudBottom.setBackgroundColor(p.accent)
+        binding.rowHudChannelInfo.setBackgroundColor(p.bgPrimary)
+        binding.rowHudNow.setBackgroundColor(p.bgMid)
+        binding.labelHudNow.setTextColor(p.accent)
+        binding.liveNextRow.setBackgroundColor(p.bgPrimary)
+        binding.tvEpgNextTime.setTextColor(p.accent)
+
+        binding.newsTickerRow.setBackgroundColor(ThemeManager.withAlpha(p.bgPrimary, panelAlpha()))
+        binding.tickerRow.setBackgroundColor(ThemeManager.withAlpha(p.bgPrimary, panelAlpha()))
+        binding.tvTicker.setTextColor(p.accent)
+        binding.tvNewsTicker.textColor = p.accent
+    }
+
     private fun setupButtons() {
         val p = ThemeManager.palette()
         binding.surfaceView.setOnClickListener { showHudOverlay() }
 
-        fun menuItem(view: android.widget.TextView, action: () -> Unit) {
+        fun menuItem(view: android.widget.TextView, bg: Int, action: () -> Unit) {
+            val bgA = ThemeManager.withAlpha(bg, panelAlpha())
+            view.tag = bgA
+            view.setBackgroundColor(bgA)
             view.setOnClickListener { action() }
             view.setOnFocusChangeListener { _, hasFocus ->
-                val base = view.tag as? Int ?: 0xFF0A1628.toInt()
-                view.setBackgroundColor(if (hasFocus) p.focus else base)
+                view.setBackgroundColor(if (hasFocus) p.focus else bgA)
             }
         }
-        binding.menuItemLiveTv.tag      = 0xFF0A1628.toInt()
-        binding.menuItemGuide.tag       = 0xFF0D1E38.toInt()
-        binding.menuItemBoxOffice.tag   = 0xFF0A1628.toInt()
-        binding.menuItemRadio.tag       = 0xFF0D1E38.toInt()
-        binding.menuItemInteractive.tag = 0xFF0A1628.toInt()
-        binding.menuItemSettings.tag    = 0xFF0D1E38.toInt()
 
-        menuItem(binding.menuItemLiveTv)      { hidePanel() }
-        menuItem(binding.menuItemGuide)       { showGuideOverlay() }
-        menuItem(binding.menuItemBoxOffice)   { showBoxOfficeMenu() }
-        menuItem(binding.menuItemRadio)       { showRadioMenu() }
-        menuItem(binding.menuItemInteractive) { showInteractiveMenu() }
-        menuItem(binding.menuItemSettings)    { showTvSettingsMenu() }
+        menuItem(binding.menuItemLiveTv, p.rowEven)      { hidePanel() }
+        menuItem(binding.menuItemGuide, p.rowOdd)        { showGuideOverlay() }
+        menuItem(binding.menuItemBoxOffice, p.rowEven)   { showBoxOfficeMenu() }
+        menuItem(binding.menuItemRadio, p.rowOdd)        { showRadioMenu() }
+        menuItem(binding.menuItemInteractive, p.rowEven) { showInteractiveMenu() }
+        menuItem(binding.menuItemSettings, p.rowOdd)     { showTvSettingsMenu() }
     }
 
     private fun setupHudButtons() {
         val p = ThemeManager.palette()
+        val density = resources.displayMetrics.density
 
         fun timerReset(v: View) {
             v.setOnFocusChangeListener { _, h ->
@@ -369,10 +442,10 @@ class TvModeActivity : AppCompatActivity() {
             if (hasFocus) {
                 binding.btnHudScores.setBackgroundColor(p.focus)
                 hudHandler.removeCallbacks(hideHud); hudHandler.postDelayed(hideHud, 5000L)
+            } else if (TickerManager.tickerEnabled) {
+                binding.btnHudScores.setBackgroundResource(R.drawable.bg_btn_scores_on)
             } else {
-                binding.btnHudScores.setBackgroundResource(
-                    if (TickerManager.tickerEnabled) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
-                )
+                binding.btnHudScores.background = ThemeManager.hudButtonDrawable(density)
             }
         }
         binding.btnHudScores.setOnClickListener { toggleTicker() }
@@ -381,10 +454,10 @@ class TvModeActivity : AppCompatActivity() {
             if (hasFocus) {
                 binding.btnHudNews.setBackgroundColor(p.focus)
                 hudHandler.removeCallbacks(hideHud); hudHandler.postDelayed(hideHud, 5000L)
+            } else if (TickerManager.newsTickerEnabled) {
+                binding.btnHudNews.setBackgroundResource(R.drawable.bg_btn_scores_on)
             } else {
-                binding.btnHudNews.setBackgroundResource(
-                    if (TickerManager.newsTickerEnabled) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
-                )
+                binding.btnHudNews.background = ThemeManager.hudButtonDrawable(density)
             }
         }
         binding.btnHudNews.setOnClickListener { toggleNewsTicker() }
@@ -509,7 +582,7 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun startRecording() {
         val epgTitle = binding.tvEpgNow.text.toString().ifBlank { currentChannelName }
-        activeDialog = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        activeDialog = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("● START RECORDING")
             .setMessage("Channel: $currentChannelName\nShow: $epgTitle\n\n⚠ Uses 2 connections.")
             .setPositiveButton("RECORD") { _, _ ->
@@ -560,7 +633,7 @@ class TvModeActivity : AppCompatActivity() {
             }
         }
         val labels = entries.map { "${if (it.selected) "●" else "○"}  ${it.label}" }
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("AUDIO LANGUAGE")
             .setItems(labels.toTypedArray()) { _, which ->
                 val e = entries[which]
@@ -578,9 +651,8 @@ class TvModeActivity : AppCompatActivity() {
     private fun updateScoresButton() {
         val on = TickerManager.tickerEnabled
         binding.btnHudScores.text = if (on) "SCORES ON" else "SCORES"
-        binding.btnHudScores.setBackgroundResource(
-            if (on) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
-        )
+        if (on) binding.btnHudScores.setBackgroundResource(R.drawable.bg_btn_scores_on)
+        else binding.btnHudScores.background = ThemeManager.hudButtonDrawable(resources.displayMetrics.density)
     }
 
     private fun toggleTicker() {
@@ -721,9 +793,8 @@ class TvModeActivity : AppCompatActivity() {
     private fun updateNewsButton() {
         val on = TickerManager.newsTickerEnabled
         binding.btnHudNews.text = if (on) "NEWS ON" else "NEWS"
-        binding.btnHudNews.setBackgroundResource(
-            if (on) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
-        )
+        if (on) binding.btnHudNews.setBackgroundResource(R.drawable.bg_btn_scores_on)
+        else binding.btnHudNews.background = ThemeManager.hudButtonDrawable(resources.displayMetrics.density)
     }
 
     private fun toggleNewsTicker() {
@@ -871,9 +942,19 @@ class TvModeActivity : AppCompatActivity() {
             }
 
             if (binding.layoutChannelsSplit.visibility != View.VISIBLE) return@launch
+            inlineEpgCurrentIdx = currentIdx.coerceAtLeast(0)
             binding.rvChannelEpg.layoutManager = LinearLayoutManager(this@TvModeActivity)
             binding.rvChannelEpg.itemAnimator  = null
-            binding.rvChannelEpg.adapter       = EpgListAdapter(sorted, currentIdx, nowSec)
+            binding.rvChannelEpg.adapter       = EpgListAdapter(sorted, currentIdx, nowSec, panelAlpha()) { listing, isCurrent ->
+                if (isCurrent) {
+                    selectChannelFromPanel(streamId)
+                } else {
+                    val channelName = categoryChannels.find { it.streamId == streamId }?.name
+                        ?: TvModeHolder.allChannels.find { it.streamId == streamId }?.name ?: ""
+                    val url = repository.buildStreamUrl(creds.serverUrl, creds.username, creds.password, streamId)
+                    handleProgrammeTap(streamId, channelName, url, listing)
+                }
+            }
             (binding.rvChannelEpg.layoutManager as? LinearLayoutManager)
                 ?.scrollToPositionWithOffset(currentIdx.coerceAtLeast(0), 0)
         }
@@ -889,27 +970,60 @@ class TvModeActivity : AppCompatActivity() {
 
     // ── Channel panel ─────────────────────────────────────────────────────────
 
+    /** True if the currently focused view is [ancestor] or one of its descendants. */
+    private fun isFocusWithin(ancestor: View): Boolean {
+        var v: View? = currentFocus
+        while (v != null) {
+            if (v === ancestor) return true
+            v = v.parent as? View
+        }
+        return false
+    }
+
+    /** Tunes to [streamId] from the channel panel or the inline EPG column's "now playing" row. */
+    private fun selectChannelFromPanel(streamId: Int) {
+        val ch    = categoryChannels.find { it.streamId == streamId } ?: return
+        val creds = PrefsManager.getCredentials(this) ?: return
+        val url   = repository.buildStreamUrl(creds.serverUrl, creds.username, creds.password, ch.streamId)
+        prevStreamId    = currentStreamId
+        prevStreamUrl   = currentStreamUrl
+        prevChannelName = currentChannelName
+        prevCategoryId  = currentCategoryId
+        currentStreamId    = ch.streamId
+        currentStreamUrl   = url
+        currentChannelName = ch.name
+        PrefsManager.setLastTvChannel(this, url, ch.name, ch.streamId, currentCategoryId)
+        playChannel(url, ch.name)
+        channelPanelAdapter?.setCurrentId(currentStreamId)
+    }
+
+    /** Moves focus from the channel list into the inline EPG column, landing on the
+     *  currently-airing row so the user can arrow up/down to browse other times. */
+    private fun focusEpgColumn() {
+        binding.rvChannelEpg.post {
+            (binding.rvChannelEpg.findViewHolderForAdapterPosition(inlineEpgCurrentIdx)?.itemView
+                ?: binding.rvChannelEpg.getChildAt(0))?.requestFocus()
+        }
+    }
+
+    /** Moves focus from the inline EPG column back to the channel list, landing on whichever
+     *  channel row the EPG column is currently showing. */
+    private fun focusChannelColumn() {
+        val id  = if (focusedChannelStreamId >= 0) focusedChannelStreamId else currentStreamId
+        val idx = categoryChannels.indexOfFirst { it.streamId == id }.coerceAtLeast(0)
+        binding.rvPanelChannels.post {
+            (binding.rvPanelChannels.findViewHolderForAdapterPosition(idx)?.itemView
+                ?: binding.rvPanelChannels.getChildAt(0))?.requestFocus()
+        }
+    }
+
     private fun loadChannelPanel(channels: List<LiveStream>) {
         val items = channels.map { ch -> NowNextItem(ch.streamId, ch.name) }.toMutableList()
 
-        channelPanelAdapter = NowNextAdapter(items, currentStreamId, onFocus = { id ->
+        channelPanelAdapter = NowNextAdapter(items, currentStreamId, panelAlpha(), onFocus = { id ->
             focusedChannelStreamId = id
             scheduleInlineEpg(id)
-        }) { streamId ->
-            val ch    = channels.find { it.streamId == streamId } ?: return@NowNextAdapter
-            val creds = PrefsManager.getCredentials(this) ?: return@NowNextAdapter
-            val url   = repository.buildStreamUrl(creds.serverUrl, creds.username, creds.password, ch.streamId)
-            prevStreamId    = currentStreamId
-            prevStreamUrl   = currentStreamUrl
-            prevChannelName = currentChannelName
-            prevCategoryId  = currentCategoryId
-            currentStreamId    = ch.streamId
-            currentStreamUrl   = url
-            currentChannelName = ch.name
-            PrefsManager.setLastTvChannel(this, url, ch.name, ch.streamId, currentCategoryId)
-            playChannel(url, ch.name)
-            channelPanelAdapter?.setCurrentId(currentStreamId)
-        }
+        }) { streamId -> selectChannelFromPanel(streamId) }
 
         binding.rvPanelChannels.layoutManager = TvLayoutManager(this)
         binding.rvPanelChannels.itemAnimator  = null
@@ -935,7 +1049,7 @@ class TvModeActivity : AppCompatActivity() {
         val allCats = listOf(favCat) + visibleCategories()
         val countMap = TvModeHolder.allChannels.groupingBy { it.categoryId }.eachCount()
 
-        val adapter = CategoryPanelAdapter(allCats, currentCategoryId, countMap.mapKeys { it.key ?: "" }) { cat ->
+        val adapter = CategoryPanelAdapter(allCats, currentCategoryId, countMap.mapKeys { it.key ?: "" }, panelAlpha()) { cat ->
             fun openCategory() {
                 currentCategoryId = cat.categoryId
                 refreshCategoryChannels()
@@ -1007,15 +1121,12 @@ class TvModeActivity : AppCompatActivity() {
             ?.scrollToPositionWithOffset(idx, 0)
     }
 
-    private fun loadGuideEpg(categoryId: String) {
+    private fun loadGuideEpg(categoryId: String, onComplete: (() -> Unit)? = null) {
         guideLoadJob?.cancel()
         val creds = PrefsManager.getCredentials(this) ?: return
 
         val channels = when {
-            categoryId == FAV_CATEGORY_ID -> {
-                val favIds = FavouritesManager.getLiveChannels(this).map { it.streamId }.toSet()
-                TvModeHolder.allChannels.filter { it.streamId in favIds }
-            }
+            categoryId == FAV_CATEGORY_ID -> favouriteChannelsList()
             categoryId.isBlank() -> TvModeHolder.allChannels
             else -> TvModeHolder.allChannels.filter { it.categoryId == categoryId }
         }
@@ -1030,24 +1141,49 @@ class TvModeActivity : AppCompatActivity() {
         binding.epgViewGuide.setRows(rows)
         binding.epgViewGuide.onRequestFocusLeft = { binding.rvGuideCategories.requestFocus() }
         binding.epgViewGuide.onChannelSelected   = { streamId -> tuneFromGuide(streamId) }
-        binding.epgViewGuide.onProgrammeSelected = { streamId, _, _ -> tuneFromGuide(streamId) }
+        binding.epgViewGuide.onProgrammeSelected = onProg@{ streamId, channelName, listing ->
+            val nowSec = System.currentTimeMillis() / 1000
+            val start  = listing.startTimestamp?.toLongOrNull()
+            val end    = listing.stopTimestamp?.toLongOrNull()
+            val isCurrent = start != null && end != null && nowSec in start..end
+            if (isCurrent) {
+                tuneFromGuide(streamId)
+            } else {
+                val gCreds = PrefsManager.getCredentials(this) ?: return@onProg
+                val url = repository.buildStreamUrl(gCreds.serverUrl, gCreds.username, gCreds.password, streamId)
+                handleProgrammeTap(streamId, channelName, url, listing)
+            }
+        }
 
+        // Capped concurrency: firing one request per channel at once (large categories can be
+        // 100+ channels) floods the Xtream server, which throttles/truncates the burst — that's
+        // what made a freshly-cleared cache come back showing only "now" or nothing at all
+        // instead of the full multi-day guide. A shared semaphore keeps only a handful in flight.
+        val fetchLimiter = Semaphore(6)
         guideLoadJob = lifecycleScope.launch {
-            rows.forEach { row ->
-                launch {
-                    val cached = withContext(Dispatchers.IO) {
-                        EpgCache.get(this@TvModeActivity, row.streamId, minCount = 50)
+            // coroutineScope waits for every per-channel launch{} below to finish before this
+            // block completes, so onComplete (e.g. the "refresh done" toast) fires only once the
+            // whole category has actually loaded rather than right after kicking off the fetches.
+            coroutineScope {
+                rows.forEach { row ->
+                    launch {
+                        val cached = withContext(Dispatchers.IO) {
+                            EpgCache.get(this@TvModeActivity, row.streamId, minCount = 50)
+                        }
+                        val listings = cached ?: withContext(Dispatchers.IO) {
+                            fetchLimiter.withPermit {
+                                repository.getFullChannelEpg(
+                                    creds.serverUrl, creds.username, creds.password, row.streamId
+                                )
+                            }.getOrNull()?.listings?.also { l ->
+                                EpgCache.put(this@TvModeActivity, row.streamId, l)
+                            } ?: emptyList()
+                        }
+                        binding.epgViewGuide.updateRow(row.streamId, listings)
                     }
-                    val listings = cached ?: withContext(Dispatchers.IO) {
-                        repository.getFullChannelEpg(
-                            creds.serverUrl, creds.username, creds.password, row.streamId
-                        ).getOrNull()?.listings?.also { l ->
-                            EpgCache.put(this@TvModeActivity, row.streamId, l)
-                        } ?: emptyList()
-                    }
-                    binding.epgViewGuide.updateRow(row.streamId, listings)
                 }
             }
+            onComplete?.invoke()
         }
 
         binding.epgViewGuide.post { binding.epgViewGuide.requestFocus() }
@@ -1070,10 +1206,283 @@ class TvModeActivity : AppCompatActivity() {
         playChannel(url, stream.name)
     }
 
+    // ── EPG recording / reminder (mirrors HomeActivity/EpgActivity) ────────────
+
+    /** Info/record/reminder popup for a non-current programme, from either the guide overlay or
+     *  the channel panel's inline EPG column — the current airing tunes the channel instead. */
+    private fun handleProgrammeTap(streamId: Int, channelName: String, url: String, listing: EpgListing) {
+        val title   = listing.getDecodedTitle().ifBlank { "Recording" }
+        val startMs = (listing.startTimestamp?.toLongOrNull() ?: 0L) * 1000L
+        val endMs   = (listing.stopTimestamp?.toLongOrNull()  ?: 0L) * 1000L
+        val nowMs   = System.currentTimeMillis()
+
+        if (endMs > 0L && endMs <= nowMs) {
+            showTvDialog(AlertDialog.Builder(this, ThemeManager.dialogStyle())
+                .setTitle("CANNOT RECORD")
+                .setMessage("'$title' has already finished.")
+                .setPositiveButton("OK", null))
+            return
+        }
+
+        val timeFmt = SimpleDateFormat("HH:mm", Locale.UK)
+        val dateFmt = SimpleDateFormat("EEE dd MMM", Locale.UK)
+        val availGb = com.orbital.iptv.recording.RecordingRepository.availableGb(this)
+        val timeStr = if (startMs > 0L) {
+            val dateStr = dateFmt.format(java.util.Date(startMs))
+            val endStr  = if (endMs > 0L) timeFmt.format(java.util.Date(endMs)) else "?"
+            "$dateStr  ${timeFmt.format(java.util.Date(startMs))} — $endStr"
+        } else "Time unknown"
+
+        // The EPG listing's own description is the authoritative synopsis for THIS airing —
+        // available synchronously. The VOD/series lookup below only fills in a poster + a
+        // short genre/year/rating line, and is a plot fallback if the broadcaster sends none.
+        val epgSynopsis = listing.getDecodedDescription().trim()
+
+        fun infoBody(catalogHeader: String?, catalogPlotFallback: String?) = listOfNotNull(
+            "$channelName\n$timeStr",
+            catalogHeader?.takeIf { it.isNotBlank() },
+            epgSynopsis.ifBlank { catalogPlotFallback ?: "" }.takeIf { it.isNotBlank() },
+            "Available storage: ${"%.1f".format(availGb)} GB"
+        ).joinToString("\n\n")
+
+        val (posterView, posterImg, infoTv) = buildProgrammeInfoView()
+        infoTv.text = infoBody(null, null)
+
+        val label = if (startMs > nowMs) "SCHEDULE RECORDING" else "RECORD NOW (ongoing)"
+        val builder = AlertDialog.Builder(this, ThemeManager.dialogStyle())
+            .setTitle("$title — $label")
+            .setView(posterView)
+            .setPositiveButton("RECORD") { _, _ ->
+                if (endMs > 0L) {
+                    scheduleRecording(streamId, channelName, url, title, startMs.coerceAtLeast(nowMs), endMs)
+                } else {
+                    askForDuration { durationMs ->
+                        scheduleRecording(streamId, channelName, url, title, startMs.coerceAtLeast(nowMs), startMs.coerceAtLeast(nowMs) + durationMs)
+                    }
+                }
+            }
+            .setNegativeButton("CANCEL", null)
+        if (startMs > nowMs) {
+            builder.setNeutralButton("SET REMINDER") { _, _ ->
+                scheduleReminder(channelName, title, startMs, url, streamId)
+            }
+        }
+        showTvDialog(builder)
+
+        // Best-effort VOD/series catalog lookup for a poster (+ genre/year/rating line) — never
+        // blocks the dialog, depends on the movies/series cache already being warm on disk.
+        val durationMinutes = if (startMs > 0L && endMs > startMs) (endMs - startMs) / 60_000L else -1L
+        lifecycleScope.launch {
+            val creds = PrefsManager.getCredentials(this@TvModeActivity) ?: return@launch
+            val match = lookupShowPoster(creds.serverUrl, creds.username, creds.password, title, epgSynopsis, durationMinutes)
+                ?: return@launch
+            match.posterUrl?.takeIf { it.isNotBlank() }?.let { Glide.with(this@TvModeActivity).load(it).into(posterImg) }
+            infoTv.text = infoBody(match.header, match.plot)
+        }
+    }
+
+    private enum class ShowKind { MOVIE, SERIES, UNKNOWN }
+
+    /**
+     * Xtream's EPG data has no explicit movie/series flag, so infer it from the listing text and
+     * runtime: season/episode markers ("S3 E12", "Series 3", "Ep 4/6") are the strongest, least
+     * ambiguous signal and always mean SERIES; failing that, a "(YYYY)" year suffix or a runtime
+     * over ~75 minutes leans MOVIE, and a short runtime leans SERIES.
+     */
+    private fun classifyShowKind(title: String, description: String, durationMinutes: Long): ShowKind {
+        val combined = "$title $description"
+        val seriesPattern = Regex(
+            """\bS\d{1,2}\s?[:\-]?\s?E\d{1,3}\b|\bSeries\s?\d+\b|\bSeason\s?\d+\b|\bEp(?:isode)?\.?\s?\d+(\s?/\s?\d+)?\b""",
+            RegexOption.IGNORE_CASE
+        )
+        val moviePattern = Regex("""\(\d{4}\)""")
+
+        return when {
+            seriesPattern.containsMatchIn(combined) -> ShowKind.SERIES
+            moviePattern.containsMatchIn(title) -> ShowKind.MOVIE
+            durationMinutes >= 75 -> ShowKind.MOVIE
+            durationMinutes in 1 until 70 -> ShowKind.SERIES
+            else -> ShowKind.UNKNOWN
+        }
+    }
+
+    private data class ShowPosterMatch(val posterUrl: String?, val header: String, val plot: String?)
+
+    /** Builds the poster (left) + info text (right) row used inside the programme-tap dialog. */
+    private fun buildProgrammeInfoView(): Triple<View, ImageView, TextView> {
+        val d = resources.displayMetrics.density
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding((4 * d).toInt(), (4 * d).toInt(), (4 * d).toInt(), (4 * d).toInt())
+        }
+        val poster = ImageView(this).apply {
+            layoutParams = LinearLayout.LayoutParams((90 * d).toInt(), (128 * d).toInt())
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setBackgroundColor(0xFF0A1628.toInt())
+        }
+        val infoTv = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = (12 * d).toInt()
+            }
+            setTextColor(0xFFCCDDEE.toInt())
+            textSize = 12f
+            typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
+        }
+        root.addView(poster)
+        root.addView(infoTv)
+        return Triple(root, poster, infoTv)
+    }
+
+    /**
+     * Matches a live-TV programme title against TMDB (if an API key is set) or, failing that,
+     * the cached VOD/series catalogs, to find a poster + synopsis.
+     */
+    private suspend fun lookupShowPoster(
+        serverUrl: String, username: String, password: String,
+        title: String, description: String, durationMinutes: Long
+    ): ShowPosterMatch? = withContext(Dispatchers.IO) {
+        val query = title.trim()
+        if (query.isBlank()) return@withContext null
+        val kind = classifyShowKind(title, description, durationMinutes)
+
+        val tmdbKey = PrefsManager.getTmdbApiKey(this@TvModeActivity)
+        if (tmdbKey != null) {
+            val preferType = when (kind) {
+                ShowKind.MOVIE  -> "movie"
+                ShowKind.SERIES -> "tv"
+                ShowKind.UNKNOWN -> null
+            }
+            val candidates = com.orbital.iptv.data.tmdb.TmdbRepository.search(tmdbKey, query, preferType)
+            val tmdb = candidates.firstOrNull { isGoodTitleMatch(query, it.title) }
+            if (tmdb != null) {
+                val header = listOfNotNull(
+                    tmdb.year,
+                    tmdb.voteAverage?.let { "★ %.1f".format(it) }
+                ).joinToString("  •  ")
+                return@withContext ShowPosterMatch(tmdb.posterUrl, header, tmdb.overview)
+            }
+        }
+
+        fun header(genre: String?, releaseDate: String?, rating: String?): String = listOfNotNull(
+            genre?.takeIf { it.isNotBlank() },
+            releaseDate?.takeIf { it.isNotBlank() },
+            rating?.takeIf { it.isNotBlank() && it != "0" }?.let { "★ $it" }
+        ).joinToString("  •  ")
+
+        suspend fun trySeries(): ShowPosterMatch? {
+            val matches = ContentCache.searchSeries(this@TvModeActivity, serverUrl, query)
+            val series = matches.firstOrNull { isGoodTitleMatch(query, it.name) } ?: return null
+            return ShowPosterMatch(series.cover, header(series.genre, series.releaseDate, series.rating), series.plot)
+        }
+
+        suspend fun tryMovie(): ShowPosterMatch? {
+            val matches = ContentCache.searchMovies(this@TvModeActivity, serverUrl, query)
+            val movie = matches.firstOrNull { isGoodTitleMatch(query, it.name) } ?: return null
+            val info = repository.getVodInfo(serverUrl, username, password, movie.streamId).getOrNull()?.info
+            val poster = info?.coverBig?.takeIf { it.isNotBlank() }
+                ?: info?.movieImage?.takeIf { it.isNotBlank() }
+                ?: movie.streamIcon
+            val plot = info?.plot?.takeIf { it.isNotBlank() } ?: info?.description
+            return ShowPosterMatch(poster, header(info?.genre, info?.releaseDate, info?.rating ?: movie.rating), plot)
+        }
+
+        when (kind) {
+            ShowKind.MOVIE  -> tryMovie() ?: trySeries()
+            ShowKind.SERIES -> trySeries() ?: tryMovie()
+            ShowKind.UNKNOWN -> trySeries() ?: tryMovie()
+        }
+    }
+
+    private fun normalizeTitle(s: String): String = s.lowercase()
+        .replace(Regex("\\(\\d{4}\\)"), "")
+        .replace(Regex("s\\d{1,2}\\s?e\\d{1,3}", RegexOption.IGNORE_CASE), "")
+        .replace(Regex("[^a-z0-9 ]"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+
+    /** Requires an exact match after normalising noise (years, S01E02, punctuation) — see
+     *  HomeActivity.isGoodTitleMatch for why partial/prefix matching is unsafe for TV titles. */
+    private fun isGoodTitleMatch(epgTitle: String, candidateName: String): Boolean {
+        val a = normalizeTitle(epgTitle)
+        val b = normalizeTitle(candidateName)
+        return a.isNotBlank() && a == b
+    }
+
+    private fun scheduleReminder(channelName: String, title: String, startMs: Long, streamUrl: String, streamId: Int) {
+        val delayMs = (startMs - System.currentTimeMillis()).coerceAtLeast(0L)
+        val data = androidx.work.Data.Builder()
+            .putString(com.orbital.iptv.recording.ReminderWorker.KEY_TITLE,      title)
+            .putString(com.orbital.iptv.recording.ReminderWorker.KEY_CHANNEL,    channelName)
+            .putString(com.orbital.iptv.recording.ReminderWorker.KEY_STREAM_URL, streamUrl)
+            .putInt(com.orbital.iptv.recording.ReminderWorker.KEY_STREAM_ID,     streamId)
+            .build()
+        val request = androidx.work.OneTimeWorkRequestBuilder<com.orbital.iptv.recording.ReminderWorker>()
+            .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+            .setInputData(data)
+            .addTag("reminder_${title.hashCode()}")
+            .build()
+        androidx.work.WorkManager.getInstance(this).enqueue(request)
+        val timeStr = SimpleDateFormat("HH:mm", Locale.UK).format(java.util.Date(startMs))
+        Toast.makeText(this, "REMINDER SET: $title at $timeStr", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun askForDuration(onChosen: (Long) -> Unit) {
+        val options   = arrayOf("30 minutes", "1 hour", "1 hour 30 min", "2 hours", "3 hours")
+        val durations = longArrayOf(30, 60, 90, 120, 180)
+        showTvDialog(AlertDialog.Builder(this, ThemeManager.dialogStyle())
+            .setTitle("RECORDING DURATION")
+            .setMessage("No end time found in EPG. How long should we record?")
+            .setItems(options) { _, i -> onChosen(durations[i] * 60_000L) }
+            .setNegativeButton("CANCEL", null))
+    }
+
+    private fun scheduleRecording(streamId: Int, channelName: String, url: String, title: String, startMs: Long, endMs: Long) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val recording = com.orbital.iptv.recording.RecordingEntity(
+                    channelName    = channelName,
+                    channelUrl     = url,
+                    streamId       = streamId,
+                    epgTitle       = title,
+                    scheduledStart = startMs,
+                    scheduledEnd   = endMs,
+                    status         = com.orbital.iptv.recording.RecordingStatus.SCHEDULED
+                )
+                val id = com.orbital.iptv.recording.RecordingDatabase.get(this@TvModeActivity).dao().insert(recording).toInt()
+
+                val delayMs = startMs - System.currentTimeMillis()
+                if (delayMs <= 0L) {
+                    androidx.core.content.ContextCompat.startForegroundService(
+                        this@TvModeActivity,
+                        Intent(this@TvModeActivity, RecordingService::class.java).apply {
+                            putExtra(com.orbital.iptv.recording.RecordingService.EXTRA_RECORDING_ID, id)
+                        }
+                    )
+                } else {
+                    androidx.work.WorkManager.getInstance(this@TvModeActivity).enqueue(
+                        androidx.work.OneTimeWorkRequestBuilder<com.orbital.iptv.recording.RecordingWorker>()
+                            .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+                            .setInputData(androidx.work.workDataOf("recording_id" to id))
+                            .addTag("rec_$id")
+                            .build()
+                    )
+                }
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@TvModeActivity, "RECORDING SCHEDULED: $title", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@TvModeActivity, "SCHEDULE FAILED: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
     // ── Dialogs ───────────────────────────────────────────────────────────────
 
     private fun showExitDialog() {
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("EXIT ORBITAL?")
             .setPositiveButton("EXIT") { _, _ -> finishAffinity() }
             .setNegativeButton("CANCEL", null))
@@ -1104,7 +1513,7 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun tvPromptPin(title: String, onCorrect: () -> Unit) {
         val et = tvPinEditText("ENTER PIN")
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle(title)
             .setView(et)
             .setPositiveButton("OK") { _, _ ->
@@ -1127,7 +1536,7 @@ class TvModeActivity : AppCompatActivity() {
         val lockedIds = PinManager.getLockedCategoryIds(this).toMutableSet()
         val labels  = categories.map { it.categoryName.uppercase() }.toTypedArray()
         val checked = categories.map { it.categoryId in lockedIds }.toBooleanArray()
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("PIN PROTECTED CATEGORIES")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
                 if (isChecked) lockedIds.add(categories[which].categoryId)
@@ -1146,7 +1555,7 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun tvPromptNewPin() {
         val et = tvPinEditText("ENTER NEW PIN")
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("ENTER NEW PIN")
             .setView(et)
             .setPositiveButton("NEXT") { _, _ ->
@@ -1159,7 +1568,7 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun tvConfirmNewPin(newPin: String) {
         val et = tvPinEditText("CONFIRM NEW PIN")
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("CONFIRM NEW PIN")
             .setView(et)
             .setPositiveButton("SAVE") { _, _ ->
@@ -1175,13 +1584,16 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun showBoxOfficeMenu() {
         data class Item(val label: String, val action: () -> Unit)
-        val items = listOf(
+        val items = mutableListOf(
             Item("MOVIES")                         { startActivity(Intent(this, VodActivity::class.java)) },
             Item("SERIES")                         { startActivity(Intent(this, SeriesActivity::class.java)) },
             Item("CATCHUP")                        { startActivity(Intent(this, CatchupActivity::class.java)) },
-            Item("CONTINUE WATCHING / FAVOURITES") { startActivity(Intent(this, FavouritesActivity::class.java)) }
+            Item("CONTINUE WATCHING / FAVOURITES") { startActivity(Intent(this, FavouritesActivity::class.java)) },
+            Item("⏺ RECORDINGS")                    { startActivity(Intent(this, com.orbital.iptv.recording.RecordingsActivity::class.java)) }
         )
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        if (com.orbital.iptv.utils.TorboxPrefsManager.getApiKey(this) != null)
+            items += Item("TORBOX") { startActivity(Intent(this, com.orbital.iptv.ui.torbox.TorboxBrowserActivity::class.java)) }
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("BOX OFFICE")
             .setItems(items.map { it.label }.toTypedArray()) { _, which -> items[which].action() })
     }
@@ -1192,7 +1604,7 @@ class TvModeActivity : AppCompatActivity() {
             Toast.makeText(this, "NO RADIO STATIONS FOUND", Toast.LENGTH_SHORT).show()
             return
         }
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("RADIO")
             .setItems(stations.map { it.name.uppercase() }.toTypedArray()) { _, which ->
                 val station = stations[which]
@@ -1229,9 +1641,38 @@ class TvModeActivity : AppCompatActivity() {
             val dest = if (PlexPrefsManager.getSession(this) != null) PlexBrowserActivity::class.java else PlexLoginActivity::class.java
             startActivity(Intent(this, dest))
         }
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        items += Item("TORBOX") { showTorboxKeyDialog() }
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("INTERACTIVE")
             .setItems(items.map { it.label }.toTypedArray()) { _, which -> items[which].action() })
+    }
+
+    private fun showTorboxKeyDialog() {
+        val current = com.orbital.iptv.utils.TorboxPrefsManager.getApiKey(this) ?: ""
+        val et = android.widget.EditText(this).apply {
+            setText(current)
+            hint = "PASTE TORBOX API KEY HERE"
+            setPadding(48, 24, 48, 24)
+        }
+        val builder = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
+            .setTitle("TORBOX API KEY")
+            .setMessage("Get your key at torbox.app → Settings → API")
+            .setView(et)
+            .setPositiveButton("SAVE") { _, _ ->
+                val key = et.text.toString().trim()
+                if (key.isNotBlank()) {
+                    com.orbital.iptv.utils.TorboxPrefsManager.saveApiKey(this, key)
+                    Toast.makeText(this, "TORBOX KEY SAVED", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("CANCEL", null)
+        if (current.isNotBlank()) {
+            builder.setNeutralButton("REMOVE KEY") { _, _ ->
+                com.orbital.iptv.utils.TorboxPrefsManager.clear(this)
+                Toast.makeText(this, "TORBOX KEY REMOVED", Toast.LENGTH_SHORT).show()
+            }
+        }
+        showTvDialog(builder)
     }
 
     private fun showTvSettingsMenu() {
@@ -1243,8 +1684,10 @@ class TvModeActivity : AppCompatActivity() {
         val items = mutableListOf<Item>()
         items += Item("SERVERS ($serverCount SAVED)")  { showServerManager() }
         items += Item("↺  REFRESH $serverName")        { refreshServer() }
+        items += Item("↺  FULL EPG REFRESH")           { confirmFullEpgRefresh() }
         items += Item("MANAGE VISIBLE CATEGORIES")     { showManageCategoriesDialog() }
         items += Item("THEME: ${ThemeManager.current.label}") { showThemePicker() }
+        items += Item("TRANSPARENCY: ${PrefsManager.getTvPanelTransparency(this)}%") { showTransparencyPicker() }
         items += Item("TV MODE (TESTING): ${if (PrefsManager.isTvModeEnabled(this)) "ON" else "OFF"}") { toggleTvMode() }
         items += Item("PICTURE IN PICTURE: ${if (PrefsManager.isPipEnabled(this)) "ON" else "OFF"}") {
             PrefsManager.setPipEnabled(this, !PrefsManager.isPipEnabled(this))
@@ -1263,7 +1706,7 @@ class TvModeActivity : AppCompatActivity() {
         val versionName = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "?" }
         items += Item("ORBITAL  v$versionName")        { }
 
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SETTINGS")
             .setItems(items.map { it.label }.toTypedArray()) { _, which -> items[which].action() })
     }
@@ -1278,7 +1721,7 @@ class TvModeActivity : AppCompatActivity() {
         labels.add("＋  ADD NEW SERVER")
         labels.add("✕  REMOVE A SERVER")
 
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SERVERS")
             .setItems(labels.toTypedArray()) { _, which ->
                 when (which) {
@@ -1302,11 +1745,11 @@ class TvModeActivity : AppCompatActivity() {
     private fun showDeleteServerPicker(profiles: List<ServerProfile>, activeId: String?) {
         if (profiles.isEmpty()) return
         val labels = profiles.map { "✕  ${it.name.uppercase()}" }.toTypedArray()
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("REMOVE SERVER")
             .setItems(labels) { _, which ->
                 val toDelete = profiles[which]
-                showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+                showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                     .setTitle("REMOVE ${toDelete.name.uppercase()}?")
                     .setMessage("THIS CANNOT BE UNDONE.")
                     .setPositiveButton("REMOVE") { _, _ ->
@@ -1359,6 +1802,34 @@ class TvModeActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * EPG listings are cached on disk per channel for 24h (see EpgCache) so switching
+     * categories/channels doesn't re-hit the server every time. This clears that cache and
+     * reloads whatever's currently on screen, forcing a fresh 7-day pull without touching the
+     * channel/VOD/series catalog — that's the heavier "REFRESH SERVER" above.
+     */
+    private fun confirmFullEpgRefresh() {
+        val name = PrefsManager.getActiveProfile(this)?.name?.uppercase() ?: "SERVER"
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
+            .setTitle("FULL EPG REFRESH")
+            .setMessage("Clear the cached guide data for $name and re-download the 7-day EPG. Continue?")
+            .setPositiveButton("REFRESH") { _, _ ->
+                lifecycleScope.launch {
+                    EpgCache.clearAll(this@TvModeActivity)
+                    Toast.makeText(this@TvModeActivity, "EPG REFRESHING…", Toast.LENGTH_SHORT).show()
+                    if (currentStreamId >= 0) loadInlineEpg(currentStreamId)
+                    if (binding.guideOverlay.visibility == View.VISIBLE) {
+                        loadGuideEpg(guideCategoryId) {
+                            Toast.makeText(this@TvModeActivity, "EPG REFRESH COMPLETE", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this@TvModeActivity, "EPG REFRESH COMPLETE", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("CANCEL", null))
+    }
+
     private fun showManageCategoriesDialog() {
         val categories = TvModeHolder.categories
         if (categories.isEmpty()) {
@@ -1369,7 +1840,7 @@ class TvModeActivity : AppCompatActivity() {
         val labels  = categories.map { it.categoryName.uppercase() }.toTypedArray()
         val checked = categories.map { it.categoryId !in hiddenIds }.toBooleanArray()
 
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SHOW / HIDE CATEGORIES")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
                 if (isChecked) hiddenIds.remove(categories[which].categoryId)
@@ -1387,10 +1858,26 @@ class TvModeActivity : AppCompatActivity() {
         val labels = themes.map { t ->
             if (t == ThemeManager.current) "● ${t.label}" else "○ ${t.label}"
         }.toTypedArray()
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SELECT THEME")
             .setItems(labels) { _, which ->
                 ThemeManager.set(this, themes[which])
+                recreate()
+            })
+    }
+
+    /** How see-through the left nav panel / HUD / ticker overlays are — 0% is solid (the
+     *  original look), higher percentages let more of the live video show through behind them. */
+    private fun showTransparencyPicker() {
+        val options = intArrayOf(0, 10, 20, 30, 40, 50, 60, 70, 80, 90)
+        val current = PrefsManager.getTvPanelTransparency(this)
+        val labels = options.map { pct ->
+            if (pct == current) "●  $pct%" else "○  $pct%"
+        }.toTypedArray()
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
+            .setTitle("PANEL TRANSPARENCY")
+            .setItems(labels) { _, which ->
+                PrefsManager.setTvPanelTransparency(this, options[which])
                 recreate()
             })
     }
@@ -1412,7 +1899,7 @@ class TvModeActivity : AppCompatActivity() {
             hint = "PASTE API KEY HERE"
             setPadding(48, 24, 48, 24)
         }
-        val builder = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val builder = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("OPENSUBTITLES API KEY")
             .setMessage("Get a free key at opensubtitles.com → Consumers")
             .setView(et)
@@ -1436,7 +1923,7 @@ class TvModeActivity : AppCompatActivity() {
             hint = "PASTE API KEY HERE"
             setPadding(48, 24, 48, 24)
         }
-        val builder = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val builder = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("TMDB API KEY")
             .setMessage("Get a free key at themoviedb.org → Settings → API. Used for EPG posters/synopsis.")
             .setView(et)
@@ -1471,7 +1958,7 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     private fun showUpdateDialog(update: UpdateInfo) {
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("UPDATE AVAILABLE — v${update.versionName}")
             .setMessage(update.releaseNotes.uppercase().ifEmpty { "A NEW VERSION OF ORBITAL IS AVAILABLE." })
             .setPositiveButton("DOWNLOAD & INSTALL") { _, _ -> startUpdateDownload(update) }
@@ -1509,7 +1996,7 @@ class TvModeActivity : AppCompatActivity() {
         container.addView(progressBar)
         container.addView(tvBytes)
 
-        val dialog = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val dialog = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("DOWNLOADING v${update.versionName}")
             .setView(container)
             .setCancelable(false)
@@ -1537,7 +2024,7 @@ class TvModeActivity : AppCompatActivity() {
     }
 
     private fun confirmClearAllData() {
-        showTvDialog(AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("CLEAR ALL SAVED DATA")
             .setMessage("This will remove all server profiles, favourites, and cached data. You will need to log in again. Are you sure?")
             .setPositiveButton("CLEAR ALL") { _, _ ->
@@ -1550,13 +2037,20 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun refreshCategoryChannels() {
         categoryChannels = when {
-            currentCategoryId == FAV_CATEGORY_ID -> {
-                val favIds = FavouritesManager.getLiveChannels(this).map { it.streamId }.toSet()
-                TvModeHolder.allChannels.filter { it.streamId in favIds }
-            }
+            currentCategoryId == FAV_CATEGORY_ID -> favouriteChannelsList()
             currentCategoryId.isBlank() -> TvModeHolder.allChannels
             else -> TvModeHolder.allChannels.filter { it.categoryId == currentCategoryId }
         }
+    }
+
+    /** Recently-watched channels (most recent first) ahead of the rest of the manually-favourited
+     *  channels, deduplicated — shown together under the ★ FAVOURITES category. */
+    private fun favouriteChannelsList(): List<LiveStream> {
+        val favIds = FavouritesManager.getLiveChannels(this).map { it.streamId }.toSet()
+        val recentIds = com.orbital.iptv.utils.RecentChannelsManager.getAll(this).map { it.streamId }
+        val recentChannels = recentIds.mapNotNull { id -> TvModeHolder.allChannels.find { it.streamId == id } }
+        val favChannels = TvModeHolder.allChannels.filter { it.streamId in favIds && it.streamId !in recentIds }
+        return recentChannels + favChannels
     }
 
     private fun loadChannelsInBackground(onLoaded: (() -> Unit)? = null) {
@@ -1666,7 +2160,12 @@ class TvModeActivity : AppCompatActivity() {
                                 return true
                             }
                         }
-                        PanelState.CHANNELS   -> { showCategoryPanel(); return true }
+                        PanelState.CHANNELS   -> {
+                            // Focus in the inline EPG column steps back to the channel list first;
+                            // only from the channel list itself does LEFT drill out to CATEGORIES.
+                            if (isFocusWithin(binding.rvChannelEpg)) focusChannelColumn() else showCategoryPanel()
+                            return true
+                        }
                         PanelState.CATEGORIES -> { showMainMenuPanel(); return true }
                         PanelState.MAIN_MENU  -> return true  // already at leftmost — swallow
                     }
@@ -1674,7 +2173,13 @@ class TvModeActivity : AppCompatActivity() {
 
                 KeyEvent.KEYCODE_DPAD_RIGHT -> {
                     when (panelState) {
-                        PanelState.CHANNELS   -> { hidePanel(); return true }
+                        PanelState.CHANNELS   -> {
+                            // From the channel list, RIGHT steps into that channel's inline EPG
+                            // column; from there (now the rightmost content), RIGHT closes the
+                            // panel — same spot in the flow that used to close it from the channel list.
+                            if (isFocusWithin(binding.rvPanelChannels)) focusEpgColumn() else hidePanel()
+                            return true
+                        }
                         PanelState.CATEGORIES -> { showChannelPanel(); return true }
                         PanelState.MAIN_MENU  -> { showCategoryPanel(); return true }
                         PanelState.NONE       -> { switchToPrevChannel(); return true }
@@ -1703,6 +2208,7 @@ class TvModeActivity : AppCompatActivity() {
         PrefsManager.setLastTvChannel(this, url, stream.name, stream.streamId, currentCategoryId)
         player?.let { switchStream(it, url) }
         showZapBar(stream.name)
+        recordRecentChannel(stream.streamId, stream.name, url)
     }
 
     private fun switchToPrevChannel() {
@@ -1716,6 +2222,7 @@ class TvModeActivity : AppCompatActivity() {
         PrefsManager.setLastTvChannel(this, newUrl, newName, newId, newCatId)
         player?.let { switchStream(it, newUrl) }
         showZapBar(newName)
+        recordRecentChannel(newId, newName, newUrl)
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -1770,6 +2277,7 @@ data class NowNextItem(
 class NowNextAdapter(
     private val items: MutableList<NowNextItem>,
     private var currentId: Int,
+    private val alpha: Int = 255,
     private val onFocus: ((Int) -> Unit)? = null,
     private val onSelect: (Int) -> Unit
 ) : RecyclerView.Adapter<NowNextAdapter.VH>() {
@@ -1805,7 +2313,8 @@ class NowNextAdapter(
         val p         = ThemeManager.palette()
         val d         = holder.itemView.resources.displayMetrics.density
         val isPlaying = item.streamId == currentId
-        val normalBg  = if (isPlaying) p.highlight else if (position % 2 == 0) 0xFF0A1628.toInt() else 0xFF0D1E38.toInt()
+        val normalBg  = if (isPlaying) p.highlight
+                         else ThemeManager.withAlpha(if (position % 2 == 0) p.rowEven else p.rowOdd, alpha)
 
         holder.chanTv.text = item.channelName
         holder.chanTv.setTextColor(if (isPlaying) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
@@ -1838,6 +2347,7 @@ class CategoryPanelAdapter(
     private val items: List<LiveCategory>,
     private val currentCategoryId: String,
     private val countMap: Map<String, Int>,
+    private val alpha: Int = 255,
     private val onSelect: (LiveCategory) -> Unit
 ) : RecyclerView.Adapter<CategoryPanelAdapter.VH>() {
 
@@ -1863,7 +2373,8 @@ class CategoryPanelAdapter(
         val p         = ThemeManager.palette()
         val d         = holder.tv.resources.displayMetrics.density
         val isCurrent = cat.categoryId == currentCategoryId
-        val normalBg  = if (isCurrent) p.highlight else if (position % 2 == 0) 0xFF0A1628.toInt() else 0xFF0D1E38.toInt()
+        val normalBg  = if (isCurrent) p.highlight
+                         else ThemeManager.withAlpha(if (position % 2 == 0) p.rowEven else p.rowOdd, alpha)
 
         val count = if (cat.categoryId == "__favourites__") null
                     else countMap[cat.categoryId]
@@ -1883,7 +2394,9 @@ class CategoryPanelAdapter(
 class EpgListAdapter(
     private val items: List<EpgListing>,
     private val currentIdx: Int,
-    private val nowSec: Long
+    private val nowSec: Long,
+    private val alpha: Int = 255,
+    private val onSelect: ((EpgListing, Boolean) -> Unit)? = null
 ) : RecyclerView.Adapter<EpgListAdapter.VH>() {
 
     inner class VH(val timeTv: TextView, val titleTv: TextView, root: LinearLayout)
@@ -1894,7 +2407,7 @@ class EpgListAdapter(
         val root = LinearLayout(parent.context).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (48 * d).toInt())
-            isFocusable = true
+            isFocusable = true; isClickable = true
             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         }
         val timeTv = TextView(parent.context).apply {
@@ -1940,17 +2453,19 @@ class EpgListAdapter(
 
         val normalBg = when {
             isCurrent -> p.highlight
-            isPast    -> if (position % 2 == 0) 0xFF060C06.toInt() else 0xFF090F09.toInt()
-            else      -> if (position % 2 == 0) 0xFF0A1628.toInt() else 0xFF0D1E38.toInt()
+            isPast    -> ThemeManager.withAlpha(
+                if (position % 2 == 0) ThemeManager.dim(p.rowEven) else ThemeManager.dim(p.rowOdd), alpha
+            )
+            else      -> ThemeManager.withAlpha(if (position % 2 == 0) p.rowEven else p.rowOdd, alpha)
         }
         holder.timeTv.setTextColor(when {
             isCurrent -> 0xFF000000.toInt()
-            isPast    -> 0xFF446644.toInt()
-            else      -> 0xFF00CCCC.toInt()
+            isPast    -> 0xFF808080.toInt()
+            else      -> p.accent
         })
         holder.titleTv.setTextColor(when {
             isCurrent -> 0xFF000000.toInt()
-            isPast    -> 0xFF558855.toInt()
+            isPast    -> 0xFF999999.toInt()
             else      -> 0xFFEEEEEE.toInt()
         })
         holder.itemView.background = ThemeManager.roundedBg(normalBg, d)
@@ -1959,6 +2474,7 @@ class EpgListAdapter(
                 if (hasFocus) p.focus else normalBg, d
             )
         }
+        holder.itemView.setOnClickListener { onSelect?.invoke(item, isCurrent) }
     }
 }
 

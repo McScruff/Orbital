@@ -136,7 +136,7 @@ class FavouritesActivity : AppCompatActivity() {
     }
 
     private fun showMovieLongPressMenu(item: FavouriteItem) {
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle(item.title.uppercase())
             .setItems(arrayOf("REMOVE FROM FAVOURITES", "CANCEL")) { _, which ->
                 if (which == 0) {
@@ -150,7 +150,7 @@ class FavouritesActivity : AppCompatActivity() {
         val options = mutableListOf("REMOVE EPISODE", "REMOVE SHOW FROM FAVOURITES", "CANCEL")
         if (item.hasNextEpisode) options.add(1, "MARK AS PLAYED — ADD NEXT EPISODE")
 
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle(item.title.uppercase())
             .setItems(options.toTypedArray()) { _, which ->
                 when (options[which]) {

@@ -48,8 +48,11 @@ import com.orbital.iptv.ui.tv.TvModeHolder
 import com.orbital.iptv.utils.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -91,7 +94,7 @@ class HomeActivity : AppCompatActivity() {
             if (r.channelName.isNotBlank()) append("\n${r.channelName}")
             append("\n\nThis programme is starting now.")
         }
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("📺  PROGRAMME STARTING")
             .setMessage(msg)
             .setPositiveButton("WATCH NOW") { _, _ ->
@@ -112,10 +115,14 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
+        // Load the theme before inflating — EpgView reads ThemeManager.palette() once in its
+        // constructor, so if this ran after inflate() a cold start (fresh process, no prior
+        // activity to have already called load()) would bake in the default ORBITAL palette
+        // regardless of the user's saved theme.
+        ThemeManager.load(this)
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ThemeManager.load(this)
         ApiClient.liveFormat = PrefsManager.getLiveFormat(this)
         viewModel = ViewModelProvider(this)[HomeViewModel::class.java]
         setupEpgView()
@@ -151,17 +158,9 @@ class HomeActivity : AppCompatActivity() {
         binding.tabBoxOffice?.setOnClickListener { showBoxOfficeMenu() }
         binding.tabInteractive?.setOnClickListener { showInteractiveMenu() }
         binding.tabRadio?.setOnClickListener { showRadioMenu() }
-
-        val p = ThemeManager.palette()
-        binding.tabTvGuide?.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) binding.tabTvGuide?.setBackgroundColor(p.focus)
-            else binding.tabTvGuide?.setBackgroundColor(p.tabSelected)
-        }
-        listOf(binding.tabBoxOffice, binding.tabRadio, binding.tabInteractive, binding.tabServices).forEach { tab ->
-            tab?.setOnFocusChangeListener { _, hasFocus ->
-                tab.setBackgroundColor(if (hasFocus) p.focus else p.bgHeader)
-            }
-        }
+        // Background/text colours are assigned once in applyTheme() via themed StateListDrawables
+        // (ThemeManager.navTabDrawable), which already handle the focus-state swap on their own —
+        // no manual focus-listener colour toggling needed.
     }
 
     private fun showBoxOfficeMenu() {
@@ -178,8 +177,10 @@ class HomeActivity : AppCompatActivity() {
             items.add(MenuItem("PLEX") { startActivity(Intent(this, PlexBrowserActivity::class.java)) })
         items.add(MenuItem("🔍 SEARCH ALL") { startActivity(Intent(this, GlobalSearchActivity::class.java)) })
         items.add(MenuItem("⏺ RECORDINGS") { startActivity(Intent(this, com.orbital.iptv.recording.RecordingsActivity::class.java)) })
+        if (com.orbital.iptv.utils.TorboxPrefsManager.getApiKey(this) != null)
+            items.add(MenuItem("TORBOX") { startActivity(Intent(this, com.orbital.iptv.ui.torbox.TorboxBrowserActivity::class.java)) })
 
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("BOX OFFICE")
             .setItems(items.map { it.label }.toTypedArray()) { _, i -> items[i].action() }
             .show()
@@ -191,7 +192,7 @@ class HomeActivity : AppCompatActivity() {
             Toast.makeText(this, "NO RADIO STATIONS FOUND", Toast.LENGTH_SHORT).show()
             return
         }
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("RADIO")
             .setItems(stations.map { it.name.uppercase() }.toTypedArray()) { _, which ->
                 val station = stations[which]
@@ -226,11 +227,40 @@ class HomeActivity : AppCompatActivity() {
             val dest = if (PlexPrefsManager.getSession(this) != null) PlexBrowserActivity::class.java else PlexLoginActivity::class.java
             startActivity(Intent(this, dest))
         })
+        items.add(MenuItem("TORBOX") { showTorboxKeyDialog() })
 
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("INTERACTIVE")
             .setItems(items.map { it.label }.toTypedArray()) { _, i -> items[i].action() }
             .show()
+    }
+
+    private fun showTorboxKeyDialog() {
+        val current = com.orbital.iptv.utils.TorboxPrefsManager.getApiKey(this) ?: ""
+        val et = android.widget.EditText(this).apply {
+            setText(current)
+            hint = "PASTE TORBOX API KEY HERE"
+            setPadding(48, 24, 48, 24)
+        }
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
+            .setTitle("TORBOX API KEY")
+            .setMessage("Get your key at torbox.app → Settings → API")
+            .setView(et)
+            .setPositiveButton("SAVE") { _, _ ->
+                val key = et.text.toString().trim()
+                if (key.isNotBlank()) {
+                    com.orbital.iptv.utils.TorboxPrefsManager.saveApiKey(this, key)
+                    Toast.makeText(this, "TORBOX KEY SAVED", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("CANCEL", null)
+        if (current.isNotBlank()) {
+            builder.setNeutralButton("REMOVE KEY") { _, _ ->
+                com.orbital.iptv.utils.TorboxPrefsManager.clear(this)
+                Toast.makeText(this, "TORBOX KEY REMOVED", Toast.LENGTH_SHORT).show()
+            }
+        }
+        builder.show()
     }
 
     private fun showTickerSportPicker() {
@@ -239,7 +269,7 @@ class HomeActivity : AppCompatActivity() {
         val checked = feeds.map { it.id in selectedIds }.toBooleanArray()
         val labels = feeds.map { "${it.emoji} ${it.name}" }.toTypedArray()
 
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SELECT SPORTS FOR NEWS TICKER")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
                 if (isChecked) selectedIds.add(feeds[which].id)
@@ -266,6 +296,7 @@ class HomeActivity : AppCompatActivity() {
         val pipLabel    = "PICTURE IN PICTURE: ${if (PrefsManager.isPipEnabled(this)) "ON" else "OFF"}"
         items += Item("SERVERS ($serverCount SAVED)")     { showServerManager() }
         items += Item("↺  REFRESH $serverName")          { refreshServer() }
+        items += Item("↺  FULL EPG REFRESH")              { confirmFullEpgRefresh() }
         items += Item("MANAGE VISIBLE CATEGORIES")        { showManageServerCategoriesDialog() }
         items += Item(themeLabel)                         { showThemePicker() }
         items += Item(tvModeLabel)                        { toggleTvMode() }
@@ -286,7 +317,7 @@ class HomeActivity : AppCompatActivity() {
         items += Item("ORBITAL  v$versionName")           { }
 
         val labels = items.map { it.label }.toTypedArray()
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SETTINGS")
             .setItems(labels) { _, which -> items[which].action() }
             .show()
@@ -302,7 +333,7 @@ class HomeActivity : AppCompatActivity() {
         val labels  = categories.map { it.categoryName.uppercase() }.toTypedArray()
         val checked = categories.map { it.categoryId !in hiddenIds }.toBooleanArray()
 
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SHOW / HIDE CATEGORIES")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
                 if (isChecked) hiddenIds.remove(categories[which].categoryId)
@@ -324,7 +355,7 @@ class HomeActivity : AppCompatActivity() {
             hint = "PASTE API KEY HERE"
             setPadding(48, 24, 48, 24)
         }
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("OPENSUBTITLES API KEY")
             .setMessage("Get a free key at opensubtitles.com → Consumers")
             .setView(et)
@@ -348,7 +379,7 @@ class HomeActivity : AppCompatActivity() {
             hint = "PASTE API KEY HERE"
             setPadding(48, 24, 48, 24)
         }
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("TMDB API KEY")
             .setMessage("Get a free key at themoviedb.org → Settings → API. Used for EPG posters/synopsis.")
             .setView(et)
@@ -370,7 +401,7 @@ class HomeActivity : AppCompatActivity() {
         val labels = themes.map { t ->
             if (t == ThemeManager.current) "● ${t.label}" else "○ ${t.label}"
         }.toTypedArray()
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SELECT THEME")
             .setItems(labels) { _, which ->
                 ThemeManager.set(this, themes[which])
@@ -389,7 +420,7 @@ class HomeActivity : AppCompatActivity() {
         labels.add("＋  ADD NEW SERVER")
         labels.add("✕  REMOVE A SERVER")
 
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SERVERS")
             .setItems(labels.toTypedArray()) { _, which ->
                 when (which) {
@@ -420,11 +451,11 @@ class HomeActivity : AppCompatActivity() {
     private fun showDeleteServerPicker(profiles: List<ServerProfile>, activeId: String?) {
         if (profiles.isEmpty()) return
         val labels = profiles.map { "✕  ${it.name.uppercase()}" }.toTypedArray()
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("REMOVE SERVER")
             .setItems(labels) { _, which ->
                 val toDelete = profiles[which]
-                androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+                androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                     .setTitle("REMOVE ${toDelete.name.uppercase()}?")
                     .setMessage("THIS CANNOT BE UNDONE.")
                     .setPositiveButton("REMOVE") { _, _ ->
@@ -457,7 +488,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun confirmClearAllData() {
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("CLEAR ALL SAVED DATA")
             .setMessage("This will remove all server profiles, favourites, and cached data. You will need to log in again. Are you sure?")
             .setPositiveButton("CLEAR ALL") { _, _ ->
@@ -492,7 +523,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadCategoryIntoEpg(channels: List<LiveStream>) {
+    private fun loadCategoryIntoEpg(channels: List<LiveStream>, onComplete: (() -> Unit)? = null) {
         currentChannels = channels
         val rows = channels.map { EpgRow(streamId = it.streamId, channelName = it.name) }
         binding.epgView.setRows(rows)
@@ -500,22 +531,35 @@ class HomeActivity : AppCompatActivity() {
 
         epgLoadingJob?.cancel()
         val creds = PrefsManager.getCredentials(this) ?: return
+        // Capped concurrency: firing one request per channel at once (e.g. 100+ in a large
+        // category) floods the Xtream server, which throttles/truncates the burst — that's what
+        // made a freshly-cleared cache come back showing only "now" or nothing at all instead of
+        // the full multi-day guide. A shared semaphore keeps only a handful of requests in flight.
+        val fetchLimiter = Semaphore(6)
         epgLoadingJob = lifecycleScope.launch {
-            channels.forEach { stream ->
-                launch {
-                    val cached = EpgCache.get(this@HomeActivity, stream.streamId, minCount = 50)
-                    if (cached != null) {
-                        binding.epgView.updateRow(stream.streamId, cached)
-                    } else {
-                        val result = repository.getFullChannelEpg(creds.serverUrl, creds.username, creds.password, stream.streamId)
-                        result.onSuccess { epg ->
-                            val listings = epg.listings ?: emptyList()
-                            EpgCache.put(this@HomeActivity, stream.streamId, listings)
-                            binding.epgView.updateRow(stream.streamId, listings)
+            // coroutineScope waits for every per-channel launch{} below to finish before this
+            // block completes, so onComplete (e.g. the "refresh done" toast) fires only once the
+            // whole category has actually loaded rather than right after kicking off the fetches.
+            coroutineScope {
+                channels.forEach { stream ->
+                    launch {
+                        val cached = EpgCache.get(this@HomeActivity, stream.streamId, minCount = 50)
+                        if (cached != null) {
+                            binding.epgView.updateRow(stream.streamId, cached)
+                        } else {
+                            val result = fetchLimiter.withPermit {
+                                repository.getFullChannelEpg(creds.serverUrl, creds.username, creds.password, stream.streamId)
+                            }
+                            result.onSuccess { epg ->
+                                val listings = epg.listings ?: emptyList()
+                                EpgCache.put(this@HomeActivity, stream.streamId, listings)
+                                binding.epgView.updateRow(stream.streamId, listings)
+                            }
                         }
                     }
                 }
             }
+            onComplete?.invoke()
         }
     }
 
@@ -524,17 +568,59 @@ class HomeActivity : AppCompatActivity() {
         binding.epgView.requestFocus()
     }
 
+    /**
+     * EPG listings are cached on disk per channel for 24h (see EpgCache) so switching
+     * categories/channels doesn't re-hit the server every time. This clears that cache and
+     * reloads the currently-visible category, forcing a fresh 7-day pull without touching the
+     * channel/VOD/series catalog (that's what "REFRESH SERVER" is for).
+     */
+    private fun confirmFullEpgRefresh() {
+        val name = PrefsManager.getActiveProfile(this)?.name?.uppercase() ?: "SERVER"
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
+            .setTitle("FULL EPG REFRESH")
+            .setMessage("Clear the cached guide data for $name and re-download the 7-day EPG. Continue?")
+            .setPositiveButton("REFRESH") { _, _ ->
+                lifecycleScope.launch {
+                    EpgCache.clearAll(this@HomeActivity)
+                    android.widget.Toast.makeText(this@HomeActivity, "EPG REFRESHING…", android.widget.Toast.LENGTH_SHORT).show()
+                    loadCategoryIntoEpg(currentChannels) {
+                        android.widget.Toast.makeText(this@HomeActivity, "EPG REFRESH COMPLETE", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
     private fun applyTheme() {
         val p = ThemeManager.palette()
+        // Status/nav bar colour is drawn by the system, not any View in this layout — it's set
+        // via the static Theme.Orbital style (themes.xml) and never responds to the in-app
+        // palette otherwise, which is why it kept showing the old blue behind the logo/status bar.
+        window.statusBarColor = p.bgPrimary
+        window.navigationBarColor = p.bgPrimary
+
         binding.root.setBackgroundColor(p.bgPrimary)
         binding.layoutNavBar?.setBackgroundColor(p.bgHeader)
+        binding.logoContainer?.setBackgroundColor(p.bgPrimary)
         binding.viewTopAccent?.setBackgroundColor(p.accent)
         binding.viewVerticalDivider?.setBackgroundColor(p.accent)
-        binding.tabTvGuide?.setBackgroundColor(p.tabSelected)
+
+        val density = resources.displayMetrics.density
+        binding.tabTvGuide?.background = ThemeManager.navTabDrawable(density, selected = true)
+        binding.tabTvGuide?.setTextColor(0xFF000000.toInt())
         listOf(binding.tabBoxOffice, binding.tabRadio, binding.tabInteractive, binding.tabServices).forEach {
-            it?.setBackgroundColor(p.bgHeader)
+            it?.background = ThemeManager.navTabDrawable(density, selected = false)
+            it?.setTextColor(0xFFFFFFFF.toInt())
         }
+
         binding.headerTvListings.setBackgroundColor(p.highlight)
+        binding.headerTvListings.setTextColor(0xFF000000.toInt())
+        binding.tvCurrentCategory?.setBackgroundColor(p.bgMid)
+        binding.tvCurrentCategory?.setTextColor(p.accent)
+        binding.bottomStatusBar?.setBackgroundColor(p.bgPrimary)
+        binding.tvStatusHint?.setTextColor(0xFF888888.toInt())
+        binding.tvTime?.setTextColor(p.accent)
     }
 
     private fun observeViewModel() {
@@ -620,7 +706,8 @@ class HomeActivity : AppCompatActivity() {
             }
             setOnClickListener {
                 val ids = FavouritesManager.getLiveChannels(this@HomeActivity).map { it.streamId }.toSet()
-                viewModel.selectFavouriteChannels(ids)
+                val recentIds = com.orbital.iptv.utils.RecentChannelsManager.getAll(this@HomeActivity).map { it.streamId }
+                viewModel.selectFavouriteChannels(ids, recentIds)
             }
         }
         binding.originalCatContainer?.addView(favTv)
@@ -709,7 +796,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun showUpdateDialog(update: com.orbital.iptv.utils.UpdateInfo) {
-        androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("UPDATE AVAILABLE — v${update.versionName}")
             .setMessage(update.releaseNotes.uppercase().ifEmpty { "A NEW VERSION OF ORBITAL IS AVAILABLE." })
             .setPositiveButton("DOWNLOAD & INSTALL") { _, _ -> startUpdateDownload(update) }
@@ -753,7 +840,7 @@ class HomeActivity : AppCompatActivity() {
         container.addView(progressBar)
         container.addView(tvBytes)
 
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("DOWNLOADING v${update.versionName}")
             .setView(container)
             .setCancelable(false)
@@ -806,7 +893,7 @@ class HomeActivity : AppCompatActivity() {
         val nowMs   = System.currentTimeMillis()
 
         if (endMs > 0L && endMs <= nowMs) {
-            AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                 .setTitle("CANNOT RECORD")
                 .setMessage("'$title' has already finished.")
                 .setPositiveButton("OK", null)
@@ -840,7 +927,7 @@ class HomeActivity : AppCompatActivity() {
         val (posterView, posterImg, infoTv) = buildProgrammeInfoView()
         infoTv.text = infoBody(null, null)
 
-        val builder = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        val builder = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle(label)
             .setView(posterView)
             .setPositiveButton("RECORD") { _, _ ->
@@ -1028,7 +1115,7 @@ class HomeActivity : AppCompatActivity() {
     private fun askForDuration(onChosen: (Long) -> Unit) {
         val options   = arrayOf("30 minutes", "1 hour", "1 hour 30 min", "2 hours", "3 hours")
         val durations = longArrayOf(30, 60, 90, 120, 180)
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("RECORDING DURATION")
             .setMessage("No end time found in EPG. How long should we record?")
             .setItems(options) { _, i -> onChosen(durations[i] * 60_000L) }
@@ -1080,13 +1167,14 @@ class HomeActivity : AppCompatActivity() {
     private fun onChannelLongPressed(stream: LiveStream) {
         val inFavourites = viewModel.uiState.value?.selectedXtreamCategory?.categoryId == HomeViewModel.FAV_CATEGORY_ID
         if (inFavourites) {
-            androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                 .setTitle(stream.name.uppercase())
                 .setItems(arrayOf("REMOVE FROM FAVOURITES", "CANCEL")) { _, which ->
                     if (which == 0) {
                         FavouritesManager.removeLive(this, stream.streamId)
                         val ids = FavouritesManager.getLiveChannels(this).map { it.streamId }.toSet()
-                        viewModel.selectFavouriteChannels(ids)
+                        val recentIds = com.orbital.iptv.utils.RecentChannelsManager.getAll(this).map { it.streamId }
+                        viewModel.selectFavouriteChannels(ids, recentIds)
                     }
                 }
                 .show()
@@ -1109,6 +1197,7 @@ class HomeActivity : AppCompatActivity() {
             TvModeHolder.allChannels = viewModel.getAllStreams()
             TvModeHolder.categories  = viewModel.uiState.value?.xtreamCategories ?: emptyList()
             PrefsManager.setLastTvChannel(this, streamUrl, stream.name, stream.streamId, catId)
+            com.orbital.iptv.utils.RecentChannelsManager.record(this, stream.name, stream.streamId, streamUrl, stream.streamIcon)
             startActivity(Intent(this, TvModeActivity::class.java).apply {
                 putExtra(TvModeActivity.EXTRA_STREAM_URL,   streamUrl)
                 putExtra(TvModeActivity.EXTRA_CHANNEL_NAME, stream.name)
@@ -1125,6 +1214,7 @@ class HomeActivity : AppCompatActivity() {
         ChannelQueue.currentIndex = channels.indexOf(stream).coerceAtLeast(0)
 
         val streamUrl = viewModel.buildStreamUrl(stream.streamId)
+        com.orbital.iptv.utils.RecentChannelsManager.record(this, stream.name, stream.streamId, streamUrl, stream.streamIcon)
         val intent = Intent(this, PlayerActivity::class.java).apply {
             putExtra(PlayerActivity.EXTRA_STREAM_URL, streamUrl)
             putExtra(PlayerActivity.EXTRA_CHANNEL_NAME, stream.name)
@@ -1149,7 +1239,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun promptPin(title: String, onCorrect: () -> Unit) {
         val et = pinEditText("ENTER PIN")
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle(title)
             .setView(et)
             .setPositiveButton("OK") { _, _ ->
@@ -1173,7 +1263,7 @@ class HomeActivity : AppCompatActivity() {
         val lockedIds = PinManager.getLockedCategoryIds(this).toMutableSet()
         val labels  = categories.map { it.categoryName.uppercase() }.toTypedArray()
         val checked = categories.map { it.categoryId in lockedIds }.toBooleanArray()
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("PIN PROTECTED CATEGORIES")
             .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
                 if (isChecked) lockedIds.add(categories[which].categoryId)
@@ -1193,7 +1283,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun promptNewPin() {
         val et = pinEditText("ENTER NEW PIN")
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("ENTER NEW PIN")
             .setView(et)
             .setPositiveButton("NEXT") { _, _ ->
@@ -1207,7 +1297,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun confirmNewPin(newPin: String) {
         val et = pinEditText("CONFIRM NEW PIN")
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("CONFIRM NEW PIN")
             .setView(et)
             .setPositiveButton("SAVE") { _, _ ->

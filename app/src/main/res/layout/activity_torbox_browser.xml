@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0A1628">
+
+    <!-- Top bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:background="#0D1B35"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="◀ BACK"
+            android:textSize="11sp"
+            android:textColor="#FFFFFF"
+            android:background="#1A3560"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TORBOX"
+            android:textColor="#E5A00D"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingStart="16dp" />
+
+        <Button
+            android:id="@+id/btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="↺ REFRESH"
+            android:textSize="11sp"
+            android:textColor="#FFFFFF"
+            android:background="#1A3560"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <!-- Accent -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#E5A00D" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="32dp"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:clipToPadding="false" />
+
+    <TextView
+        android:id="@+id/tv_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="NO TORBOX DOWNLOADS FOUND"
+        android:textColor="#557799"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+</LinearLayout>

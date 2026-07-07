@@ -170,6 +170,16 @@ object PrefsManager {
         prefs(context).edit().putBoolean("tv_mode_enabled", enabled).apply()
     }
 
+    // How see-through the left nav panel / HUD / ticker overlays are, as a percentage
+    // (0 = fully solid, matching the original hardcoded look; higher = more of the live
+    // video behind shows through). Capped below 100 so the panel never goes fully invisible.
+    fun getTvPanelTransparency(context: Context): Int =
+        prefs(context).getInt("tv_panel_transparency", 10)
+
+    fun setTvPanelTransparency(context: Context, percent: Int) {
+        prefs(context).edit().putInt("tv_panel_transparency", percent.coerceIn(0, 90)).apply()
+    }
+
     fun setLastTvChannel(context: Context, url: String, name: String, streamId: Int, categoryId: String) {
         prefs(context).edit()
             .putString("last_tv_url", url)

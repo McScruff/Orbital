@@ -203,7 +203,7 @@ class PlexLoginActivity : AppCompatActivity() {
 
     private fun showServerPicker(servers: List<PlexServer>, token: String, username: String) {
         val names = servers.map { it.name.ifBlank { it.bestUrl() } }.toTypedArray()
-        AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("SELECT SERVER")
             .setItems(names) { _, which ->
                 lifecycleScope.launch { connectToServer(servers[which], token, username) }

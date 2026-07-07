@@ -65,12 +65,21 @@ class XtreamRepository {
         }
     }
 
-    // Fetches up to 100 future listings — enough to cover 7 days for most channels.
+    // get_short_epg caps out at a handful of near-term entries on many Xtream panels — the
+    // `limit` param is only a hint and gets ignored/clamped server-side (confirmed: one provider
+    // returned exactly 1 listing for limit=100, vs. 34 from get_simple_data_table for the same
+    // channel). get_simple_data_table is the richer multi-day table already used by
+    // getCatchupEpg(); falls back to the short-EPG call if a server doesn't support it.
     suspend fun getFullChannelEpg(serverUrl: String, username: String, password: String, streamId: Int): Result<EpgResponse> {
+        val service = ApiClient.getService(serverUrl)
         return try {
-            Result.success(ApiClient.getService(serverUrl).getShortEpgWithLimit(username, password, streamId = streamId, limit = 100))
+            Result.success(service.getSimpleDataTable(username, password, streamId = streamId))
         } catch (e: Exception) {
-            Result.failure(e)
+            try {
+                Result.success(service.getShortEpgWithLimit(username, password, streamId = streamId, limit = 100))
+            } catch (e2: Exception) {
+                Result.failure(e2)
+            }
         }
     }
 

@@ -443,7 +443,7 @@ class GlobalSearchActivity : AppCompatActivity() {
         })
         root.addView(lastRow, LinearLayout.LayoutParams(mp, wc))
 
-        dialog = AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+        dialog = AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setView(root)
             .setNegativeButton("CANCEL", null)
             .create()
@@ -514,7 +514,7 @@ class GlobalSearchActivity : AppCompatActivity() {
             }
             if (cachedEpgCount < 5 && totalLiveChannels > 0) {
                 val shouldBuild = suspendCancellableCoroutine { cont ->
-                    AlertDialog.Builder(this@GlobalSearchActivity, R.style.Theme_Orbital_Dialog)
+                    AlertDialog.Builder(this@GlobalSearchActivity, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                         .setTitle("NO EPG INDEX")
                         .setMessage(
                             "TV Guide data has not been indexed yet.\n\n" +
@@ -916,7 +916,7 @@ class GlobalSearchActivity : AppCompatActivity() {
             playSource(item.sources[0], item.title)
         } else {
             val labels = item.sources.map { it.label }.toTypedArray()
-            AlertDialog.Builder(this, R.style.Theme_Orbital_Dialog)
+            AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
                 .setTitle("PLAY \"${item.title.uppercase()}\" FROM:")
                 .setItems(labels) { _, i -> playSource(item.sources[i], item.title) }
                 .show()
