@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -34,6 +35,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.orbital.iptv.ui.player.PcmOnlyRenderersFactory
+import com.orbital.iptv.ui.player.StallWatchdog
 import com.orbital.iptv.R
 import com.orbital.iptv.data.api.ApiClient
 import com.orbital.iptv.data.model.EpgListing
@@ -114,6 +116,8 @@ class TvModeActivity : AppCompatActivity() {
         const val EXTRA_STREAM_ID    = "tv_stream_id"
         const val EXTRA_CATEGORY_ID  = "tv_category_id"
         private const val FAV_CATEGORY_ID = "__favourites__"
+        private const val MAX_IO_RETRIES = 5
+        private const val MAX_STALL_RETRIES = 5
     }
 
     // Three-level left-panel navigation.
@@ -156,6 +160,57 @@ class TvModeActivity : AppCompatActivity() {
     private val hideZap     = Runnable { hideZapBar() }
     private val repository  = XtreamRepository()
     private var isRecording = false
+
+    private var tvIoRetryCount = 0
+    private var tvStallRetryCount = 0
+    private val tvRetryHandler = Handler(Looper.getMainLooper())
+    private val stallWatchdog = StallWatchdog(
+        getPlayer = { player },
+        onStall = { handleTvStall() }
+    )
+    private val tvPlayerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (isPlaying) {
+                tvIoRetryCount = 0
+                tvStallRetryCount = 0
+            }
+        }
+
+        // Player.Listener was never attached in TV Mode before — a dropped connection, bad
+        // HTTP status, or decoder failure just left the last decoded frame frozen on screen
+        // forever with no retry and no indication anything was wrong. Mirrors PlayerActivity's
+        // capped, backed-off IO retry (TV Mode is always live, so none of the VOD-only branches
+        // apply here).
+        override fun onPlayerError(error: PlaybackException) {
+            android.util.Log.w("OrbitalTvPlayer", "onPlayerError code=${error.errorCode} name=${error.errorCodeName} msg=${error.message}")
+            val exo = player ?: return
+            if (tvIoRetryCount >= MAX_IO_RETRIES) {
+                Toast.makeText(this@TvModeActivity, "CHANNEL UNAVAILABLE — ${currentChannelName.uppercase()}", Toast.LENGTH_LONG).show()
+                return
+            }
+            tvIoRetryCount++
+            tvRetryHandler.removeCallbacksAndMessages(null)
+            tvRetryHandler.postDelayed({
+                switchStream(exo, currentStreamUrl, isRetry = true)
+            }, 1000L * tvIoRetryCount)
+        }
+    }
+
+    /**
+     * Some live streams stall silently — ExoPlayer never calls onPlayerError, it just stops
+     * advancing (see StallWatchdog doc comment). Force a reconnect, capped like the IO-error
+     * retry above so a truly dead channel still surfaces feedback instead of retrying forever.
+     */
+    private fun handleTvStall() {
+        val exo = player ?: return
+        android.util.Log.w("OrbitalTvPlayer", "stall watchdog fired (retry ${tvStallRetryCount + 1}/$MAX_STALL_RETRIES)")
+        if (tvStallRetryCount >= MAX_STALL_RETRIES) {
+            Toast.makeText(this, "CHANNEL STALLED — ${currentChannelName.uppercase()}", Toast.LENGTH_LONG).show()
+            return
+        }
+        tvStallRetryCount++
+        switchStream(exo, currentStreamUrl, isRetry = true)
+    }
 
     private val tickerHttp = OkHttpClient.Builder()
         .connectTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
@@ -228,11 +283,13 @@ class TvModeActivity : AppCompatActivity() {
                     .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
             )
             .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
+            .setLoadControl(com.orbital.iptv.ui.player.LiveLoadControl.build())
             .build().also { exo ->
             exo.trackSelectionParameters = exo.trackSelectionParameters.buildUpon()
                 .setPreferredAudioMimeTypes(MimeTypes.AUDIO_AAC, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_AC3)
                 .build()
             exo.repeatMode = Player.REPEAT_MODE_OFF
+            exo.addListener(tvPlayerListener)
             exo.setVideoSurfaceView(binding.surfaceView)
             if (currentStreamUrl.isNotBlank()) {
                 exo.setMediaItem(MediaItem.fromUri(currentStreamUrl))
@@ -240,6 +297,7 @@ class TvModeActivity : AppCompatActivity() {
                 exo.play()
                 updateChannelInfo(currentChannelName)
                 loadEpgForCurrentChannel()
+                stallWatchdog.start()
             }
         }
     }
@@ -259,6 +317,7 @@ class TvModeActivity : AppCompatActivity() {
         // SurfaceHolder.Callback — see PlayerActivity.initExoPlayer()) attaches immediately when
         // the surface is already valid, so no extra surface handling is needed here.
         player?.clearVideoSurface()
+        player?.removeListener(tvPlayerListener)
         player?.release()
         initPlayer()
         Toast.makeText(
@@ -319,7 +378,13 @@ class TvModeActivity : AppCompatActivity() {
      * alone doesn't release decoders, so clearMediaItems() is required to force ExoPlayer
      * to rebuild fresh MediaCodec instances on the next prepare().
      */
-    private fun switchStream(exo: ExoPlayer, url: String) {
+    private fun switchStream(exo: ExoPlayer, url: String, isRetry: Boolean = false) {
+        if (!isRetry) {
+            tvIoRetryCount = 0
+            tvStallRetryCount = 0
+            tvRetryHandler.removeCallbacksAndMessages(null)
+        }
+        stallWatchdog.reset()
         exo.stop()
         exo.clearMediaItems()
         exo.setMediaItem(MediaItem.fromUri(url))
@@ -2255,8 +2320,11 @@ class TvModeActivity : AppCompatActivity() {
         hudHandler.removeCallbacksAndMessages(null)
         tickerHandler.removeCallbacksAndMessages(null)
         newsHandler.removeCallbacksAndMessages(null)
+        tvRetryHandler.removeCallbacksAndMessages(null)
+        stallWatchdog.stop()
         tickerScrollAnim?.cancel()
         binding.tvNewsTicker.stop()
+        player?.removeListener(tvPlayerListener)
         player?.release()
         player = null
     }

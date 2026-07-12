@@ -1,6 +1,6 @@
 {
-  "version_code": 19,
-  "version_name": "1.5.0",
+  "version_code": 20,
+  "version_name": "1.5.1",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "TorBox integration, recently-watched channels in TV Guide Favourites, and a big TV Mode overhaul: channel panel EPG navigation, recording/reminder popup with posters, adjustable panel transparency, and a fix for the full EPG guide closing itself instantly after opening."
+  "release_notes": "Fixed silent stream stalls on live channels (Player and TV Mode) with a watchdog that detects a frozen playback position and auto-reconnects, and tuned live buffering. TV Mode now also retries automatically on playback errors instead of freezing the last frame."
 }
