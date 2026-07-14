@@ -98,7 +98,6 @@ class PlayerActivity : AppCompatActivity() {
         private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         private const val MAX_IO_RETRIES = 5
         private const val MAX_AUDIO_SINK_ERRORS = 8
-        private const val MAX_STALL_RETRIES = 5
 
         private val COLOR_BUFFERING = 0xFFFFCC00.toInt()
         private val COLOR_PLAYING   = 0xFF44CC44.toInt()
@@ -138,11 +137,6 @@ class PlayerActivity : AppCompatActivity() {
     private val ioRetryHandler = Handler(Looper.getMainLooper())
     private var audioSinkErrorCount = 0
     private var audioDisabledForSinkErrors = false
-    private var stallRetryCount = 0
-    private val stallWatchdog = StallWatchdog(
-        getPlayer = { if (::player.isInitialized) player else null },
-        onStall = { handleStall() }
-    )
     private var embyItemId = ""
     private val embyRepo = EmbyRepository()
     private var plexRatingKey = ""
@@ -672,7 +666,6 @@ class PlayerActivity : AppCompatActivity() {
                 if (isPlaying) {
                     hasError = false
                     ioRetryCount = 0
-                    stallRetryCount = 0
                     binding.progressBar.visibility = View.GONE
                     setStatus(if (isLive) "● LIVE" else "▶ PLAYING", if (isLive) COLOR_LIVE else COLOR_PLAYING)
                     if (!isLive) {
@@ -1007,7 +1000,7 @@ class PlayerActivity : AppCompatActivity() {
         val httpFactory = DefaultHttpDataSource.Factory()
             .setUserAgent(USER_AGENT)
             .setAllowCrossProtocolRedirects(true)
-        val playerBuilder = ExoPlayer.Builder(this)
+        player = ExoPlayer.Builder(this)
             .setRenderersFactory(
                 PcmOnlyRenderersFactory(this, PrefsManager.isSurroundEnabled(this))
                     .setEnableDecoderFallback(true)
@@ -1020,8 +1013,7 @@ class PlayerActivity : AppCompatActivity() {
                     .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
             )
             .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
-        if (isLive) playerBuilder.setLoadControl(LiveLoadControl.build())
-        player = playerBuilder.build()
+            .build()
         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
             .setPreferredAudioMimeTypes(MimeTypes.AUDIO_AAC, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_AC3)
             .build()
@@ -1042,28 +1034,6 @@ class PlayerActivity : AppCompatActivity() {
         player.playWhenReady = true
         binding.progressBar.visibility = View.VISIBLE
         setStatus("CONNECTING...", COLOR_BUFFERING)
-        if (isLive) stallWatchdog.start() else stallWatchdog.stop()
-    }
-
-    /**
-     * Some live streams stall silently — ExoPlayer never calls onPlayerError, it just stops
-     * advancing (see StallWatchdog doc comment). Force a reconnect from the last known
-     * position, capped like the IO-error retry path so a truly dead channel still surfaces
-     * an error instead of retrying forever.
-     */
-    private fun handleStall() {
-        if (!isLive || !::player.isInitialized) return
-        android.util.Log.w("OrbitalPlayer", "stall watchdog fired (retry ${stallRetryCount + 1}/$MAX_STALL_RETRIES)")
-        if (stallRetryCount >= MAX_STALL_RETRIES) {
-            hasError = true
-            setStatus("STREAM STALLED — TAP TO RETRY", COLOR_ERROR)
-            showOverlay()
-            return
-        }
-        stallRetryCount++
-        binding.progressBar.visibility = View.VISIBLE
-        setStatus("RECONNECTING…", COLOR_BUFFERING)
-        playMedia()
     }
 
     /** Toggles PcmOnlyRenderersFactory's stereo-only lock — see its doc comment for the tradeoff. */
@@ -1126,7 +1096,6 @@ class PlayerActivity : AppCompatActivity() {
         audioRecoveryAttempted = false
         audioSinkErrorCount = 0
         audioDisabledForSinkErrors = false
-        stallWatchdog.reset()
         player.stop()
         player.clearMediaItems()
         player.setMediaItem(MediaItem.fromUri(streamUrl))
@@ -1561,7 +1530,6 @@ class PlayerActivity : AppCompatActivity() {
         tickerHandler.removeCallbacksAndMessages(null)
         newsHandler.removeCallbacksAndMessages(null)
         ioRetryHandler.removeCallbacksAndMessages(null)
-        stallWatchdog.stop()
         binding.surfaceView.holder.removeCallback(surfaceCallback)
         if (::player.isInitialized) {
             player.removeListener(playerListener)
