@@ -40,9 +40,10 @@ class CatchupEpgAdapter(
 
         val p = ThemeManager.palette()
         val base = if (position % 2 == 0) p.bgMid else p.bgPrimary
-        holder.binding.root.setBackgroundColor(base)
+        val density = holder.binding.root.resources.displayMetrics.density
+        holder.binding.root.background = ThemeManager.focusRowDrawable(density, base, false)
         holder.binding.root.setOnFocusChangeListener { _, hasFocus ->
-            holder.binding.root.setBackgroundColor(if (hasFocus) p.focus else base)
+            holder.binding.root.background = ThemeManager.focusRowDrawable(density, base, hasFocus)
         }
         holder.binding.root.setOnClickListener { onClick(listing) }
     }

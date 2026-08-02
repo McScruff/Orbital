@@ -71,7 +71,8 @@ class SeriesDetailActivity : AppCompatActivity() {
         binding.btnBack.setBackgroundColor(themeP.bgHeader)
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) ThemeManager.palette().focus else ThemeManager.palette().bgHeader)
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, hasFocus)
         }
         binding.tvTitle.text = seriesName
         binding.tvRatingBadge.text = if (rating.isNotBlank() && rating != "0") "★ $rating" else ""
@@ -171,11 +172,10 @@ class SeriesDetailActivity : AppCompatActivity() {
             tab.setOnFocusChangeListener { _, hasFocus ->
                 val p = ThemeManager.palette()
                 val isSelected = selectedSeason == season
-                tab.setBackgroundColor(when {
-                    hasFocus && !isSelected -> p.focus
-                    isSelected              -> p.highlight
-                    else                    -> p.bgMid
-                })
+                tab.background = when {
+                    isSelected -> ThemeManager.focusRowDrawable(dp, p.highlight, hasFocus, focusFillColor = p.highlight)
+                    else       -> ThemeManager.focusRowDrawable(dp, p.bgMid, hasFocus)
+                }
                 tab.setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
             }
         }
@@ -195,7 +195,7 @@ class SeriesDetailActivity : AppCompatActivity() {
         for (i in 0 until container.childCount) {
             val tab = container.getChildAt(i) as? TextView ?: continue
             val isSelected = tab.text == "S$season"
-            tab.setBackgroundColor(if (isSelected) p.highlight else p.bgMid)
+            tab.background = ThemeManager.focusRowDrawable(dp, if (isSelected) p.highlight else p.bgMid, tab.isFocused, focusFillColor = p.highlight)
             tab.setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
         }
 

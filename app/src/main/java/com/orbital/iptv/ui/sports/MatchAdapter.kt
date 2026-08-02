@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.orbital.iptv.databinding.ItemMatchBinding
+import com.orbital.iptv.utils.ThemeManager
 
 data class MatchEvent(
     val id: String,
@@ -49,31 +50,33 @@ class MatchAdapter(
             b.tvHomeTeam.text = e.homeTeam
             b.tvAwayTeam.text = e.awayTeam
 
-            when (e.statusState) {
+            val rootBg = when (e.statusState) {
                 "in" -> {
                     b.tvScore.text = "${e.homeScore}  –  ${e.awayScore}"
                     b.tvStatus.text = e.statusDetail
                     b.tvScore.setTextColor(0xFFFFCC00.toInt())
                     b.tvStatus.setTextColor(0xFFFF3333.toInt())
-                    b.root.setBackgroundColor(0xFF0A1D10.toInt())
+                    0xFF0A1D10.toInt()
                 }
                 "post" -> {
                     b.tvScore.text = "${e.homeScore}  –  ${e.awayScore}"
                     b.tvStatus.text = if (e.note.isNotBlank()) "FT  (${e.note})" else "FT"
                     b.tvScore.setTextColor(0xFFFFFFFF.toInt())
                     b.tvStatus.setTextColor(0xFF666666.toInt())
-                    b.root.setBackgroundColor(0xFF071225.toInt())
+                    0xFF071225.toInt()
                 }
                 else -> {
                     b.tvScore.text = e.statusDetail
                     b.tvStatus.text = ""
                     b.tvScore.setTextColor(0xFF00CCCC.toInt())
-                    b.root.setBackgroundColor(0xFF0D1A2E.toInt())
+                    0xFF0D1A2E.toInt()
                 }
             }
+            val density = b.root.resources.displayMetrics.density
+            b.root.background = ThemeManager.focusRowDrawable(density, rootBg, b.root.isFocused)
 
             b.root.setOnFocusChangeListener { _, hasFocus ->
-                b.root.alpha = if (hasFocus) 1f else 0.9f
+                b.root.background = ThemeManager.focusRowDrawable(density, rootBg, hasFocus)
                 if (!sel) b.selectionBar.setBackgroundColor(
                     if (hasFocus) 0xFF334455.toInt() else 0xFF1A2A3A.toInt()
                 )

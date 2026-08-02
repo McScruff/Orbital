@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.orbital.iptv.data.model.Episode
 import com.orbital.iptv.databinding.ItemEpisodeBinding
+import com.orbital.iptv.utils.ThemeManager
 
 class EpisodeAdapter(
     private val onPlay: (Episode) -> Unit,
@@ -60,13 +61,14 @@ class EpisodeAdapter(
         }
 
         private fun applyColors(position: Int, focused: Boolean, selected: Boolean) {
-            val bg = when {
+            val baseBg = when {
                 selected -> 0xFFFFCC00.toInt()
-                focused  -> 0xFF2D6090.toInt()
                 position % 2 == 0 -> 0xFF0D1B35.toInt()
                 else -> 0xFF1A3A6A.toInt()
             }
-            b.root.setBackgroundColor(bg)
+            val density = b.root.resources.displayMetrics.density
+            val focusFill = if (selected) baseBg else ThemeManager.palette().focus
+            b.root.background = ThemeManager.focusRowDrawable(density, baseBg, focused, focusFillColor = focusFill)
             b.tvEpNum.setTextColor(if (selected) 0xFF000080.toInt() else 0xFF00CCFF.toInt())
             b.tvEpTitle.setTextColor(if (selected) 0xFF000080.toInt() else if (focused) 0xFFFFFFFF.toInt() else 0xFFFFFFFF.toInt())
             b.tvEpDuration.setTextColor(if (selected) 0xFF000080.toInt() else 0xFF888888.toInt())

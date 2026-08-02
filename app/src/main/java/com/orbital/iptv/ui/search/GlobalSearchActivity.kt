@@ -173,7 +173,8 @@ class GlobalSearchAdapter(
         b.root.setOnClickListener { onClick(getItem(vh.bindingAdapterPosition)) }
         b.root.setOnFocusChangeListener { _, hasFocus ->
             val p = ThemeManager.palette()
-            b.root.setBackgroundColor(if (hasFocus) p.focus else p.bgPrimary)
+            val d = b.root.resources.displayMetrics.density
+            b.root.background = ThemeManager.focusRowDrawable(d, p.bgPrimary, hasFocus)
         }
         return vh
     }
@@ -286,7 +287,8 @@ class GlobalSearchActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) 0xFF8B6914.toInt() else 0xFF1A3560.toInt())
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1A3560.toInt(), hasFocus)
         }
 
         binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
@@ -317,7 +319,8 @@ class GlobalSearchActivity : AppCompatActivity() {
             btn.setOnFocusChangeListener { _, hasFocus ->
                 if (filter != currentFilter) {
                     val p = ThemeManager.palette()
-                    btn.setBackgroundColor(if (hasFocus) p.focus else p.bgHeader)
+                    val d = resources.displayMetrics.density
+                    btn.background = ThemeManager.focusRowDrawable(d, p.bgHeader, hasFocus)
                 }
             }
             btn.setOnClickListener {
@@ -420,7 +423,7 @@ class GlobalSearchActivity : AppCompatActivity() {
                     it.setMargins(dp(2), dp(2), dp(2), dp(2))
                 }
                 setOnFocusChangeListener { _, h ->
-                    setBackgroundColor(if (h) 0xFFE5A00D.toInt() else 0xFF1A3060.toInt())
+                    background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, 0xFF1A3060.toInt(), h, focusFillColor = 0xFFE5A00D.toInt())
                     setTextColor(if (h) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 }
                 setOnClickListener { action() }
@@ -613,7 +616,7 @@ class GlobalSearchActivity : AppCompatActivity() {
                 background = ThemeManager.roundedBg(if (isSelected) p.highlight else p.bgMid, density)
                 setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSelected) background = ThemeManager.roundedBg(if (hasFocus) p.focus else p.bgMid, density)
+                    if (!isSelected) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
                 }
                 setOnClickListener {
                     currentFilter = entry.filter

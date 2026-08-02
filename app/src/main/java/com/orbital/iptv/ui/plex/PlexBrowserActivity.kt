@@ -89,7 +89,8 @@ class PlexBrowserActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { if (!handleBack()) finish() }
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) 0xFF8B6914.toInt() else 0xFF1A3560.toInt())
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1A3560.toInt(), hasFocus, focusFillColor = 0xFF8B6914.toInt())
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -256,11 +257,8 @@ class PlexBrowserActivity : AppCompatActivity() {
             }
             view.setOnFocusChangeListener { _, hasFocus ->
                 val selected = tab == currentTab
-                view.setBackgroundColor(when {
-                    hasFocus -> 0xFF8B6914.toInt()
-                    selected -> 0xFF7A4A00.toInt()
-                    else     -> 0x00000000
-                })
+                val base = if (selected) 0xFF7A4A00.toInt() else 0x00000000
+                view.background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, base, hasFocus, focusFillColor = 0xFF8B6914.toInt())
             }
         }
     }
@@ -347,7 +345,7 @@ class PlexBrowserActivity : AppCompatActivity() {
                 setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
                     if (!isSelected)
-                        setBackgroundColor(if (hasFocus) 0xFF2A5A8A.toInt() else normalBg)
+                        background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, normalBg, hasFocus, focusFillColor = 0xFF2A5A8A.toInt())
                 }
                 setOnClickListener { onClick() }
             }

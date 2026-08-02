@@ -21,7 +21,11 @@ data class FavouriteItem(
     val nextEpisodeSeason: String = "",
     val nextEpisodeNum: Int = 0,
     val nextEpisodeId: String = "",
-    val addedAt: Long = System.currentTimeMillis()
+    val addedAt: Long = System.currentTimeMillis(),
+    // True only for the entry PlayerActivity auto-creates for the next episode right after the
+    // current one finishes — distinguishes "queued up next, not started" from a manually
+    // favourited-but-unwatched episode, which looks identical otherwise (both start at 0/0).
+    val autoQueued: Boolean = false
 ) {
     val progressFraction: Float
         get() = if (durationMs > 0 && resumePositionMs > 0)
@@ -29,6 +33,11 @@ data class FavouriteItem(
 
     val hasResume: Boolean
         get() = resumePositionMs > 30_000L && durationMs > 0
+
+    /** Queued next episode that hasn't actually been started yet — once playback begins and
+     *  real progress is saved, [hasResume] takes over and this goes false on its own. */
+    val isUpNext: Boolean
+        get() = autoQueued && !hasResume
 
     val hasNextEpisode: Boolean
         get() = nextEpisodeUrl.isNotEmpty()

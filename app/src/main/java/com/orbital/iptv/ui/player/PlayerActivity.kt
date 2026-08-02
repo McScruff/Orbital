@@ -38,6 +38,7 @@ import com.orbital.iptv.utils.EmbyPrefsManager
 import com.orbital.iptv.utils.PlexPrefsManager
 import com.orbital.iptv.utils.FavouritesManager
 import com.orbital.iptv.utils.PrefsManager
+import com.orbital.iptv.utils.ThemeManager
 import com.orbital.iptv.utils.TickerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -288,7 +289,8 @@ class PlayerActivity : AppCompatActivity() {
             binding.btnRecord.setOnFocusChangeListener { _, hasFocus ->
                 // Bright outline when focused so remote users can see it's selected
                 val baseColor = if (isRecordingThisChannel) 0xFFCC0000.toInt() else 0xFF8B0000.toInt()
-                binding.btnRecord.setBackgroundColor(if (hasFocus) 0xFFFF4444.toInt() else baseColor)
+                val d = resources.displayMetrics.density
+                binding.btnRecord.background = ThemeManager.focusRowDrawable(d, baseColor, hasFocus, focusFillColor = 0xFFFF4444.toInt())
                 // Keep the overlay alive while navigating buttons
                 if (hasFocus) {
                     overlayHandler.removeCallbacks(hideOverlayRunnable)
@@ -305,12 +307,14 @@ class PlayerActivity : AppCompatActivity() {
     private var isRecordingThisChannel = false
 
     private fun updateRecordButton() {
+        val d = resources.displayMetrics.density
+        val focused = binding.btnRecord.isFocused
         if (isRecordingThisChannel) {
             binding.btnRecord.text = "■ STOP REC"
-            binding.btnRecord.setBackgroundColor(0xFFCC0000.toInt())
+            binding.btnRecord.background = ThemeManager.focusRowDrawable(d, 0xFFCC0000.toInt(), focused, focusFillColor = 0xFFFF4444.toInt())
         } else {
             binding.btnRecord.text = "● REC"
-            binding.btnRecord.setBackgroundColor(0xFF8B0000.toInt())
+            binding.btnRecord.background = ThemeManager.focusRowDrawable(d, 0xFF8B0000.toInt(), focused, focusFillColor = 0xFFFF4444.toInt())
         }
     }
 
@@ -1315,9 +1319,10 @@ class PlayerActivity : AppCompatActivity() {
                 seriesId         = seriesId,
                 season           = nextEpSeason,
                 episodeNum       = nextEpNum,
-                episodeId        = nextEpId
+                episodeId        = nextEpId,
+                autoQueued       = true
             ))
-            Toast.makeText(this, "NEXT EPISODE ADDED TO FAVOURITES", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "NEXT EPISODE ADDED TO CONTINUE WATCHING", Toast.LENGTH_LONG).show()
         }
     }
 

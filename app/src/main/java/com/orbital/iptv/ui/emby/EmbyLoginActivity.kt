@@ -60,17 +60,17 @@ class EmbyLoginActivity : AppCompatActivity() {
         val yellowBg = getColor(R.color.sky_yellow)
 
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) p.focus else p.bgHeader)
+            binding.btnBack.background = ThemeManager.focusRowDrawable(density, p.bgHeader, hasFocus)
         }
 
         // Inactive tab gets focus highlight; active tab is already visually obvious
         binding.tabDirect.setOnFocusChangeListener { _, hasFocus ->
             if (!useConnect) return@setOnFocusChangeListener
-            binding.tabDirect.setBackgroundColor(if (hasFocus) p.focus else inactiveBg)
+            binding.tabDirect.background = ThemeManager.focusRowDrawable(density, inactiveBg, hasFocus)
         }
         binding.tabConnect.setOnFocusChangeListener { _, hasFocus ->
             if (useConnect) return@setOnFocusChangeListener
-            binding.tabConnect.setBackgroundColor(if (hasFocus) p.focus else inactiveBg)
+            binding.tabConnect.background = ThemeManager.focusRowDrawable(density, inactiveBg, hasFocus)
         }
 
         // EditTexts — bright accent border on focus
@@ -94,7 +94,7 @@ class EmbyLoginActivity : AppCompatActivity() {
         }
 
         binding.btnRefreshPin.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnRefreshPin.setBackgroundColor(if (hasFocus) p.focus else 0xFF0A1628.toInt())
+            binding.btnRefreshPin.background = ThemeManager.focusRowDrawable(density, 0xFF0A1628.toInt(), hasFocus)
         }
     }
 

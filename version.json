@@ -1,6 +1,6 @@
 {
-  "version_code": 21,
-  "version_name": "1.5.2",
+  "version_code": 22,
+  "version_name": "1.5.3",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "Rolled back the v1.5.1 live-buffer/stall-watchdog changes — they were causing more playback issues than they fixed. Back to v1.5.0's playback behaviour, on a newer version number so this update reaches everyone."
+  "release_notes": "Every D-pad focusable item across the app (menus, tabs, list rows, buttons) now draws a visible accent-coloured box when focused, instead of just a subtle colour swap — much easier to track from the couch."
 }

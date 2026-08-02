@@ -89,12 +89,8 @@ class FavouritesAdapter(
         private fun applyColors(position: Int, focused: Boolean) {
             val p = ThemeManager.palette()
             val density = b.root.resources.displayMetrics.density
-            val bg = when {
-                focused            -> p.focus
-                position % 2 == 0 -> p.rowEven
-                else               -> p.rowOdd
-            }
-            b.root.background = ThemeManager.roundedBg(bg, density)
+            val baseBg = if (position % 2 == 0) p.rowEven else p.rowOdd
+            b.root.background = ThemeManager.focusRowDrawable(density, baseBg, focused)
             b.tvTitle.setTextColor(if (focused) p.highlight else 0xFFFFFFFF.toInt())
         }
     }

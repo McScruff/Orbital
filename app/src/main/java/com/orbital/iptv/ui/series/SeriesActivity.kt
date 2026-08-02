@@ -18,6 +18,7 @@ import com.orbital.iptv.databinding.ActivitySeriesBinding
 import com.orbital.iptv.data.model.FavType
 import com.orbital.iptv.utils.ContentCache
 import com.orbital.iptv.utils.FavouritesManager
+import com.orbital.iptv.utils.PlayerLauncher
 import com.orbital.iptv.utils.PrefsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,13 +53,14 @@ class SeriesActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this)[SeriesViewModel::class.java]
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1E3D72.toInt())
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1E3D72.toInt(), hasFocus)
         }
 
         adapter = SeriesAdapter(this) { show -> onShowSelected(show) }
         binding.rvShows.apply {
             this.adapter = this@SeriesActivity.adapter
-            layoutManager = GridLayoutManager(this@SeriesActivity, 3)
+            layoutManager = GridLayoutManager(this@SeriesActivity, 5)
         }
 
         setupSearch()
@@ -144,8 +146,8 @@ class SeriesActivity : AppCompatActivity() {
         val marginPx = (p.itemMarginDp * density).toInt()
 
         val allFavs = FavouritesManager.getAll(this)
-        val favItems      = allFavs.filter { it.type == FavType.EPISODE && !it.hasResume && it.seriesId >= 0 }
-        val continueItems = allFavs.filter { it.hasResume && it.type == FavType.EPISODE }
+        val favItems      = allFavs.filter { it.type == FavType.EPISODE && !it.hasResume && !it.isUpNext && it.seriesId >= 0 }
+        val continueItems = allFavs.filter { it.type == FavType.EPISODE && (it.hasResume || it.isUpNext) }
 
         if (favItems.isNotEmpty()) {
             val isSel = showingFavourites
@@ -162,7 +164,7 @@ class SeriesActivity : AppCompatActivity() {
                 background = ThemeManager.roundedBg(if (isSel) p.highlight else p.bgMid, density)
                 setTextColor(if (isSel) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSel) background = ThemeManager.roundedBg(if (hasFocus) p.focus else p.bgMid, density)
+                    if (!isSel) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
                 }
                 setOnClickListener {
                     showingFavourites = true; showingContinue = false
@@ -188,7 +190,7 @@ class SeriesActivity : AppCompatActivity() {
                 background = ThemeManager.roundedBg(if (isSel) p.highlight else p.bgMid, density)
                 setTextColor(if (isSel) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSel) background = ThemeManager.roundedBg(if (hasFocus) p.focus else p.bgMid, density)
+                    if (!isSel) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
                 }
                 setOnClickListener {
                     showingContinue = true; showingFavourites = false
@@ -217,7 +219,7 @@ class SeriesActivity : AppCompatActivity() {
                 background = if (isSelected) ThemeManager.roundedBg(p.highlight, density) else ThemeManager.roundedBg(normalBg, density)
                 setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSelected) background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, density)
+                    if (!isSelected) background = ThemeManager.focusRowDrawable(density, normalBg, hasFocus)
                 }
                 setOnClickListener {
                     showingContinue = false; showingFavourites = false
@@ -230,7 +232,7 @@ class SeriesActivity : AppCompatActivity() {
 
     private fun showFavouritesSeries() {
         val favSeriesIds = FavouritesManager.getAll(this)
-            .filter { it.type == FavType.EPISODE && !it.hasResume && it.seriesId >= 0 }
+            .filter { it.type == FavType.EPISODE && !it.hasResume && !it.isUpNext && it.seriesId >= 0 }
             .map { it.seriesId }.toSet()
         val favShows = allShows.filter { it.seriesId in favSeriesIds }
         adapter.submitList(favShows)
@@ -239,7 +241,8 @@ class SeriesActivity : AppCompatActivity() {
     }
 
     private fun showContinueWatching() {
-        val continueItems = FavouritesManager.getAll(this).filter { it.hasResume && it.type == FavType.EPISODE }
+        val continueItems = FavouritesManager.getAll(this)
+            .filter { it.type == FavType.EPISODE && (it.hasResume || it.isUpNext) }
         // Per series, take the most recently touched episode
         val latestBySeriesId = continueItems
             .groupBy { it.seriesId }
@@ -247,7 +250,8 @@ class SeriesActivity : AppCompatActivity() {
         val resumeLabels = latestBySeriesId.mapValues { (_, fav) ->
             val ep = if (fav.season.isNotBlank() && fav.episodeNum > 0)
                 "S${fav.season}E${"%-2d".format(fav.episodeNum).trim()}  " else ""
-            "▶ ${ep}FROM ${FavouritesManager.formatDuration(fav.resumePositionMs)} / ${FavouritesManager.formatDuration(fav.durationMs)}"
+            if (fav.isUpNext) "▶ ${ep}UP NEXT"
+            else "▶ ${ep}FROM ${FavouritesManager.formatDuration(fav.resumePositionMs)} / ${FavouritesManager.formatDuration(fav.durationMs)}"
         }
         val resumeShows = allShows.filter { it.seriesId in resumeLabels }
         adapter.submitList(resumeShows, resumeLabels)
@@ -257,6 +261,33 @@ class SeriesActivity : AppCompatActivity() {
 
     private fun onShowSelected(show: SeriesStream) {
         val creds = viewModel.getCredentials() ?: return
+        if (showingContinue) {
+            val fav = FavouritesManager.getAll(this)
+                .filter { it.type == FavType.EPISODE && it.seriesId == show.seriesId && (it.hasResume || it.isUpNext) }
+                .maxByOrNull { it.addedAt }
+            if (fav != null) {
+                PlayerLauncher.launch(
+                    activity     = this,
+                    streamUrl    = fav.streamUrl,
+                    title        = fav.title,
+                    streamId     = fav.streamId,
+                    isLive       = false,
+                    favId        = fav.id,
+                    artUrl       = fav.artUrl,
+                    resumeMs     = fav.resumePositionMs,
+                    seriesId     = fav.seriesId,
+                    season       = fav.season,
+                    episodeNum   = fav.episodeNum,
+                    episodeId    = fav.episodeId,
+                    nextEpUrl    = fav.nextEpisodeUrl,
+                    nextEpTitle  = fav.nextEpisodeTitle,
+                    nextEpNum    = fav.nextEpisodeNum,
+                    nextEpSeason = fav.nextEpisodeSeason,
+                    nextEpId     = fav.nextEpisodeId
+                )
+                return
+            }
+        }
         startActivity(Intent(this, SeriesDetailActivity::class.java).apply {
             putExtra(SeriesDetailActivity.EXTRA_SERIES_ID, show.seriesId)
             putExtra(SeriesDetailActivity.EXTRA_SERIES_NAME, show.name)

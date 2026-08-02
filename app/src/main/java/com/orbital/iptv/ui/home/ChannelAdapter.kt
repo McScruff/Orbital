@@ -79,13 +79,12 @@ class ChannelAdapter(
         val density = holder.itemView.resources.displayMetrics.density
 
         fun applyRowBg(pos: Int, focused: Boolean) {
-            val color = when {
+            val baseColor = when {
                 pos == selectedPosition -> p.rowSelected
-                focused                 -> p.focus
                 pos % 2 == 0            -> p.rowEven
                 else                    -> p.rowOdd
             }
-            holder.itemView.background = ThemeManager.roundedBg(color, density)
+            holder.itemView.background = ThemeManager.focusRowDrawable(density, baseColor, focused)
             if (p.cardElevation > 0f) holder.itemView.elevation = p.cardElevation * density
         }
 

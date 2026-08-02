@@ -30,7 +30,8 @@ class RadioActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setBackgroundColor(p.bgHeader)
         binding.btnBack.setOnFocusChangeListener { _, h ->
-            binding.btnBack.setBackgroundColor(if (h) p.focus else p.bgHeader)
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, h)
         }
 
         adapter = RadioAdapter { station -> onStationSelected(station) }

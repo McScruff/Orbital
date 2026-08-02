@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.orbital.iptv.databinding.ActivityTeletextBinding
 import com.orbital.iptv.databinding.ItemTeletextHeadlineBinding
+import com.orbital.iptv.utils.ThemeManager
 import com.orbital.iptv.utils.TickerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,7 +63,11 @@ class TeletextActivity : AppCompatActivity() {
         listOf(binding.btnClose, binding.btnPrev, binding.btnNext,
                binding.btnRed, binding.btnGreen, binding.btnYellow, binding.btnBlue)
             .forEach { btn ->
-                btn.setOnFocusChangeListener { _, hasFocus -> btn.alpha = if (hasFocus) 1.0f else 0.75f }
+                val d = resources.displayMetrics.density
+                btn.setOnFocusChangeListener { _, hasFocus ->
+                    btn.alpha = if (hasFocus) 1.0f else 0.75f
+                    btn.background = ThemeManager.focusRowDrawable(d, android.graphics.Color.TRANSPARENT, hasFocus)
+                }
             }
 
         startClock()
@@ -352,7 +357,8 @@ class TeletextActivity : AppCompatActivity() {
         inner class VH(val b: ItemTeletextHeadlineBinding) : RecyclerView.ViewHolder(b.root) {
             init {
                 b.root.setOnFocusChangeListener { _, hasFocus ->
-                    b.root.setBackgroundColor(if (hasFocus) 0xFF001433.toInt() else 0xFF000000.toInt())
+                    val d = b.root.resources.displayMetrics.density
+                    b.root.background = ThemeManager.focusRowDrawable(d, 0xFF000000.toInt(), hasFocus, focusFillColor = 0xFF001433.toInt())
                 }
                 b.root.setOnClickListener {
                     val pos = bindingAdapterPosition

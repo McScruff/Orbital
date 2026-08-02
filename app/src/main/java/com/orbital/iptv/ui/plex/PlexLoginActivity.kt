@@ -57,16 +57,16 @@ class PlexLoginActivity : AppCompatActivity() {
         val yellowBg = 0xFFE5A00D.toInt()
 
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) p.focus else p.bgHeader)
+            binding.btnBack.background = ThemeManager.focusRowDrawable(density, p.bgHeader, hasFocus)
         }
 
         binding.tabDirect.setOnFocusChangeListener { _, hasFocus ->
             if (!usePin) return@setOnFocusChangeListener
-            binding.tabDirect.setBackgroundColor(if (hasFocus) p.focus else inactiveBg)
+            binding.tabDirect.background = ThemeManager.focusRowDrawable(density, inactiveBg, hasFocus)
         }
         binding.tabConnect.setOnFocusChangeListener { _, hasFocus ->
             if (usePin) return@setOnFocusChangeListener
-            binding.tabConnect.setBackgroundColor(if (hasFocus) p.focus else inactiveBg)
+            binding.tabConnect.background = ThemeManager.focusRowDrawable(density, inactiveBg, hasFocus)
         }
 
         listOf(binding.etServerUrl, binding.etToken).forEach { et ->
@@ -88,7 +88,7 @@ class PlexLoginActivity : AppCompatActivity() {
         }
 
         binding.btnRefreshPin.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnRefreshPin.setBackgroundColor(if (hasFocus) p.focus else 0xFF0A1628.toInt())
+            binding.btnRefreshPin.background = ThemeManager.focusRowDrawable(density, 0xFF0A1628.toInt(), hasFocus)
         }
     }
 

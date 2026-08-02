@@ -87,7 +87,8 @@ class EmbyBrowserActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { if (!handleBack()) finish() }
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1A3560.toInt())
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1A3560.toInt(), hasFocus)
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -266,11 +267,8 @@ class EmbyBrowserActivity : AppCompatActivity() {
             }
             view.setOnFocusChangeListener { _, hasFocus ->
                 val selected = tab == currentTab
-                view.setBackgroundColor(when {
-                    hasFocus -> 0xFF2D6090.toInt()
-                    selected -> 0xFF00557A.toInt()
-                    else     -> 0x00000000
-                })
+                val base = if (selected) 0xFF00557A.toInt() else 0x00000000
+                view.background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, base, hasFocus)
             }
         }
     }
@@ -354,7 +352,7 @@ class EmbyBrowserActivity : AppCompatActivity() {
                 setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
                     if (!isSelected)
-                        setBackgroundColor(if (hasFocus) 0xFF2A5A8A.toInt() else normalBg)
+                        background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, normalBg, hasFocus, focusFillColor = 0xFF2A5A8A.toInt())
                 }
                 setOnClickListener { onClick() }
             }

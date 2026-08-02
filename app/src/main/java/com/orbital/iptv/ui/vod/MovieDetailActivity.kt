@@ -59,7 +59,8 @@ class MovieDetailActivity : AppCompatActivity() {
         binding.btnBack.setBackgroundColor(p.bgHeader)
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) p.focus else p.bgHeader)
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, hasFocus)
         }
 
         binding.btnPlay.post { binding.btnPlay.requestFocus() }
@@ -83,13 +84,14 @@ class MovieDetailActivity : AppCompatActivity() {
         }
         binding.btnPlay.setBackgroundColor(p.highlight)
         binding.btnPlay.setOnFocusChangeListener { _, hasFocus ->
-            val pp = ThemeManager.palette()
-            binding.btnPlay.setBackgroundColor(if (hasFocus) pp.focus else pp.highlight)
+            val d = resources.displayMetrics.density
+            binding.btnPlay.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().highlight, hasFocus)
         }
 
         binding.btnSubs.setBackgroundColor(p.bgHeader)
         binding.btnSubs.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnSubs.setBackgroundColor(if (hasFocus) ThemeManager.palette().focus else ThemeManager.palette().bgHeader)
+            val d = resources.displayMetrics.density
+            binding.btnSubs.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, hasFocus)
         }
         binding.btnSubs.setOnClickListener {
             SubtitlePicker.pickForMovie(
@@ -123,13 +125,10 @@ class MovieDetailActivity : AppCompatActivity() {
         }
         binding.btnFav.setOnFocusChangeListener { _, hasFocus ->
             val isFav = FavouritesManager.contains(this, favId)
-            val pp = ThemeManager.palette()
-            binding.btnFav.setBackgroundColor(when {
-                hasFocus && isFav  -> 0xFF445522.toInt()
-                hasFocus && !isFav -> pp.focus
-                isFav              -> 0xFF2D4A20.toInt()
-                else               -> pp.bgHeader
-            })
+            val d = resources.displayMetrics.density
+            val baseColor = if (isFav) 0xFF2D4A20.toInt() else ThemeManager.palette().bgHeader
+            val focusColor = if (isFav) 0xFF445522.toInt() else ThemeManager.palette().focus
+            binding.btnFav.background = ThemeManager.focusRowDrawable(d, baseColor, hasFocus, focusFillColor = focusColor)
         }
 
         // Load poster (use cached if available)

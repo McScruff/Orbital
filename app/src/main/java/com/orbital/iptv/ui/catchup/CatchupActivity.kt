@@ -46,7 +46,8 @@ class CatchupActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setBackgroundColor(p.bgHeader)
         binding.btnBack.setOnFocusChangeListener { _, h ->
-            binding.btnBack.setBackgroundColor(if (h) p.focus else p.bgHeader)
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, h)
         }
 
         adapter = CatchupChannelAdapter(this) { channel -> onChannelSelected(channel) }
@@ -116,7 +117,8 @@ class CatchupActivity : AppCompatActivity() {
                 setOnFocusChangeListener { _, hasFocus ->
                     val p = ThemeManager.palette()
                     if (cat.categoryId != selectedCategoryId) {
-                        setBackgroundColor(if (hasFocus) p.focus else if (i % 2 == 0) p.bgMid else p.bgPrimary)
+                        val base = if (i % 2 == 0) p.bgMid else p.bgPrimary
+                        background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, base, hasFocus)
                     }
                 }
                 setOnClickListener { selectCategory(cat.categoryId) }

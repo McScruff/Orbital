@@ -67,7 +67,8 @@ class CatchupEpgActivity : AppCompatActivity() {
         binding.btnBack.setBackgroundColor(p.bgHeader)
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setOnFocusChangeListener { _, h ->
-            binding.btnBack.setBackgroundColor(if (h) p.focus else p.bgHeader)
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, h)
         }
 
         adapter = CatchupEpgAdapter { listing -> onProgrammeSelected(listing) }
@@ -109,7 +110,7 @@ class CatchupEpgActivity : AppCompatActivity() {
                 setOnClickListener { selectDay(offset) }
                 setOnFocusChangeListener { _, h ->
                     val p = ThemeManager.palette()
-                    if (offset != selectedDayOffset) setBackgroundColor(if (h) p.focus else p.bgPrimary)
+                    if (offset != selectedDayOffset) background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, p.bgPrimary, h)
                 }
             }
             dayTabs.add(tv)

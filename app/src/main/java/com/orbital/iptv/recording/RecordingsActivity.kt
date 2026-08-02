@@ -52,26 +52,21 @@ class RecordingsActivity : AppCompatActivity() {
         binding.recyclerView.adapter = adapter
 
         binding.btnBack.setOnClickListener { finish() }
+        val density = resources.displayMetrics.density
         binding.btnBack.setOnFocusChangeListener { _, f ->
-            binding.btnBack.setBackgroundColor(if (f) p.focus else 0xFF1A3560.toInt())
+            binding.btnBack.background = ThemeManager.focusRowDrawable(density, 0xFF1A3560.toInt(), f)
         }
 
         binding.btnScheduled.setOnClickListener { setTab(true) }
         binding.btnScheduled.setOnFocusChangeListener { _, f ->
-            binding.btnScheduled.setBackgroundColor(when {
-                f            -> p.focus
-                showingScheduled -> 0xFF1A4090.toInt()
-                else             -> 0xFF0D1B35.toInt()
-            })
+            val base = if (showingScheduled) 0xFF1A4090.toInt() else 0xFF0D1B35.toInt()
+            binding.btnScheduled.background = ThemeManager.focusRowDrawable(density, base, f)
         }
 
         binding.btnCompleted.setOnClickListener { setTab(false) }
         binding.btnCompleted.setOnFocusChangeListener { _, f ->
-            binding.btnCompleted.setBackgroundColor(when {
-                f                -> p.focus
-                !showingScheduled -> 0xFF1A4090.toInt()
-                else              -> 0xFF0D1B35.toInt()
-            })
+            val base = if (!showingScheduled) 0xFF1A4090.toInt() else 0xFF0D1B35.toInt()
+            binding.btnCompleted.background = ThemeManager.focusRowDrawable(density, base, f)
         }
 
         setTab(true)
@@ -198,9 +193,10 @@ class RecordingAdapter(
         // ── Focus highlight on the row (buttons blocked by descendantFocusability) ──
         val p     = ThemeManager.palette()
         val rowBg = if (position % 2 == 0) 0xFF0D1B35.toInt() else 0xFF0A1628.toInt()
-        holder.itemView.setBackgroundColor(rowBg)
+        val density = holder.itemView.resources.displayMetrics.density
+        holder.itemView.background = ThemeManager.focusRowDrawable(density, rowBg, false)
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->
-            holder.itemView.setBackgroundColor(if (hasFocus) p.rowSelected else rowBg)
+            holder.itemView.background = ThemeManager.focusRowDrawable(density, rowBg, hasFocus, focusFillColor = p.rowSelected)
         }
 
         // ── Actions — D-pad OK on the row or touch on any button ─────────────

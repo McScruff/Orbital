@@ -54,13 +54,14 @@ class VodActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this)[VodViewModel::class.java]
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnBack.setBackgroundColor(if (hasFocus) 0xFF2D6090.toInt() else 0xFF1E3D72.toInt())
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1E3D72.toInt(), hasFocus)
         }
 
         adapter = VodAdapter(this) { movie -> onMovieSelected(movie) }
         binding.rvMovies.apply {
             this.adapter = this@VodActivity.adapter
-            layoutManager = GridLayoutManager(this@VodActivity, 3)
+            layoutManager = GridLayoutManager(this@VodActivity, 5)
         }
 
         setupSearch()
@@ -164,7 +165,7 @@ class VodActivity : AppCompatActivity() {
                 background = ThemeManager.roundedBg(if (isSel) p.highlight else p.bgMid, density)
                 setTextColor(if (isSel) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSel) background = ThemeManager.roundedBg(if (hasFocus) p.focus else p.bgMid, density)
+                    if (!isSel) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
                 }
                 setOnClickListener {
                     showingFavourites = true; showingContinue = false
@@ -190,7 +191,7 @@ class VodActivity : AppCompatActivity() {
                 background = ThemeManager.roundedBg(if (isSel) p.highlight else p.bgMid, density)
                 setTextColor(if (isSel) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSel) background = ThemeManager.roundedBg(if (hasFocus) p.focus else p.bgMid, density)
+                    if (!isSel) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
                 }
                 setOnClickListener {
                     showingContinue = true; showingFavourites = false
@@ -219,7 +220,7 @@ class VodActivity : AppCompatActivity() {
                 background = if (isSelected) ThemeManager.roundedBg(p.highlight, density) else ThemeManager.roundedBg(normalBg, density)
                 setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSelected) background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, density)
+                    if (!isSelected) background = ThemeManager.focusRowDrawable(density, normalBg, hasFocus)
                 }
                 setOnClickListener {
                     showingContinue = false; showingFavourites = false

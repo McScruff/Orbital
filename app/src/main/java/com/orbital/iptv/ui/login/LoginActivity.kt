@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
@@ -73,6 +74,22 @@ class LoginActivity : AppCompatActivity() {
             }
             et.setOnClickListener { view -> showKeyboard(view) }
         }
+
+        // Fire TV / Android TV on-screen keyboards capture D-pad up/down for their own key
+        // grid, so D-pad focus search alone can't escape a field once the IME is open. Wire
+        // the keyboard's Next/Done action explicitly so it always advances focus.
+        binding.etProfileName.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) { binding.etServerUrl.requestFocus(); true } else false
+        }
+        binding.etServerUrl.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) { binding.etUsername.requestFocus(); true } else false
+        }
+        binding.etUsername.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) { binding.etPassword.requestFocus(); true } else false
+        }
+        binding.etPassword.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) { binding.btnConnect.performClick(); true } else false
+        }
     }
 
     private fun showKeyboard(view: View) {
@@ -96,6 +113,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
+        val connectBaseColor = androidx.core.content.ContextCompat.getColor(this, R.color.sky_yellow)
+        binding.btnConnect.setOnFocusChangeListener { _, hasFocus ->
+            binding.btnConnect.background = ThemeManager.focusRowDrawable(
+                resources.displayMetrics.density, connectBaseColor, hasFocus, focusFillColor = connectBaseColor
+            )
+        }
         binding.btnConnect.setOnClickListener {
             val url  = binding.etServerUrl.text.toString().trim()
             val user = binding.etUsername.text.toString().trim()

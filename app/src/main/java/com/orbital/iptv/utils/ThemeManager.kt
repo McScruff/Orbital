@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.StateListDrawable
+import android.view.Gravity
 import kotlin.math.max
 
 object ThemeManager {
@@ -45,7 +47,7 @@ object ThemeManager {
             rowEven     = 0xFF0C1630.toInt(),
             rowOdd      = 0xFF080E20.toInt(),
             rowSelected = 0xFF1A4A8A.toInt(),
-            cornerRadiusDp = 10f,
+            cornerRadiusDp = 0f,
             itemMarginDp   = 3f,
             cardElevation  = 4f
         ),
@@ -61,7 +63,7 @@ object ThemeManager {
             rowEven     = 0xFF121212.toInt(),
             rowOdd      = 0xFF000000.toInt(),
             rowSelected = 0xFFFFFFFF.toInt(),
-            cornerRadiusDp = 10f,
+            cornerRadiusDp = 0f,
             itemMarginDp   = 3f,
             cardElevation  = 4f
         )
@@ -159,6 +161,48 @@ object ThemeManager {
     }
 
     /**
+     * TV Mode main-menu row background — a flat fill, plus (when [focused]) a thin accent
+     * bar pinned to the start edge so the focused row reads clearly even at a glance from
+     * the couch, on top of the fill-color swap the caller already does on focus.
+     */
+    fun menuRowDrawable(density: Float, baseColor: Int, focused: Boolean): Drawable {
+        if (!focused) return ColorDrawable(baseColor)
+        val p = palette()
+        val bar = GradientDrawable().apply { setColor(p.highlight) }
+        val box = GradientDrawable().apply {
+            setColor(baseColor)
+            setStroke(max(1, (2 * density).toInt()), p.accent)
+        }
+        return LayerDrawable(arrayOf<Drawable>(box, bar)).apply {
+            setLayerWidth(1, (4 * density).toInt())
+            setLayerGravity(1, Gravity.START)
+        }
+    }
+
+    /**
+     * Generic boxed focus treatment for anything that currently only swaps background colour
+     * on D-pad focus (category menus, sidebar rows, list-adapter rows, plain buttons) — a
+     * colour-only cue is easy to miss at a glance from the couch, so every focusable row/button
+     * in the app should draw a visible accent-coloured box around itself when focused, matching
+     * the stroke treatment already used by the VOD/Series poster grids.
+     */
+    fun focusRowDrawable(
+        density: Float,
+        baseColor: Int,
+        focused: Boolean,
+        focusFillColor: Int = palette().focus,
+        strokeWidthDp: Float = 2f
+    ): Drawable {
+        val p = palette()
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(if (focused) focusFillColor else baseColor)
+            cornerRadius = p.cornerRadiusDp * density
+            if (focused) setStroke(max(1, (strokeWidthDp * density).toInt()), p.accent)
+        }
+    }
+
+    /**
      * Rounded "bubble" pill background for the Home screen's top nav tabs (TV GUIDE / BOX
      * OFFICE / RADIO / INTERACTIVE / SETTINGS). [selected] is the persistently-active tab
      * (accent-filled, black text expected from the caller); everything else is a neutral pill
@@ -166,13 +210,14 @@ object ThemeManager {
      */
     fun navTabDrawable(density: Float, selected: Boolean): StateListDrawable {
         val p = palette()
-        fun shape(color: Int) = GradientDrawable().apply {
+        fun shape(color: Int, strokeColor: Int? = null) = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setColor(color)
             cornerRadius = 18f * density
+            strokeColor?.let { setStroke(max(1, (2 * density).toInt()), it) }
         }
         return StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_focused), shape(p.focus))
+            addState(intArrayOf(android.R.attr.state_focused), shape(p.focus, p.accent))
             addState(intArrayOf(android.R.attr.state_pressed), shape(p.focus))
             addState(intArrayOf(), shape(if (selected) p.highlight else p.bgMid))
         }

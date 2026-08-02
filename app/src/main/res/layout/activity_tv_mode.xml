@@ -22,7 +22,7 @@
          ══════════════════════════════════════════════════════════════════════ -->
     <LinearLayout
         android:id="@+id/left_panel"
-        android:layout_width="500dp"
+        android:layout_width="420dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:orientation="vertical"

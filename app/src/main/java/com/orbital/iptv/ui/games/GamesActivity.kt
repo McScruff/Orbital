@@ -31,7 +31,7 @@ class GamesActivity : AppCompatActivity() {
         binding.viewAccent?.setBackgroundColor(p.accent)
 
         fun tileBg(focused: Boolean, focusColor: Int = p.focus) =
-            ThemeManager.roundedBg(if (focused) focusColor else p.bgMid, density)
+            ThemeManager.focusRowDrawable(density, p.bgMid, focused, focusFillColor = focusColor)
 
         binding.btnBack.background = tileBg(false)
         binding.btnBack.setOnClickListener { finish() }

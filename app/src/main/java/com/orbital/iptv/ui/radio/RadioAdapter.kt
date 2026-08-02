@@ -36,7 +36,8 @@ class RadioAdapter(private val onClick: (RadioStation) -> Unit) :
         holder.itemView.setBackgroundColor(bg)
 
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->
-            holder.itemView.setBackgroundColor(if (hasFocus) p.focus else bg)
+            val density = holder.itemView.resources.displayMetrics.density
+            holder.itemView.background = ThemeManager.focusRowDrawable(density, bg, hasFocus)
         }
         holder.itemView.setOnClickListener { onClick(station) }
         holder.itemView.isFocusable = true

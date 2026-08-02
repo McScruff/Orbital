@@ -365,7 +365,7 @@ class TvModeActivity : AppCompatActivity() {
 
         binding.hudTop.setBackgroundColor(ThemeManager.withAlpha(p.bgHeader, panelAlpha()))
         binding.tvChannelName.setTextColor(p.accent)
-        binding.btnHudMenu.background = ThemeManager.hudButtonDrawable(density, withAccentStroke = false)
+        binding.btnHudMenu.background = ThemeManager.hudButtonDrawable(density)
         listOf(binding.btnHudAudio, binding.btnHudSurround, binding.btnHudScores, binding.btnHudNews).forEach {
             it.background = ThemeManager.hudButtonDrawable(density)
         }
@@ -386,15 +386,18 @@ class TvModeActivity : AppCompatActivity() {
 
     private fun setupButtons() {
         val p = ThemeManager.palette()
+        val density = resources.displayMetrics.density
         binding.surfaceView.setOnClickListener { showHudOverlay() }
 
         fun menuItem(view: android.widget.TextView, bg: Int, action: () -> Unit) {
             val bgA = ThemeManager.withAlpha(bg, panelAlpha())
             view.tag = bgA
-            view.setBackgroundColor(bgA)
+            view.background = ThemeManager.menuRowDrawable(density, bgA, focused = false)
             view.setOnClickListener { action() }
             view.setOnFocusChangeListener { _, hasFocus ->
-                view.setBackgroundColor(if (hasFocus) p.focus else bgA)
+                view.background = ThemeManager.menuRowDrawable(
+                    density, if (hasFocus) p.focus else bgA, focused = hasFocus
+                )
             }
         }
 
@@ -431,7 +434,7 @@ class TvModeActivity : AppCompatActivity() {
         updateRecordButton()
         binding.btnHudRecord.setOnFocusChangeListener { _, hasFocus ->
             val baseColor = if (isRecording) 0xFFCC0000.toInt() else 0xFF8B0000.toInt()
-            binding.btnHudRecord.setBackgroundColor(if (hasFocus) p.focus else baseColor)
+            binding.btnHudRecord.background = ThemeManager.focusRowDrawable(density, baseColor, hasFocus)
             if (hasFocus) { hudHandler.removeCallbacks(hideHud); hudHandler.postDelayed(hideHud, 5000L) }
         }
         binding.btnHudRecord.setOnClickListener {
@@ -440,7 +443,7 @@ class TvModeActivity : AppCompatActivity() {
 
         binding.btnHudScores.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                binding.btnHudScores.setBackgroundColor(p.focus)
+                binding.btnHudScores.background = ThemeManager.focusRowDrawable(density, p.focus, true)
                 hudHandler.removeCallbacks(hideHud); hudHandler.postDelayed(hideHud, 5000L)
             } else if (TickerManager.tickerEnabled) {
                 binding.btnHudScores.setBackgroundResource(R.drawable.bg_btn_scores_on)
@@ -452,7 +455,7 @@ class TvModeActivity : AppCompatActivity() {
 
         binding.btnHudNews.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                binding.btnHudNews.setBackgroundColor(p.focus)
+                binding.btnHudNews.background = ThemeManager.focusRowDrawable(density, p.focus, true)
                 hudHandler.removeCallbacks(hideHud); hudHandler.postDelayed(hideHud, 5000L)
             } else if (TickerManager.newsTickerEnabled) {
                 binding.btnHudNews.setBackgroundResource(R.drawable.bg_btn_scores_on)
@@ -472,6 +475,10 @@ class TvModeActivity : AppCompatActivity() {
         hudHandler.postDelayed(hideHud, 5000L)
         binding.btnHudMenu.requestFocus()
         updateSurroundButton()
+        // Re-evaluate NOW/NEXT against the current time — loadEpgForCurrentChannel() was only
+        // ever called on tune-in, so a channel left playing past the cached programme's end time
+        // showed a stale NOW/NEXT until the user changed channel.
+        loadEpgForCurrentChannel()
     }
 
     private fun hideHudOverlay() {
@@ -577,7 +584,10 @@ class TvModeActivity : AppCompatActivity() {
     private fun updateRecordButton() {
         isRecording = RecordingState.activeRecordNowUrl == currentStreamUrl
         binding.btnHudRecord.text = if (isRecording) "■ STOP REC" else "● REC"
-        binding.btnHudRecord.setBackgroundColor(if (isRecording) 0xFFCC0000.toInt() else 0xFF8B0000.toInt())
+        val baseColor = if (isRecording) 0xFFCC0000.toInt() else 0xFF8B0000.toInt()
+        binding.btnHudRecord.background = ThemeManager.focusRowDrawable(
+            resources.displayMetrics.density, baseColor, binding.btnHudRecord.isFocused
+        )
     }
 
     private fun startRecording() {
@@ -2321,7 +2331,7 @@ class NowNextAdapter(
 
         holder.itemView.background = ThemeManager.roundedBg(normalBg, d)
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->
-            if (!isPlaying) holder.itemView.background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, d)
+            if (!isPlaying) holder.itemView.background = ThemeManager.focusRowDrawable(d, normalBg, hasFocus)
             if (hasFocus) onFocus?.invoke(item.streamId)
         }
         holder.itemView.setOnClickListener { onSelect(item.streamId) }
@@ -2383,7 +2393,7 @@ class CategoryPanelAdapter(
         holder.tv.setTextColor(if (isCurrent) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
         holder.tv.background = ThemeManager.roundedBg(normalBg, d)
         holder.tv.setOnFocusChangeListener { _, hasFocus ->
-            if (!isCurrent) holder.tv.background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, d)
+            if (!isCurrent) holder.tv.background = ThemeManager.focusRowDrawable(d, normalBg, hasFocus)
         }
         holder.tv.setOnClickListener { onSelect(cat) }
     }
@@ -2406,7 +2416,7 @@ class EpgListAdapter(
         val d = parent.resources.displayMetrics.density
         val root = LinearLayout(parent.context).apply {
             orientation = LinearLayout.HORIZONTAL
-            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (48 * d).toInt())
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (46 * d).toInt())
             isFocusable = true; isClickable = true
             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         }
@@ -2470,9 +2480,7 @@ class EpgListAdapter(
         })
         holder.itemView.background = ThemeManager.roundedBg(normalBg, d)
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->
-            if (!isCurrent) holder.itemView.background = ThemeManager.roundedBg(
-                if (hasFocus) p.focus else normalBg, d
-            )
+            if (!isCurrent) holder.itemView.background = ThemeManager.focusRowDrawable(d, normalBg, hasFocus)
         }
         holder.itemView.setOnClickListener { onSelect?.invoke(item, isCurrent) }
     }

@@ -647,8 +647,8 @@ class HomeActivity : AppCompatActivity() {
 
         binding.headerTvListings.setOnClickListener { launchEpgGuide() }
         binding.headerTvListings.setOnFocusChangeListener { _, hasFocus ->
-            val p = ThemeManager.palette()
-            binding.headerTvListings.setBackgroundColor(if (hasFocus) p.focus else p.highlight)
+            val d = resources.displayMetrics.density
+            binding.headerTvListings.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().highlight, hasFocus)
         }
         binding.headerTvListings.text = "  1  TV GUIDE"
 
@@ -702,7 +702,7 @@ class HomeActivity : AppCompatActivity() {
                 setTextColor(0xFFFFFFFF.toInt())
             }
             setOnFocusChangeListener { _, hasFocus ->
-                if (!isFavSelected) background = ThemeManager.roundedBg(if (hasFocus) p.focus else p.bgMid, density)
+                if (!isFavSelected) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
             }
             setOnClickListener {
                 val ids = FavouritesManager.getLiveChannels(this@HomeActivity).map { it.streamId }.toSet()
@@ -742,7 +742,7 @@ class HomeActivity : AppCompatActivity() {
                 }
 
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSelected) background = ThemeManager.roundedBg(if (hasFocus) p.focus else normalBg, density)
+                    if (!isSelected) background = ThemeManager.focusRowDrawable(density, normalBg, hasFocus)
                 }
 
                 setOnClickListener {

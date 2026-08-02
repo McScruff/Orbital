@@ -83,7 +83,8 @@ class SportsActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
         binding.btnBack.setOnFocusChangeListener { _, h ->
-            binding.btnBack.setBackgroundColor(if (h) 0xFF2D6090.toInt() else 0xFF1E3D72.toInt())
+            val d = resources.displayMetrics.density
+            binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1E3D72.toInt(), h)
         }
 
         matchAdapter = MatchAdapter(
@@ -322,7 +323,7 @@ class SportsActivity : AppCompatActivity() {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         .also { (it as LinearLayout.LayoutParams).topMargin = (4 * dp).toInt() }
                     setBackgroundColor(0xFF0D1A2E.toInt())
-                    setOnFocusChangeListener { _, h -> setBackgroundColor(if (h) 0xFF1E4A9E.toInt() else 0xFF0D1A2E.toInt()) }
+                    setOnFocusChangeListener { _, h -> background = ThemeManager.focusRowDrawable(dp, 0xFF0D1A2E.toInt(), h, focusFillColor = 0xFF1E4A9E.toInt()) }
                     setOnClickListener {
                         val streamUrl = xtreamRepository.buildStreamUrl(serverUrl, username, password, stream.streamId)
                         startActivity(Intent(this@SportsActivity, PlayerActivity::class.java).apply {
@@ -363,7 +364,7 @@ class SportsActivity : AppCompatActivity() {
                 ).also { it.marginEnd = (4 * dp).toInt() }
                 setOnClickListener { selectLeague(idx) }
                 setOnFocusChangeListener { _, h ->
-                    if (idx != leagueIdx) setBackgroundColor(if (h) 0xFF2D6090.toInt() else 0xFF0D1A2E.toInt())
+                    if (idx != leagueIdx) background = ThemeManager.focusRowDrawable(dp, 0xFF0D1A2E.toInt(), h, focusFillColor = 0xFF2D6090.toInt())
                 }
             }
             leagueTabs.add(tv)
@@ -398,11 +399,14 @@ class SportsActivity : AppCompatActivity() {
             updateDateLabel()
             if (!showTable) fetchData()
         }
+        val dateNavDp = resources.displayMetrics.density
         binding.btnDatePrev.setOnFocusChangeListener { _, h ->
             binding.btnDatePrev.setTextColor(if (h) 0xFF00CCCC.toInt() else 0xFFFFFFFF.toInt())
+            binding.btnDatePrev.background = ThemeManager.focusRowDrawable(dateNavDp, android.graphics.Color.TRANSPARENT, h)
         }
         binding.btnDateNext.setOnFocusChangeListener { _, h ->
             binding.btnDateNext.setTextColor(if (h) 0xFF00CCCC.toInt() else 0xFFFFFFFF.toInt())
+            binding.btnDateNext.background = ThemeManager.focusRowDrawable(dateNavDp, android.graphics.Color.TRANSPARENT, h)
         }
     }
 
@@ -427,11 +431,12 @@ class SportsActivity : AppCompatActivity() {
     private fun setupModeToggle() {
         binding.tabGames.setOnClickListener { setMode(false) }
         binding.tabStandings.setOnClickListener { setMode(true) }
+        val toggleDp = resources.displayMetrics.density
         binding.tabGames.setOnFocusChangeListener { _, h ->
-            if (showTable) binding.tabGames.setBackgroundColor(if (h) 0xFF2D6090.toInt() else 0xFF0D1A2E.toInt())
+            if (showTable) binding.tabGames.background = ThemeManager.focusRowDrawable(toggleDp, 0xFF0D1A2E.toInt(), h, focusFillColor = 0xFF2D6090.toInt())
         }
         binding.tabStandings.setOnFocusChangeListener { _, h ->
-            if (!showTable) binding.tabStandings.setBackgroundColor(if (h) 0xFF2D6090.toInt() else 0xFF0D1A2E.toInt())
+            if (!showTable) binding.tabStandings.background = ThemeManager.focusRowDrawable(toggleDp, 0xFF0D1A2E.toInt(), h, focusFillColor = 0xFF2D6090.toInt())
         }
     }
 
