@@ -64,6 +64,7 @@ import com.orbital.iptv.ui.radio.RadioStations
 import com.orbital.iptv.ui.plex.PlexBrowserActivity
 import com.orbital.iptv.ui.plex.PlexLoginActivity
 import com.orbital.iptv.utils.EmbyPrefsManager
+import com.orbital.iptv.utils.GoalFlashManager
 import com.orbital.iptv.utils.PlexPrefsManager
 import com.orbital.iptv.ui.player.PlayerActivity
 import com.orbital.iptv.ui.series.SeriesActivity
@@ -114,6 +115,10 @@ class TvModeActivity : AppCompatActivity() {
         const val EXTRA_STREAM_ID    = "tv_stream_id"
         const val EXTRA_CATEGORY_ID  = "tv_category_id"
         private const val FAV_CATEGORY_ID = "__favourites__"
+
+        // Fires a sample Goal Flash card for previewing the feature, e.g.:
+        // adb shell am broadcast -a com.orbital.iptv.DEBUG_GOAL_FLASH [--ez disallowed true]
+        const val ACTION_DEBUG_GOAL_FLASH = "com.orbital.iptv.DEBUG_GOAL_FLASH"
     }
 
     // Three-level left-panel navigation.
@@ -161,9 +166,23 @@ class TvModeActivity : AppCompatActivity() {
         .connectTimeout(8, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).build()
     private val tickerHandler = Handler(Looper.getMainLooper())
     private val newsHandler   = Handler(Looper.getMainLooper())
+    private val goalFlashHandler = Handler(Looper.getMainLooper())
     private var pendingTickerText: String? = null
     private var tickerScrollAnim: ValueAnimator? = null
     private var tickerShowingPlaceholder = false
+
+    private val debugGoalFlashReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: Intent?) {
+            val sample = GoalFlashManager.GoalEvent(
+                gameLabel   = "Newcastle Utd vs Liverpool",
+                scoreLabel  = "Newcastle Utd 2 – 2 Liverpool",
+                detailLabel = "J. Willock  57'",
+                disallowed  = intent?.getBooleanExtra("disallowed", false) ?: false
+            )
+            binding.goalFlashOverlay.addFlash(sample, GoalFlashManager.getDurationSeconds(this@TvModeActivity).toLong() * 1000L)
+        }
+    }
+
     private val tickerRunnable = object : Runnable {
         override fun run() {
             fetchTickerScores()
@@ -175,6 +194,15 @@ class TvModeActivity : AppCompatActivity() {
         override fun run() {
             fetchNewsHeadlines()
             newsHandler.postDelayed(this, 300_000L)
+        }
+    }
+    private val goalFlashRunnable = object : Runnable {
+        override fun run() {
+            val self = this
+            lifecycleScope.launch {
+                GoalFlashManager.poll(this@TvModeActivity)
+                goalFlashHandler.postDelayed(self, if (GoalFlashManager.hasLiveGames) 25_000L else 90_000L)
+            }
         }
     }
 
@@ -209,6 +237,7 @@ class TvModeActivity : AppCompatActivity() {
         if (TickerManager.tickerEnabled) startTicker()
         updateNewsButton()
         if (TickerManager.newsTickerEnabled) startNewsTicker()
+        if (GoalFlashManager.enabled) startGoalFlash()
 
         TvModeHolder.invalidateIfServerChanged(
             PrefsManager.getCredentials(this)?.serverUrl ?: ""
@@ -464,6 +493,17 @@ class TvModeActivity : AppCompatActivity() {
             }
         }
         binding.btnHudNews.setOnClickListener { toggleNewsTicker() }
+
+        updateGoalFlashButton()
+        binding.btnHudGoalFlash.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                binding.btnHudGoalFlash.background = ThemeManager.focusRowDrawable(density, p.focus, true)
+                hudHandler.removeCallbacks(hideHud); hudHandler.postDelayed(hideHud, 5000L)
+            } else {
+                updateGoalFlashButton()
+            }
+        }
+        binding.btnHudGoalFlash.setOnClickListener { toggleGoalFlash() }
     }
 
     private fun showHudOverlay() {
@@ -721,17 +761,15 @@ class TvModeActivity : AppCompatActivity() {
     private fun fetchTickerScores() {
         val selected = TickerManager.getSelected(this)
         if (selected.isEmpty()) { TickerManager.liveScores = emptyList(); updateTickerText(); return }
-        val byLeague = selected.groupBy { it.leagueId }
+        val byLeague = selected.groupBy { it.sportPath to it.leagueId }
         val selectedIds = selected.map { it.id }.toSet()
         lifecycleScope.launch {
             try {
                 val scores = mutableListOf<TickerManager.LiveScore>()
                 withContext(Dispatchers.IO) {
-                    byLeague.keys.forEach { leagueId ->
-                        val url = "https://site.api.espn.com/apis/site/v2/sports/soccer/$leagueId/scoreboard"
-                        val json = tickerHttp.newCall(
-                            Request.Builder().url(url).header("User-Agent", "Mozilla/5.0").build()
-                        ).execute().use { it.body?.string() ?: "" }
+                    byLeague.keys.forEach { (sportPath, leagueId) ->
+                        val url = "https://site.api.espn.com/apis/site/v2/sports/$sportPath/$leagueId/scoreboard"
+                        val json = TickerManager.espnGet(url)
                         scores.addAll(parseTickerScores(json, selectedIds))
                     }
                 }
@@ -826,6 +864,29 @@ class TvModeActivity : AppCompatActivity() {
         newsHandler.removeCallbacks(newsRunnable)
         binding.tvNewsTicker.stop()
         binding.newsTickerRow.visibility = View.GONE
+    }
+
+    // ── Goal Flash ────────────────────────────────────────────────────────────
+
+    private fun toggleGoalFlash() {
+        GoalFlashManager.enabled = !GoalFlashManager.enabled
+        updateGoalFlashButton()
+        if (GoalFlashManager.enabled) startGoalFlash() else stopGoalFlash()
+    }
+
+    private fun updateGoalFlashButton() {
+        val density = resources.displayMetrics.density
+        if (GoalFlashManager.enabled) binding.btnHudGoalFlash.setBackgroundResource(R.drawable.bg_btn_scores_on)
+        else binding.btnHudGoalFlash.background = ThemeManager.hudButtonDrawable(density)
+    }
+
+    private fun startGoalFlash() {
+        goalFlashHandler.removeCallbacks(goalFlashRunnable)
+        goalFlashHandler.post(goalFlashRunnable)
+    }
+
+    private fun stopGoalFlash() {
+        goalFlashHandler.removeCallbacks(goalFlashRunnable)
     }
 
     private fun fetchNewsHeadlines() {
@@ -1633,7 +1694,7 @@ class TvModeActivity : AppCompatActivity() {
     private fun showInteractiveMenu() {
         data class Item(val label: String, val action: () -> Unit)
         val items = mutableListOf(
-            Item("SPORTS")         { startActivity(Intent(this, SportsActivity::class.java)) },
+            Item("SPORTS BAR")     { startActivity(Intent(this, SportsActivity::class.java)) },
             Item("TELETEXT")       { startActivity(Intent(this, TeletextActivity::class.java)) },
             Item("BUBBLE SHOOTER") { startActivity(Intent(this, BubbleShooterActivity::class.java)) }
         )
@@ -1709,6 +1770,7 @@ class TvModeActivity : AppCompatActivity() {
             showTmdbKeyDialog()
         }
         items += Item("LIVE STREAM FORMAT: ${PrefsManager.getLiveFormat(this).uppercase()}") { toggleLiveFormat() }
+        items += Item("GOAL FLASH DURATION: ${GoalFlashManager.getDurationSeconds(this)}s") { showGoalFlashDurationPicker() }
         items += Item("PIN PROTECTED CATEGORIES")       { showPinProtectedCategories() }
         items += Item("CHANGE PIN")                    { showChangePinDialog() }
         items += Item("CHECK FOR UPDATES")             { checkForUpdatesManually() }
@@ -1873,6 +1935,17 @@ class TvModeActivity : AppCompatActivity() {
             .setItems(labels) { _, which ->
                 ThemeManager.set(this, themes[which])
                 recreate()
+            })
+    }
+
+    private fun showGoalFlashDurationPicker() {
+        val options = intArrayOf(3, 5, 8, 10, 15)
+        val current = GoalFlashManager.getDurationSeconds(this)
+        val labels = options.map { s -> if (s == current) "●  ${s}s" else "○  ${s}s" }.toTypedArray()
+        showTvDialog(AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
+            .setTitle("GOAL FLASH DURATION")
+            .setItems(labels) { _, which ->
+                GoalFlashManager.setDurationSeconds(this, options[which])
             })
     }
 
@@ -2242,6 +2315,16 @@ class TvModeActivity : AppCompatActivity() {
         super.onResume()
         player?.play()
         updateRecordButton()
+        GoalFlashManager.onGoal = { event ->
+            runOnUiThread {
+                binding.goalFlashOverlay.addFlash(event, GoalFlashManager.getDurationSeconds(this).toLong() * 1000L)
+            }
+        }
+        androidx.core.content.ContextCompat.registerReceiver(
+            this, debugGoalFlashReceiver,
+            android.content.IntentFilter(ACTION_DEBUG_GOAL_FLASH),
+            androidx.core.content.ContextCompat.RECEIVER_EXPORTED
+        )
         if (binding.hudTop.visibility != View.VISIBLE && panelState == PanelState.NONE) {
             binding.surfaceView.requestFocus()
         }
@@ -2255,6 +2338,8 @@ class TvModeActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         player?.pause()
+        GoalFlashManager.onGoal = null
+        try { unregisterReceiver(debugGoalFlashReceiver) } catch (_: Exception) {}
     }
 
     override fun onDestroy() {
@@ -2265,6 +2350,7 @@ class TvModeActivity : AppCompatActivity() {
         hudHandler.removeCallbacksAndMessages(null)
         tickerHandler.removeCallbacksAndMessages(null)
         newsHandler.removeCallbacksAndMessages(null)
+        goalFlashHandler.removeCallbacksAndMessages(null)
         tickerScrollAnim?.cancel()
         binding.tvNewsTicker.stop()
         player?.release()

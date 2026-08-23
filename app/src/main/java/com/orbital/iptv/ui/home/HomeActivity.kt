@@ -208,7 +208,7 @@ class HomeActivity : AppCompatActivity() {
     private fun showInteractiveMenu() {
         data class MenuItem(val label: String, val action: () -> Unit)
         val items = mutableListOf(
-            MenuItem("SPORTS")         { startActivity(Intent(this, SportsActivity::class.java)) },
+            MenuItem("SPORTS BAR")     { startActivity(Intent(this, SportsActivity::class.java)) },
             MenuItem("TELETEXT")       { startActivity(Intent(this, TeletextActivity::class.java)) },
             MenuItem("BUBBLE SHOOTER") { startActivity(Intent(this, BubbleShooterActivity::class.java)) },
         )
@@ -309,6 +309,8 @@ class HomeActivity : AppCompatActivity() {
         items += Item(tmdbKeyLabel)                       { showTmdbKeyDialog() }
         val liveFormatLabel = "LIVE STREAM FORMAT: ${PrefsManager.getLiveFormat(this).uppercase()}"
         items += Item(liveFormatLabel) { toggleLiveFormat() }
+        val goalFlashLabel = "GOAL FLASH DURATION: ${com.orbital.iptv.utils.GoalFlashManager.getDurationSeconds(this)}s"
+        items += Item(goalFlashLabel)                     { showGoalFlashDurationPicker() }
         items += Item("PIN PROTECTED CATEGORIES")          { showPinProtectedCategories() }
         items += Item("CHANGE PIN")                       { showChangePinDialog() }
         items += Item("CHECK FOR UPDATES")                { checkForUpdatesManually() }
@@ -406,6 +408,18 @@ class HomeActivity : AppCompatActivity() {
             .setItems(labels) { _, which ->
                 ThemeManager.set(this, themes[which])
                 recreate()
+            }
+            .show()
+    }
+
+    private fun showGoalFlashDurationPicker() {
+        val options = intArrayOf(3, 5, 8, 10, 15)
+        val current = com.orbital.iptv.utils.GoalFlashManager.getDurationSeconds(this)
+        val labels = options.map { s -> if (s == current) "●  ${s}s" else "○  ${s}s" }.toTypedArray()
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
+            .setTitle("GOAL FLASH DURATION")
+            .setItems(labels) { _, which ->
+                com.orbital.iptv.utils.GoalFlashManager.setDurationSeconds(this, options[which])
             }
             .show()
     }

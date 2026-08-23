@@ -1,6 +1,14 @@
 package com.orbital.iptv.utils
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.ColorFilter
+import android.graphics.LinearGradient
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PixelFormat
+import android.graphics.Rect
+import android.graphics.Shader
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
@@ -203,23 +211,89 @@ object ThemeManager {
     }
 
     /**
-     * Rounded "bubble" pill background for the Home screen's top nav tabs (TV GUIDE / BOX
-     * OFFICE / RADIO / INTERACTIVE / SETTINGS). [selected] is the persistently-active tab
-     * (accent-filled, black text expected from the caller); everything else is a neutral pill
-     * that only lights up on focus.
+     * Angled "sci-fi HUD" parallelogram background for the Home screen's top nav tabs (TV
+     * GUIDE / BOX OFFICE / RADIO / INTERACTIVE / SETTINGS) — replaces the old rounded-pill
+     * look. [selected] is the persistently-active tab: it gets a diagonal accent gradient fill
+     * and a thin accent outline even without focus; everything else is a flat neutral chip
+     * that only lights up (with a soft layered glow) on D-pad focus.
      */
     fun navTabDrawable(density: Float, selected: Boolean): StateListDrawable {
         val p = palette()
-        fun shape(color: Int, strokeColor: Int? = null) = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            setColor(color)
-            cornerRadius = 18f * density
-            strokeColor?.let { setStroke(max(1, (2 * density).toInt()), it) }
-        }
+        val skew = 12f * density
         return StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_focused), shape(p.focus, p.accent))
-            addState(intArrayOf(android.R.attr.state_pressed), shape(p.focus))
-            addState(intArrayOf(), shape(if (selected) p.highlight else p.bgMid))
+            addState(
+                intArrayOf(android.R.attr.state_focused),
+                AngledTabDrawable(skew, p.focus, null, p.accent, glow = true)
+            )
+            addState(
+                intArrayOf(android.R.attr.state_pressed),
+                AngledTabDrawable(skew, p.focus, null, p.accent, glow = false)
+            )
+            addState(
+                intArrayOf(),
+                if (selected) AngledTabDrawable(skew, p.highlight, dim(p.highlight, 0.72f), p.accent, glow = false)
+                else AngledTabDrawable(skew, p.bgMid, null, null, glow = false)
+            )
         }
+    }
+
+    /**
+     * Parallelogram-shaped Drawable (top edge shifted right of the bottom edge by [skewPx]) —
+     * the shape behind [navTabDrawable]. [fillColor2] non-null draws a diagonal gradient
+     * instead of a flat fill. The glow on focus is drawn as a few widening, fading stroke
+     * passes rather than Paint.setShadowLayer(), which isn't reliably hardware-accelerated on
+     * every device this app targets (notably Fire TV Stick).
+     */
+    private class AngledTabDrawable(
+        private val skewPx: Float,
+        private val fillColor: Int,
+        private val fillColor2: Int?,
+        private val strokeColor: Int?,
+        private val glow: Boolean
+    ) : Drawable() {
+        private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+        private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+        private val path = Path()
+
+        override fun onBoundsChange(b: Rect) {
+            super.onBoundsChange(b)
+            path.reset()
+            path.moveTo(b.left + skewPx, b.top.toFloat())
+            path.lineTo(b.right.toFloat(), b.top.toFloat())
+            path.lineTo(b.right - skewPx, b.bottom.toFloat())
+            path.lineTo(b.left.toFloat(), b.bottom.toFloat())
+            path.close()
+            fillPaint.shader = fillColor2?.let {
+                LinearGradient(
+                    b.left.toFloat(), b.top.toFloat(), b.right.toFloat(), b.bottom.toFloat(),
+                    fillColor, it, Shader.TileMode.CLAMP
+                )
+            }
+            fillPaint.color = fillColor
+        }
+
+        override fun draw(canvas: Canvas) {
+            canvas.drawPath(path, fillPaint)
+            val stroke = strokeColor ?: return
+            if (glow) {
+                strokePaint.shader = null
+                strokePaint.color = stroke
+                strokePaint.alpha = 50
+                strokePaint.strokeWidth = bounds.height() * 0.10f
+                canvas.drawPath(path, strokePaint)
+                strokePaint.alpha = 100
+                strokePaint.strokeWidth = bounds.height() * 0.06f
+                canvas.drawPath(path, strokePaint)
+            }
+            strokePaint.color = stroke
+            strokePaint.alpha = 255
+            strokePaint.strokeWidth = bounds.height() * 0.035f
+            canvas.drawPath(path, strokePaint)
+        }
+
+        override fun setAlpha(alpha: Int) { fillPaint.alpha = alpha }
+        override fun setColorFilter(colorFilter: ColorFilter?) { fillPaint.colorFilter = colorFilter }
+        @Deprecated("Deprecated in Java", ReplaceWith("PixelFormat.TRANSLUCENT"))
+        override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
     }
 }

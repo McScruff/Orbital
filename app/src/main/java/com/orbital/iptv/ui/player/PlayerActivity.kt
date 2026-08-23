@@ -37,6 +37,7 @@ import com.orbital.iptv.utils.EpgCache
 import com.orbital.iptv.utils.EmbyPrefsManager
 import com.orbital.iptv.utils.PlexPrefsManager
 import com.orbital.iptv.utils.FavouritesManager
+import com.orbital.iptv.utils.GoalFlashManager
 import com.orbital.iptv.utils.PrefsManager
 import com.orbital.iptv.utils.ThemeManager
 import com.orbital.iptv.utils.TickerManager
@@ -91,6 +92,10 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_PLEX_DURATION_MS = "plex_duration_ms"
         const val EXTRA_SUBTITLE_PATH   = "subtitle_path"
         const val EXTRA_IS_CATCHUP      = "is_catchup"
+
+        // Fires a sample Goal Flash card for previewing the feature, e.g.:
+        // adb shell am broadcast -a com.orbital.iptv.DEBUG_GOAL_FLASH [--ez disallowed true]
+        const val ACTION_DEBUG_GOAL_FLASH = "com.orbital.iptv.DEBUG_GOAL_FLASH"
 
         private const val OVERLAY_HIDE_DELAY_MS  = 5000L
         private const val SEEK_STEP_MS           = 30_000L
@@ -192,9 +197,32 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private val goalFlashHandler = Handler(Looper.getMainLooper())
+    private val goalFlashRunnable = object : Runnable {
+        override fun run() {
+            val self = this
+            lifecycleScope.launch {
+                GoalFlashManager.poll(this@PlayerActivity)
+                goalFlashHandler.postDelayed(self, if (GoalFlashManager.hasLiveGames) 25_000L else 90_000L)
+            }
+        }
+    }
+
     private var pendingTickerText: String? = null
     private var tickerScrollAnim: ValueAnimator? = null
     private var tickerShowingPlaceholder = false
+
+    private val debugGoalFlashReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: Intent?) {
+            val sample = GoalFlashManager.GoalEvent(
+                gameLabel   = "Newcastle Utd vs Liverpool",
+                scoreLabel  = "Newcastle Utd 2 – 2 Liverpool",
+                detailLabel = "J. Willock  57'",
+                disallowed  = intent?.getBooleanExtra("disallowed", false) ?: false
+            )
+            binding.goalFlashOverlay.addFlash(sample, GoalFlashManager.getDurationSeconds(this@PlayerActivity).toLong() * 1000L)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -235,6 +263,7 @@ class PlayerActivity : AppCompatActivity() {
         binding.btnSubs.setOnClickListener { showSubtitlePicker() }
         binding.btnScores.setOnClickListener { toggleTicker() }
         binding.btnNews.setOnClickListener { toggleNewsTicker() }
+        binding.btnGoalFlash.setOnClickListener { toggleGoalFlash() }
         binding.btnOpenIn.setOnClickListener { launchExternalPlayer() }
         binding.root.setOnClickListener {
             if (hasError) {
@@ -249,6 +278,8 @@ class PlayerActivity : AppCompatActivity() {
         if (TickerManager.tickerEnabled) startTicker()
         updateNewsButton()
         if (TickerManager.newsTickerEnabled) startNewsTicker()
+        updateGoalFlashButton()
+        if (GoalFlashManager.enabled) startGoalFlash()
 
         if (!isLive) {
             binding.btnSeekBack.setOnClickListener { seekBy(-SEEK_STEP_MS) }
@@ -826,18 +857,16 @@ class PlayerActivity : AppCompatActivity() {
             updateTickerText()
             return
         }
-        val byLeague = selected.groupBy { it.leagueId }
+        val byLeague = selected.groupBy { it.sportPath to it.leagueId }
         val selectedIds = selected.map { it.id }.toSet()
 
         lifecycleScope.launch {
             try {
                 val scores = mutableListOf<TickerManager.LiveScore>()
                 withContext(Dispatchers.IO) {
-                    byLeague.keys.forEach { leagueId ->
-                        val url = "https://site.api.espn.com/apis/site/v2/sports/soccer/$leagueId/scoreboard"
-                        val json = tickerHttp.newCall(
-                            Request.Builder().url(url).header("User-Agent", "Mozilla/5.0").build()
-                        ).execute().use { it.body?.string() ?: "" }
+                    byLeague.keys.forEach { (sportPath, leagueId) ->
+                        val url = "https://site.api.espn.com/apis/site/v2/sports/$sportPath/$leagueId/scoreboard"
+                        val json = TickerManager.espnGet(url)
                         scores.addAll(parseTickerScores(json, selectedIds))
                     }
                 }
@@ -986,6 +1015,31 @@ class PlayerActivity : AppCompatActivity() {
             }
         } catch (_: Exception) {}
         return titles
+    }
+
+    // ── Goal Flash ────────────────────────────────────────────────────────────
+
+    private fun toggleGoalFlash() {
+        GoalFlashManager.enabled = !GoalFlashManager.enabled
+        updateGoalFlashButton()
+        if (GoalFlashManager.enabled) startGoalFlash() else stopGoalFlash()
+    }
+
+    private fun updateGoalFlashButton() {
+        val on = GoalFlashManager.enabled
+        binding.btnGoalFlash.text = if (on) "GOAL FLASH ON" else "GOAL FLASH"
+        binding.btnGoalFlash.setBackgroundResource(
+            if (on) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
+        )
+    }
+
+    private fun startGoalFlash() {
+        goalFlashHandler.removeCallbacks(goalFlashRunnable)
+        goalFlashHandler.post(goalFlashRunnable)
+    }
+
+    private fun stopGoalFlash() {
+        goalFlashHandler.removeCallbacks(goalFlashRunnable)
     }
 
     private fun updateNewsTickerText() {
@@ -1453,6 +1507,16 @@ class PlayerActivity : AppCompatActivity() {
         enterFullscreen()
         if (::player.isInitialized && !hasError) player.playWhenReady = true
         com.orbital.iptv.utils.ReminderBus.register { r -> showReminderDialog(r) }
+        GoalFlashManager.onGoal = { event ->
+            runOnUiThread {
+                binding.goalFlashOverlay.addFlash(event, GoalFlashManager.getDurationSeconds(this).toLong() * 1000L)
+            }
+        }
+        androidx.core.content.ContextCompat.registerReceiver(
+            this, debugGoalFlashReceiver,
+            android.content.IntentFilter(ACTION_DEBUG_GOAL_FLASH),
+            androidx.core.content.ContextCompat.RECEIVER_EXPORTED
+        )
         if (isLive) {
             RecordingState.isLiveTvActive   = true
             RecordingState.liveTvChannelUrl  = streamUrl
@@ -1468,6 +1532,8 @@ class PlayerActivity : AppCompatActivity() {
         super.onPause()
         if (enteringPip) { enteringPip = false; return }  // keep playing in PiP
         com.orbital.iptv.utils.ReminderBus.unregister()
+        try { unregisterReceiver(debugGoalFlashReceiver) } catch (_: Exception) {}
+        GoalFlashManager.onGoal = null
         if (::player.isInitialized) player.pause()
         if (isLive) {
             RecordingState.unregisterStopLiveTv()
@@ -1534,6 +1600,7 @@ class PlayerActivity : AppCompatActivity() {
         seekHandler.removeCallbacksAndMessages(null)
         tickerHandler.removeCallbacksAndMessages(null)
         newsHandler.removeCallbacksAndMessages(null)
+        goalFlashHandler.removeCallbacksAndMessages(null)
         ioRetryHandler.removeCallbacksAndMessages(null)
         binding.surfaceView.holder.removeCallback(surfaceCallback)
         if (::player.isInitialized) {

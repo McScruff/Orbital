@@ -417,6 +417,25 @@
             android:clickable="true"
             android:focusable="true" />
 
+        <TextView
+            android:id="@+id/btn_hud_goal_flash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_btn_hud"
+            android:text="GOAL FLASH"
+            android:textColor="@color/sky_white"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginStart="6dp"
+            android:clickable="true"
+            android:focusable="true" />
+
     </LinearLayout>
 
     <!-- ── Bottom stack: HUD info bar + ticker rows ── -->
@@ -595,5 +614,13 @@
         </FrameLayout>
 
     </LinearLayout>
+
+    <!-- Goal Flash: bottom-right stack of auto-dismissing goal cards -->
+    <com.orbital.iptv.ui.widget.GoalFlashOverlay
+        android:id="@+id/goal_flash_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="70dp" />
 
 </FrameLayout>

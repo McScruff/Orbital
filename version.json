@@ -1,6 +1,6 @@
 {
-  "version_code": 22,
-  "version_name": "1.5.3",
+  "version_code": 23,
+  "version_name": "1.5.4",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "Every D-pad focusable item across the app (menus, tabs, list rows, buttons) now draws a visible accent-coloured box when focused, instead of just a subtle colour swap — much easier to track from the couch."
+  "release_notes": "New: Goal Flash — an on-screen pop-up (with adjustable duration) when a team you're following scores or has a goal disallowed. Sports Bar: renamed from Sports, fixed football scores/fixtures/tables loading, added NFL, removed World Cup. Redesigned the home screen's top navigation with angled tabs and icons."
 }

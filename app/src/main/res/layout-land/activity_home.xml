@@ -29,14 +29,19 @@
                 android:contentDescription="Orbital" />
         </LinearLayout>
 
-        <!-- Top Nav Tabs -->
+        <!-- Top Nav Tabs — angled "sci-fi HUD" parallelogram chips (see
+             ThemeManager.navTabDrawable), floating within the bar with gaps between each. The
+             static android:background values below are just an unstyled fallback — applyTheme()
+             always overwrites them at runtime. -->
         <TextView
             android:id="@+id/tab_tv_guide"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="34dp"
             android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="4dp"
             android:gravity="center"
-            android:text="TV GUIDE"
+            android:text="📺  TV GUIDE"
             android:textColor="@color/sky_yellow"
             android:textSize="11sp"
             android:fontFamily="sans-serif-condensed"
@@ -49,10 +54,12 @@
         <TextView
             android:id="@+id/tab_box_office"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="34dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:gravity="center"
-            android:text="BOX OFFICE"
+            android:text="🎬  BOX OFFICE"
             android:textColor="@color/sky_white"
             android:textSize="11sp"
             android:fontFamily="sans-serif-condensed"
@@ -64,10 +71,12 @@
         <TextView
             android:id="@+id/tab_radio"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="34dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:gravity="center"
-            android:text="RADIO"
+            android:text="📻  RADIO"
             android:textColor="@color/sky_white"
             android:textSize="11sp"
             android:fontFamily="sans-serif-condensed"
@@ -79,10 +88,12 @@
         <TextView
             android:id="@+id/tab_interactive"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="34dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:gravity="center"
-            android:text="INTERACTIVE"
+            android:text="🕹  INTERACTIVE"
             android:textColor="@color/sky_white"
             android:textSize="11sp"
             android:fontFamily="sans-serif-condensed"
@@ -94,10 +105,12 @@
         <TextView
             android:id="@+id/tab_services"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="34dp"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="6dp"
             android:gravity="center"
-            android:text="SETTINGS"
+            android:text="⚙  SETTINGS"
             android:textColor="@color/sky_white"
             android:textSize="11sp"
             android:fontFamily="sans-serif-condensed"

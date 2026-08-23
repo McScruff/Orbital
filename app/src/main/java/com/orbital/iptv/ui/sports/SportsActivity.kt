@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -41,17 +42,20 @@ class SportsActivity : AppCompatActivity() {
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    // (tab label, ESPN league id, display name, SofaScore tournament id, whether standings are group-based)
-    private data class League(val tab: String, val espnId: String, val name: String, val sofaId: Int, val hasGroups: Boolean = false)
+    // (tab label, ESPN sport path segment, ESPN league slug, display name, whether standings are
+    // group-based — e.g. NFL's AFC/NFC conferences). Scores, fixtures AND standings all come
+    // from ESPN's own site.api.espn.com — previously standings used SofaScore, which now hard
+    // blocks every request with HTTP 403 (Cloudflare), so that tab was permanently broken.
+    private data class League(val tab: String, val sportPath: String, val espnId: String, val name: String, val hasGroups: Boolean = false)
     private val leagues = listOf(
-        League("PL",       "eng.1",          "PREMIER LEAGUE",    17),
-        League("CHAMP",    "eng.2",          "CHAMPIONSHIP",      18),
-        League("UCL",      "uefa.champions", "CHAMPIONS LEAGUE",  7),
-        League("FA CUP",   "eng.fa",         "FA CUP",            21),
-        League("LA LIGA",  "esp.1",          "LA LIGA",           8),
-        League("SERIE A",  "ita.1",          "SERIE A",           23),
-        League("BUNDESL",  "ger.1",          "BUNDESLIGA",        35),
-        League("WC",       "fifa.world",     "WORLD CUP 2026",    16, hasGroups = true)
+        League("PL",       "soccer",   "eng.1",          "PREMIER LEAGUE"),
+        League("CHAMP",    "soccer",   "eng.2",          "CHAMPIONSHIP"),
+        League("UCL",      "soccer",   "uefa.champions", "CHAMPIONS LEAGUE"),
+        League("FA CUP",   "soccer",   "eng.fa",         "FA CUP"),
+        League("LA LIGA",  "soccer",   "esp.1",          "LA LIGA"),
+        League("SERIE A",  "soccer",   "ita.1",          "SERIE A"),
+        League("BUNDESL",  "soccer",   "ger.1",          "BUNDESLIGA"),
+        League("NFL",      "football", "nfl",            "NFL", hasGroups = true)
     )
     private var leagueIdx = 0
     private val date = Calendar.getInstance()
@@ -89,7 +93,9 @@ class SportsActivity : AppCompatActivity() {
 
         matchAdapter = MatchAdapter(
             onToggle = { game ->
-                val sg = TickerManager.SelectedGame(game.id, leagues[leagueIdx].espnId, game.homeTeam, game.awayTeam)
+                val sg = TickerManager.SelectedGame(
+                    game.id, leagues[leagueIdx].espnId, game.homeTeam, game.awayTeam, leagues[leagueIdx].sportPath
+                )
                 TickerManager.toggle(this, sg)
                 matchAdapter.selectedIds = TickerManager.getSelected(this).map { it.id }.toSet()
             },
@@ -459,13 +465,13 @@ class SportsActivity : AppCompatActivity() {
     private fun fetchScoreboard() {
         binding.progressBar.visibility = View.VISIBLE
         binding.tvEmpty.visibility = View.GONE
-        val leagueId = leagues[leagueIdx].espnId
+        val league = leagues[leagueIdx]
         val dateStr = SimpleDateFormat("yyyyMMdd", Locale.US).format(date.time)
-        val url = "https://site.api.espn.com/apis/site/v2/sports/soccer/$leagueId/scoreboard?dates=$dateStr"
+        val url = "https://site.api.espn.com/apis/site/v2/sports/${league.sportPath}/${league.espnId}/scoreboard?dates=$dateStr"
 
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val json = withContext(Dispatchers.IO) { get(url) }
+                val json = withContext(Dispatchers.IO) { TickerManager.espnGet(url) }
                 val events = parseScoreboard(json)
                 binding.progressBar.visibility = View.GONE
                 matchAdapter.selectedIds = TickerManager.getSelected(this@SportsActivity).map { it.id }.toSet()
@@ -497,17 +503,8 @@ class SportsActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val entries = withContext(Dispatchers.IO) {
-                    val seasonsJson = get("https://api.sofascore.com/api/v1/unique-tournament/${league.sofaId}/seasons")
-                    val seasons = JSONObject(seasonsJson).optJSONArray("seasons")
-                        ?: return@withContext emptyList()
-                    val seasonId = seasons.getJSONObject(0).optInt("id", -1)
-                    if (seasonId == -1) return@withContext emptyList()
-
-                    val standingsJson = get(
-                        "https://api.sofascore.com/api/v1/unique-tournament/${league.sofaId}/season/$seasonId/standings/total"
-                    )
-                    if (league.hasGroups) parseGroupStandings(standingsJson)
-                    else parseSofascoreStandings(standingsJson)
+                    val json = TickerManager.espnGet("https://site.api.espn.com/apis/v2/sports/${league.sportPath}/${league.espnId}/standings")
+                    parseEspnStandings(json, league.hasGroups)
                 }
                 binding.progressBar.visibility = View.GONE
                 standingAdapter.submitList(entries)
@@ -523,41 +520,6 @@ class SportsActivity : AppCompatActivity() {
                 binding.tvEmpty.visibility = View.VISIBLE
             }
         }
-    }
-
-    private fun parseGroupStandings(json: String): List<StandingEntry> {
-        val out = mutableListOf<StandingEntry>()
-        try {
-            val standings = JSONObject(json).optJSONArray("standings") ?: return out
-            for (g in 0 until standings.length()) {
-                val group = standings.getJSONObject(g)
-                val groupName = group.optString("name").ifEmpty { "Group ${('A' + g)}" }
-                out.add(StandingEntry(0, "", "", 0, 0, 0, 0, "", 0, isGroupHeader = true, groupName = groupName))
-                val rows = group.optJSONArray("rows") ?: continue
-                for (i in 0 until rows.length()) {
-                    val row = rows.getJSONObject(i)
-                    val team = row.optJSONObject("team") ?: continue
-                    val teamId = team.optInt("id", -1)
-                    out.add(StandingEntry(
-                        pos     = row.optInt("position", i + 1),
-                        team    = team.optString("shortName").ifEmpty { team.optString("name") },
-                        logoUrl = if (teamId > 0) "https://api.sofascore.app/api/v1/team/$teamId/image" else "",
-                        played  = row.optInt("matches", 0),
-                        won     = row.optInt("wins", 0),
-                        drawn   = row.optInt("draws", 0),
-                        lost    = row.optInt("losses", 0),
-                        gd      = row.optString("scoreDiffFormatted", "0"),
-                        points  = row.optInt("points", 0)
-                    ))
-                }
-            }
-        } catch (_: Exception) {}
-        return out
-    }
-
-    private fun get(url: String): String {
-        val req = Request.Builder().url(url).header("User-Agent", "Mozilla/5.0").build()
-        return http.newCall(req).execute().use { it.body?.string() ?: "" }
     }
 
     // ── JSON parsing ─────────────────────────────────────────────────────────
@@ -622,26 +584,62 @@ class SportsActivity : AppCompatActivity() {
         return out
     }
 
-    private fun parseSofascoreStandings(json: String): List<StandingEntry> {
+    // ESPN's own standings endpoint: /apis/v2/sports/{sportPath}/{leagueSlug}/standings
+    // Shape: {"children":[{"name":..., "standings":{"entries":[...]}}, ...]}.
+    // Non-grouped leagues have a single child holding the whole table; group-based competitions
+    // (e.g. NFL's AFC/NFC conferences) have one child per group, each with its own "name" and
+    // "entries" — hasGroups switches between the two renderings.
+    private fun parseEspnStandings(json: String, hasGroups: Boolean): List<StandingEntry> {
         val out = mutableListOf<StandingEntry>()
-        try {
-            val standings = JSONObject(json).optJSONArray("standings") ?: return out
-            val rows = standings.getJSONObject(0).optJSONArray("rows") ?: return out
-            for (i in 0 until rows.length()) {
-                val row = rows.getJSONObject(i)
-                val team = row.optJSONObject("team") ?: continue
-                val teamId = team.optInt("id", -1)
+
+        fun statValue(stats: JSONArray?, name: String): String? {
+            if (stats == null) return null
+            for (i in 0 until stats.length()) {
+                val s = stats.optJSONObject(i) ?: continue
+                if (s.optString("name") == name) return s.optString("displayValue")
+            }
+            return null
+        }
+
+        fun addEntries(entries: JSONArray) {
+            for (i in 0 until entries.length()) {
+                val entry = entries.getJSONObject(i)
+                val team  = entry.optJSONObject("team") ?: continue
+                val stats = entry.optJSONArray("stats")
+                val wins   = statValue(stats, "wins")?.toIntOrNull() ?: 0
+                val losses = statValue(stats, "losses")?.toIntOrNull() ?: 0
+                val ties   = statValue(stats, "ties")?.toIntOrNull() ?: 0
+                val played = statValue(stats, "gamesPlayed")?.toIntOrNull() ?: (wins + losses + ties)
+                // American sports (NFL) have no soccer-style "points" stat — fall back to wins
+                // so the PTS column still ranks sensibly instead of showing 0 for every team.
+                val points = statValue(stats, "points")?.toIntOrNull() ?: wins
                 out.add(StandingEntry(
-                    pos     = row.optInt("position", i + 1),
-                    team    = team.optString("shortName").ifEmpty { team.optString("name") },
-                    logoUrl = if (teamId > 0) "https://api.sofascore.app/api/v1/team/$teamId/image" else "",
-                    played  = row.optInt("matches", 0),
-                    won     = row.optInt("wins", 0),
-                    drawn   = row.optInt("draws", 0),
-                    lost    = row.optInt("losses", 0),
-                    gd      = row.optString("scoreDiffFormatted", "0"),
-                    points  = row.optInt("points", 0)
+                    pos     = i + 1,
+                    team    = team.optString("shortDisplayName").ifEmpty { team.optString("displayName") },
+                    logoUrl = team.optJSONArray("logos")?.optJSONObject(0)?.optString("href") ?: "",
+                    played  = played,
+                    won     = wins,
+                    drawn   = ties,
+                    lost    = losses,
+                    gd      = statValue(stats, "pointDifferential") ?: "0",
+                    points  = points
                 ))
+            }
+        }
+
+        try {
+            val children = JSONObject(json).optJSONArray("children") ?: return out
+            if (hasGroups) {
+                for (g in 0 until children.length()) {
+                    val group = children.getJSONObject(g)
+                    val groupName = group.optString("name").ifEmpty { "Group ${('A' + g)}" }
+                    out.add(StandingEntry(0, "", "", 0, 0, 0, 0, "", 0, isGroupHeader = true, groupName = groupName))
+                    val entries = group.optJSONObject("standings")?.optJSONArray("entries") ?: continue
+                    addEntries(entries)
+                }
+            } else {
+                val entries = children.optJSONObject(0)?.optJSONObject("standings")?.optJSONArray("entries")
+                if (entries != null) addEntries(entries)
             }
         } catch (_: Exception) {}
         return out

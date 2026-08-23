@@ -48,7 +48,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="SPORTS"
+            android:text="SPORTS BAR"
             android:textColor="@color/sky_yellow"
             android:textSize="13sp"
             android:fontFamily="sans-serif-condensed"
@@ -238,7 +238,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ORBITAL  •  SPORTS"
+            android:text="ORBITAL  •  SPORTS BAR"
             android:textColor="#668899"
             android:textSize="9sp"
             android:fontFamily="sans-serif-condensed" />
