@@ -2,7 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="#000000"
+    android:clipChildren="false">
 
     <!-- Video surface (ExoPlayer — live TV) -->
     <SurfaceView
@@ -214,12 +215,14 @@
 
         <!-- Thin cyan top accent line -->
         <View
+            android:id="@+id/divider_bottom_bar"
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:background="@color/sky_cyan" />
 
         <!-- Row 1: channel info (left) + clock (right) -->
         <LinearLayout
+            android:id="@+id/channel_info_row"
             android:layout_width="match_parent"
             android:layout_height="26dp"
             android:orientation="horizontal"
@@ -541,7 +544,7 @@
     <!-- Goal Flash: bottom-right stack of auto-dismissing goal cards -->
     <com.orbital.iptv.ui.widget.GoalFlashOverlay
         android:id="@+id/goal_flash_overlay"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginBottom="70dp" />

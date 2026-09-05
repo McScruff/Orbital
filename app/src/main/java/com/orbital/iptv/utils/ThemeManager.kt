@@ -15,13 +15,16 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.StateListDrawable
 import android.view.Gravity
+import android.view.View
+import android.widget.TextView
 import kotlin.math.max
 
 object ThemeManager {
 
     enum class AppTheme(val label: String) {
         ORBITAL("ORBITAL"),
-        MONOCHROME("BLACK & WHITE")
+        MONOCHROME("BLACK & WHITE"),
+        AURORA("AURORA")
     }
 
     data class Palette(
@@ -39,7 +42,14 @@ object ThemeManager {
         val rowSelected: Int = highlight,
         val cornerRadiusDp: Float = 0f,
         val itemMarginDp: Float = 0f,
-        val cardElevation: Float = 0f
+        val cardElevation: Float = 0f,
+        // Secondary accent — defaults to [accent] so existing themes are unaffected. Used to draw
+        // a two-colour diagonal gradient (e.g. selected nav tabs) for themes designed around one.
+        val accent2: Int = accent,
+        // Text colour to use on top of the *selected* nav tab's fill. ORBITAL/MONOCHROME's
+        // selected fill is a light tint (readable with black text); AURORA's is a saturated
+        // blue-purple gradient, which needs light text instead.
+        val tabTextOnSelected: Int = 0xFF000000.toInt()
     )
 
     private val palettes = mapOf(
@@ -74,6 +84,27 @@ object ThemeManager {
             cornerRadiusDp = 0f,
             itemMarginDp   = 3f,
             cardElevation  = 4f
+        ),
+        // "AURORA" — deep navy/indigo base with a pink-blue-purple neon gradient accent, rounded
+        // cards and pill-shaped nav tabs. Matches the user-supplied iptv-gui.html mockup, lifted
+        // a shade brighter/more saturated than the mock's originals for more on-screen "pop".
+        AppTheme.AURORA to Palette(
+            bgPrimary   = 0xFF10193F.toInt(),   // bg-deep, lightened
+            bgHeader    = 0xFF131D46.toInt(),
+            bgMid       = 0xFF1D295E.toInt(),   // bg-panel (cards), lightened
+            bgRowAlt    = 0xFF172253.toInt(),   // bg-mid (alternating rows), lightened
+            accent      = 0xFF4E8CFF.toInt(),   // accent-b, brighter interactive blue
+            highlight   = 0xFFFF5C97.toInt(),   // accent-a, brighter pink — selected/live highlight
+            focus       = 0xFF9575FF.toInt(),   // accent-c, brighter purple — d-pad focus ring
+            tabSelected = 0xFF1D295E.toInt(),
+            rowEven     = 0xFF1D295E.toInt(),
+            rowOdd      = 0xFF172253.toInt(),
+            rowSelected = 0xFF9575FF.toInt(),
+            cornerRadiusDp = 12f,
+            itemMarginDp   = 4f,
+            cardElevation  = 6f,
+            accent2        = 0xFF9575FF.toInt(),  // purple — gradient partner for accent (blue)
+            tabTextOnSelected = 0xFFF2F4FF.toInt() // text-hi — readable on the blue/purple gradient
         )
     )
 
@@ -102,6 +133,7 @@ object ThemeManager {
      */
     fun dialogStyle(): Int = when (current) {
         AppTheme.MONOCHROME -> com.orbital.iptv.R.style.Theme_Orbital_Dialog_Mono
+        AppTheme.AURORA -> com.orbital.iptv.R.style.Theme_Orbital_Dialog_Aurora
         else -> com.orbital.iptv.R.style.Theme_Orbital_Dialog
     }
 
@@ -154,10 +186,11 @@ object ThemeManager {
      */
     fun hudButtonDrawable(density: Float, withAccentStroke: Boolean = true): StateListDrawable {
         val p = palette()
+        val radius = max(4f, p.cornerRadiusDp)
         fun shape(color: Int, strokeColor: Int? = null) = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setColor(color)
-            cornerRadius = 4f * density
+            cornerRadius = radius * density
             strokeColor?.let { setStroke(max(1, (1 * density).toInt()), it) }
         }
         return StateListDrawable().apply {
@@ -219,6 +252,7 @@ object ThemeManager {
      */
     fun navTabDrawable(density: Float, selected: Boolean): StateListDrawable {
         val p = palette()
+        if (p.cornerRadiusDp > 0f) return roundedNavTabDrawable(density, selected, p)
         val skew = 12f * density
         return StateListDrawable().apply {
             addState(
@@ -233,6 +267,35 @@ object ThemeManager {
                 intArrayOf(),
                 if (selected) AngledTabDrawable(skew, p.highlight, dim(p.highlight, 0.72f), p.accent, glow = false)
                 else AngledTabDrawable(skew, p.bgMid, null, null, glow = false)
+            )
+        }
+    }
+
+    /**
+     * Rounded-pill nav tab used by themes with [Palette.cornerRadiusDp] > 0 (e.g. AURORA) —
+     * a flat neutral chip by default, a diagonal accent→accent2 gradient when selected (no
+     * D-pad focus needed), and an accent-stroked focus ring on top of either, matching the
+     * user-supplied iptv-gui.html mockup's `.tab` / `.tab.active` treatment.
+     */
+    private fun roundedNavTabDrawable(density: Float, selected: Boolean, p: Palette): StateListDrawable {
+        val r = p.cornerRadiusDp * density
+        fun chip(color1: Int, color2: Int? = null, stroke: Int? = null) = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = r
+            if (color2 != null) {
+                orientation = GradientDrawable.Orientation.TL_BR
+                colors = intArrayOf(color1, color2)
+            } else {
+                setColor(color1)
+            }
+            stroke?.let { setStroke(max(1, (2f * density).toInt()), it) }
+        }
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_focused), chip(p.focus, null, p.accent))
+            addState(intArrayOf(android.R.attr.state_pressed), chip(p.focus, null, p.accent))
+            addState(
+                intArrayOf(),
+                if (selected) chip(p.accent, p.accent2) else chip(withAlpha(p.bgMid, 0xB0))
             )
         }
     }

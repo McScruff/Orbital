@@ -152,6 +152,17 @@ object PrefsManager {
         prefs(context).edit().putString("app_theme", themeName).apply()
     }
 
+    // ── TV Guide ─────────────────────────────────────────────────────────────
+
+    // Global — deliberately not part of ThemeManager.Palette, since the user asked for this to
+    // stay on/off regardless of which app theme is active.
+    fun isChannelLogosEnabled(context: Context): Boolean =
+        prefs(context).getBoolean("channel_logos_enabled", true)
+
+    fun setChannelLogosEnabled(context: Context, enabled: Boolean) {
+        prefs(context).edit().putBoolean("channel_logos_enabled", enabled).apply()
+    }
+
     // ── PiP ───────────────────────────────────────────────────────────────────
 
     fun isPipEnabled(context: Context): Boolean =

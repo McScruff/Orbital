@@ -2,7 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="#000000"
+    android:clipChildren="false">
 
     <!-- Full-screen video surface -->
     <SurfaceView
@@ -618,7 +619,7 @@
     <!-- Goal Flash: bottom-right stack of auto-dismissing goal cards -->
     <com.orbital.iptv.ui.widget.GoalFlashOverlay
         android:id="@+id/goal_flash_overlay"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginBottom="70dp" />

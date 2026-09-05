@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.orbital.iptv.databinding.ItemStandingBinding
+import com.orbital.iptv.utils.ThemeManager
 
 data class StandingEntry(
     val pos: Int,
@@ -38,6 +39,11 @@ class StandingAdapter : ListAdapter<StandingEntry, StandingAdapter.VH>(DIFF) {
     inner class VH(private val b: ItemStandingBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(e: StandingEntry) {
             if (e.isGroupHeader) {
+                // Not a real row — D-pad focus (and therefore the RecyclerView's built-in
+                // scroll-into-view behavior, see the normal-row branch below) should skip it.
+                b.root.isFocusable = false
+                b.root.isClickable = false
+                b.root.setOnFocusChangeListener(null)
                 b.tvPos.visibility  = View.INVISIBLE
                 b.ivLogo.visibility = View.INVISIBLE
                 b.tvTeam.text = "  ${e.groupName}"
@@ -49,6 +55,8 @@ class StandingAdapter : ListAdapter<StandingEntry, StandingAdapter.VH>(DIFF) {
                 return
             }
 
+            b.root.isFocusable = true
+            b.root.isClickable = true
             b.tvPos.visibility  = View.VISIBLE
             b.ivLogo.visibility = View.VISIBLE
             b.tvTeam.setTextColor(0xFFFFFFFF.toInt())
@@ -62,13 +70,19 @@ class StandingAdapter : ListAdapter<StandingEntry, StandingAdapter.VH>(DIFF) {
             b.tvGd.text     = e.gd
             b.tvPoints.text = e.points.toString()
 
-            b.root.setBackgroundColor(
-                when (e.pos) {
-                    1       -> 0xFF0D1F3C.toInt()
-                    in 2..4 -> 0xFF0A1A30.toInt()
-                    else    -> if (e.pos % 2 == 0) 0xFF071225.toInt() else 0xFF0D1A2E.toInt()
-                }
-            )
+            // Plain alternation for every row — pos 1-4 used to get their own solid (non-alternating)
+            // colours to flag European qualification spots, which broke the zebra-stripe pattern
+            // right where the eye expects it to start.
+            val rootBg = if (e.pos % 2 == 0) 0xFF071225.toInt() else 0xFF0D1A2E.toInt()
+            // Rows need to actually be focusable for D-pad navigation to move focus row-by-row —
+            // that's what makes the RecyclerView auto-scroll to keep the focused row in view.
+            // Without it, the whole list is one single focus stop and can't be scrolled past
+            // whatever's already visible.
+            val density = b.root.resources.displayMetrics.density
+            b.root.background = ThemeManager.focusRowDrawable(density, rootBg, b.root.isFocused)
+            b.root.setOnFocusChangeListener { _, hasFocus ->
+                b.root.background = ThemeManager.focusRowDrawable(density, rootBg, hasFocus)
+            }
 
             if (e.logoUrl.isNotEmpty()) {
                 Glide.with(b.ivLogo.context).load(e.logoUrl)

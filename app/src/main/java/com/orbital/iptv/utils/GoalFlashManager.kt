@@ -8,7 +8,9 @@ import org.json.JSONObject
 /**
  * Polls ESPN for goals in whatever games the user has pinned in Interactive › Sports Bar (the
  * same selection [TickerManager] uses for the scores ticker) and fires [onGoal] whenever a new
- * goal — or a VAR-disallowed goal — appears.
+ * goal, a VAR-disallowed goal, kick-off, or full-time occurs — see [FlashType]. Kick-off/full-time
+ * are detected from the same per-league scoreboard state ("pre"/"in"/"post") already being
+ * tracked to decide which games need the heavier per-event call, so they add no extra traffic.
  *
  * Traffic is kept deliberately light: a cheap per-league scoreboard call (one call covers every
  * pinned game in that league, and is the same call the SCORES ticker already makes) decides
@@ -24,11 +26,13 @@ import org.json.JSONObject
  */
 object GoalFlashManager {
 
+    enum class FlashType { GOAL, DISALLOWED, KICK_OFF, FULL_TIME }
+
     data class GoalEvent(
         val gameLabel: String,
         val scoreLabel: String,
         val detailLabel: String,
-        val disallowed: Boolean = false
+        val type: FlashType = FlashType.GOAL
     )
 
     // In-memory toggle — mirrors TickerManager.tickerEnabled/newsTickerEnabled (resets each
@@ -42,15 +46,28 @@ object GoalFlashManager {
 
     var onGoal: ((GoalEvent) -> Unit)? = null
 
-    private const val PREF          = "goal_flash_prefs"
-    private const val KEY_DURATION  = "duration_seconds"
-    private const val DEFAULT_DURATION_SEC = 5
+    const val DURATION_SECONDS = 5
 
-    fun getDurationSeconds(context: Context): Int =
-        context.getSharedPreferences(PREF, Context.MODE_PRIVATE).getInt(KEY_DURATION, DEFAULT_DURATION_SEC)
-
-    fun setDurationSeconds(context: Context, seconds: Int) {
-        context.getSharedPreferences(PREF, Context.MODE_PRIVATE).edit().putInt(KEY_DURATION, seconds).apply()
+    /**
+     * Builds the sample [GoalEvent] for the ACTION_DEBUG_GOAL_FLASH broadcast (see PlayerActivity/
+     * TvModeActivity) — a manual on-screen preview of any flash type without waiting for a real
+     * game. `--es type goal|disallowed|kickoff|fulltime` selects the type (default "goal"); the
+     * older `--ez disallowed true` flag is still honoured for the disallowed case.
+     */
+    fun debugSample(intent: android.content.Intent?): GoalEvent {
+        val typeExtra = intent?.getStringExtra("type")
+        val type = when {
+            typeExtra == "kickoff"  -> FlashType.KICK_OFF
+            typeExtra == "fulltime" -> FlashType.FULL_TIME
+            typeExtra == "disallowed" || (intent?.getBooleanExtra("disallowed", false) == true) -> FlashType.DISALLOWED
+            else -> FlashType.GOAL
+        }
+        return when (type) {
+            FlashType.KICK_OFF  -> GoalEvent("Newcastle Utd vs Liverpool", "", "", type)
+            FlashType.FULL_TIME -> GoalEvent("Newcastle Utd vs Liverpool", "Newcastle Utd 2 – 2 Liverpool", "", type)
+            FlashType.DISALLOWED -> GoalEvent("Newcastle Utd vs Liverpool", "", "J. Willock  57'  —  offside", type)
+            FlashType.GOAL -> GoalEvent("Newcastle Utd vs Liverpool", "Newcastle Utd 2 – 2 Liverpool", "J. Willock  57'", type)
+        }
     }
 
     // Per-game de-dupe state, keyed by ESPN event id.
@@ -91,19 +108,25 @@ object GoalFlashManager {
         var anyLive = false
         for (game in selected) {
             val state = statesById[game.id] ?: continue
-            val wasLive = lastState[game.id] == "in"
+            val wasState = lastState[game.id]
+            val wasLive = wasState == "in"
+            // wasState == null means this is the first time this game's been observed at all —
+            // excluding it (like [baselined] does for goals) stops Goal Flash from firing a
+            // retroactive "KICK-OFF" for a game that was already well underway when it was turned on.
+            val justKickedOff = state == "in" && wasState == "pre"
+            val justFinished  = state == "post" && wasLive
             lastState[game.id] = state
             if (state == "in") anyLive = true
 
             // Only the heavier per-game feed for a currently-live game, or the one poll right
             // after it finishes (to catch a stoppage-time goal/VAR call) — never for a game
             // that's merely scheduled.
-            if (state != "in" && !(state == "post" && wasLive)) continue
+            if (state != "in" && !justFinished) continue
             try {
                 val json = TickerManager.espnGet(
                     "https://site.api.espn.com/apis/site/v2/sports/${game.sportPath}/${game.leagueId}/summary?event=${game.id}"
                 )
-                processGame(game, json)
+                processGame(game, json, justKickedOff, justFinished)
             } catch (_: Exception) {}
             if (state == "post") done.add(game.id)
         }
@@ -119,7 +142,10 @@ object GoalFlashManager {
         done.retainAll(selectedIds)
     }
 
-    private fun processGame(game: TickerManager.SelectedGame, json: String) {
+    private fun processGame(
+        game: TickerManager.SelectedGame, json: String,
+        justKickedOff: Boolean = false, justFinished: Boolean = false
+    ) {
         val root = JSONObject(json)
         val comp = root.optJSONObject("header")?.optJSONArray("competitions")?.optJSONObject(0) ?: return
         val competitors = comp.optJSONArray("competitors") ?: return
@@ -140,6 +166,10 @@ object GoalFlashManager {
         if (homeName.isBlank() || awayName.isBlank()) return
         val gameLabel  = "$homeName vs $awayName"
         val scoreLabel = "$homeName $homeScore – $awayScore $awayName"
+
+        // Score is always 0-0 at this instant, so it's omitted as uninformative (same reasoning
+        // as disallowed goals below, which also skip the score line).
+        if (justKickedOff) onGoal?.invoke(GoalEvent(gameLabel, "", "", FlashType.KICK_OFF))
 
         val firstPoll      = game.id !in baselined
         val goalSeen       = seenGoalIds.getOrPut(game.id) { mutableSetOf() }
@@ -166,7 +196,7 @@ object GoalFlashManager {
                 val detail = listOfNotNull(scorer, minute.takeIf { it.isNotBlank() })
                     .joinToString("  ") + suffix
 
-                onGoal?.invoke(GoalEvent(gameLabel, scoreLabel, detail, disallowed = false))
+                onGoal?.invoke(GoalEvent(gameLabel, scoreLabel, detail, FlashType.GOAL))
             }
         }
 
@@ -184,9 +214,11 @@ object GoalFlashManager {
 
                 val minute = c.optJSONObject("time")?.optString("displayValue") ?: ""
                 val detail = if (minute.isNotBlank()) "$minute — $text" else text
-                onGoal?.invoke(GoalEvent(gameLabel, "", detail, disallowed = true))
+                onGoal?.invoke(GoalEvent(gameLabel, "", detail, FlashType.DISALLOWED))
             }
         }
+
+        if (justFinished) onGoal?.invoke(GoalEvent(gameLabel, scoreLabel, "", FlashType.FULL_TIME))
 
         baselined.add(game.id)
     }

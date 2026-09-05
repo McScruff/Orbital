@@ -1,6 +1,6 @@
 {
-  "version_code": 23,
-  "version_name": "1.5.4",
+  "version_code": 24,
+  "version_name": "1.5.5",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "New: Goal Flash — an on-screen pop-up (with adjustable duration) when a team you're following scores or has a goal disallowed. Sports Bar: renamed from Sports, fixed football scores/fixtures/tables loading, added NFL, removed World Cup. Redesigned the home screen's top navigation with angled tabs and icons."
+  "release_notes": "Live TV: D-pad navigation overhaul — category list remembers your place, Back now steps out through the TV Guide tab with an exit confirmation instead of quitting instantly. Sports Bar: pinned games auto-clear after full-time and at next launch, added Scottish Premiership, league tabs now navigate down into Games/Table, fixed standings row colour striping. Emby: smaller, denser poster grid. EPG: fixed guide data sometimes only partially loading on app launch."
 }

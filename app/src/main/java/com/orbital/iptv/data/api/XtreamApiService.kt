@@ -11,10 +11,23 @@ import com.orbital.iptv.data.model.SeriesStream
 import com.orbital.iptv.data.model.VodCategory
 import com.orbital.iptv.data.model.VodInfoResponse
 import com.orbital.iptv.data.model.VodStream
+import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Query
+import retrofit2.http.Streaming
 
 interface XtreamApiService {
+
+    // Bulk EPG export — every channel's full guide in one XML document, instead of one
+    // get_simple_data_table request per channel. Not JSON, so it bypasses the Gson converter
+    // (Retrofit returns ResponseBody as-is); @Streaming avoids buffering the whole (potentially
+    // multi-MB) body in memory before XtreamRepository.getFullEpgXmltv can stream-parse it.
+    @Streaming
+    @GET("xmltv.php")
+    suspend fun getXmltv(
+        @Query("username") username: String,
+        @Query("password") password: String
+    ): ResponseBody
 
     @GET("player_api.php")
     suspend fun getServerInfo(

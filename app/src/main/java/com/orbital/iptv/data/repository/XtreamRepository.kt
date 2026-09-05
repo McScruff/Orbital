@@ -1,10 +1,25 @@
 package com.orbital.iptv.data.repository
 
+import android.util.Base64
+import android.util.Xml
 import com.orbital.iptv.data.api.ApiClient
 import com.orbital.iptv.data.model.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.xmlpull.v1.XmlPullParser
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 
 class XtreamRepository {
+
+    companion object {
+        // XMLTV `channel id="..."` and LiveStream.epgChannelId are supposed to be the same
+        // string, but some providers differ by case or stray whitespace between the two feeds —
+        // normalize both sides before comparing so getFullEpgXmltv's map lookups aren't silently
+        // missed by a cosmetic mismatch (e.g. "BBC1.uk" vs "bbc1.uk").
+        fun normEpgId(raw: String?): String? = raw?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
+    }
 
     suspend fun authenticate(serverUrl: String, username: String, password: String): Result<ServerInfo> {
         return try {
@@ -86,6 +101,95 @@ class XtreamRepository {
     fun buildStreamUrl(serverUrl: String, username: String, password: String, streamId: Int): String {
         return ApiClient.buildStreamUrl(serverUrl, username, password, streamId)
     }
+
+    // XMLTV datetime: "20240115180000 +0000" (yyyyMMddHHmmss, space, RFC-822 offset).
+    private val xmltvDateFmt = SimpleDateFormat("yyyyMMddHHmmss Z", Locale.US)
+
+    private fun parseXmltvDateSec(raw: String?): Long? {
+        if (raw.isNullOrBlank()) return null
+        return try { xmltvDateFmt.parse(raw.trim())?.time?.let { it / 1000 } } catch (_: Exception) { null }
+    }
+
+    // EpgListing.title/description are read everywhere via getDecodedTitle()/getDecodedDescription(),
+    // which base64-decode — that's how Xtream's own JSON EPG endpoints deliver them. XMLTV gives
+    // plain text, so it's re-encoded here at the parsing boundary to stay a drop-in match for every
+    // existing call site (EpgView, EpgCache, ...) without touching any of them.
+    private fun b64(s: String): String = Base64.encodeToString(s.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
+
+    /**
+     * Bulk EPG fetch: one request for the whole guide (every channel, full multi-day window)
+     * instead of one get_simple_data_table call per channel. Keyed by normalizeEpgId(XMLTV
+     * `channel` id) — the caller should look up with normEpgId(stream.epgChannelId) to match.
+     * Streams the response with XmlPullParser rather than loading it into one big String, since a
+     * full multi-day guide for a large channel list can run several MB.
+     */
+    suspend fun getFullEpgXmltv(serverUrl: String, username: String, password: String): Result<Map<String, List<EpgListing>>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val body = ApiClient.getService(serverUrl).getXmltv(username, password)
+                val result = mutableMapOf<String, MutableList<EpgListing>>()
+                body.byteStream().use { stream ->
+                    val parser = Xml.newPullParser()
+                    parser.setInput(stream, null)   // null = auto-detect encoding from the XML prolog
+                    var eventType = parser.eventType
+                    var curChannel: String? = null
+                    var curStart: Long? = null
+                    var curStop: Long? = null
+                    var curTitle: String? = null
+                    var curDesc: String? = null
+                    var inTitle = false
+                    var inDesc = false
+                    while (eventType != XmlPullParser.END_DOCUMENT) {
+                        when (eventType) {
+                            XmlPullParser.START_TAG -> when (parser.name) {
+                                "programme" -> {
+                                    curChannel = parser.getAttributeValue(null, "channel")
+                                    curStart = parseXmltvDateSec(parser.getAttributeValue(null, "start"))
+                                    curStop = parseXmltvDateSec(parser.getAttributeValue(null, "stop"))
+                                    curTitle = null
+                                    curDesc = null
+                                }
+                                "title" -> inTitle = true
+                                "desc" -> inDesc = true
+                            }
+                            XmlPullParser.TEXT -> {
+                                if (inTitle) curTitle = (curTitle ?: "") + parser.text
+                                else if (inDesc) curDesc = (curDesc ?: "") + parser.text
+                            }
+                            XmlPullParser.END_TAG -> when (parser.name) {
+                                "title" -> inTitle = false
+                                "desc" -> inDesc = false
+                                "programme" -> {
+                                    val ch = normEpgId(curChannel)
+                                    val s = curStart
+                                    val e = curStop
+                                    if (ch != null && s != null && e != null) {
+                                        result.getOrPut(ch) { mutableListOf() }.add(
+                                            EpgListing(
+                                                id = null,
+                                                epgId = null,
+                                                title = b64(curTitle ?: ""),
+                                                description = b64(curDesc ?: ""),
+                                                start = null,
+                                                end = null,
+                                                startTimestamp = s.toString(),
+                                                stopTimestamp = e.toString()
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        eventType = parser.next()
+                    }
+                }
+                android.util.Log.i("XtreamRepository", "xmltv.php: parsed ${result.size} channel ids, ${result.values.sumOf { it.size }} programmes total")
+                Result.success(result)
+            } catch (e: Exception) {
+                android.util.Log.w("XtreamRepository", "xmltv.php bulk EPG fetch failed — falling back to per-channel", e)
+                Result.failure(e)
+            }
+        }
 
     suspend fun getVodCategories(serverUrl: String, username: String, password: String): Result<List<VodCategory>> {
         return try {

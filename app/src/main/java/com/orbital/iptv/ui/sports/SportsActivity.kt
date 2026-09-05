@@ -55,6 +55,7 @@ class SportsActivity : AppCompatActivity() {
         League("LA LIGA",  "soccer",   "esp.1",          "LA LIGA"),
         League("SERIE A",  "soccer",   "ita.1",          "SERIE A"),
         League("BUNDESL",  "soccer",   "ger.1",          "BUNDESLIGA"),
+        League("SCOT PREM","soccer",   "sco.1",          "SCOTTISH PREMIERSHIP"),
         League("NFL",      "football", "nfl",            "NFL", hasGroups = true)
     )
     private var leagueIdx = 0
@@ -364,6 +365,7 @@ class SportsActivity : AppCompatActivity() {
                 setPadding((14 * dp).toInt(), 0, (14 * dp).toInt(), 0)
                 isClickable = true
                 isFocusable = true
+                nextFocusDownId = R.id.tab_games
                 layoutParams = android.widget.LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT

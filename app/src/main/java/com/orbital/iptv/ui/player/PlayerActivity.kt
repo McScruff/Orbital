@@ -214,13 +214,8 @@ class PlayerActivity : AppCompatActivity() {
 
     private val debugGoalFlashReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: android.content.Context?, intent: Intent?) {
-            val sample = GoalFlashManager.GoalEvent(
-                gameLabel   = "Newcastle Utd vs Liverpool",
-                scoreLabel  = "Newcastle Utd 2 – 2 Liverpool",
-                detailLabel = "J. Willock  57'",
-                disallowed  = intent?.getBooleanExtra("disallowed", false) ?: false
-            )
-            binding.goalFlashOverlay.addFlash(sample, GoalFlashManager.getDurationSeconds(this@PlayerActivity).toLong() * 1000L)
+            val sample = GoalFlashManager.debugSample(intent)
+            binding.goalFlashOverlay.addFlash(sample, GoalFlashManager.DURATION_SECONDS.toLong() * 1000L)
         }
     }
 
@@ -229,8 +224,17 @@ class PlayerActivity : AppCompatActivity() {
         supportActionBar?.hide()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        ThemeManager.load(this)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // A raw SurfaceView renders to its own independent hardware surface punched through the
+        // window as a "hole", separate from the normal view hierarchy. On some (especially
+        // lower-end/TV-box) GPU compositors, overlays animated on top of it — like Goal Flash's
+        // slide-in cards — can partially/incorrectly composite. This tells the surface to
+        // composite reliably above the window background instead of via the hole-punch path, and
+        // must be set before the surface is created.
+        binding.surfaceView.setZOrderMediaOverlay(true)
+        applyPlayerTheme()
 
         streamUrl    = intent.getStringExtra(EXTRA_STREAM_URL) ?: ""
         channelName  = intent.getStringExtra(EXTRA_CHANNEL_NAME) ?: "UNKNOWN"
@@ -330,6 +334,41 @@ class PlayerActivity : AppCompatActivity() {
             }
             updateRecordButton()
         }
+    }
+
+    /**
+     * Reskins the player HUD chrome — top bar, bottom info bar/rows, dividers and ticker strips
+     * — with the current theme's palette. Mirrors TvModeActivity.applyTvTheme(); this HUD used to
+     * hardcode a fixed Sky-blue scheme in XML regardless of the user's chosen app theme.
+     */
+    private fun applyPlayerTheme() {
+        val p = ThemeManager.palette()
+        val density = resources.displayMetrics.density
+
+        binding.hudOverlay.setBackgroundColor(ThemeManager.withAlpha(p.bgHeader, 0xD0))
+        binding.tvPlayerTitle.setTextColor(p.accent)
+        listOf(
+            binding.btnBack, binding.btnAudio, binding.btnSurround, binding.btnSubs,
+            binding.btnScores, binding.btnNews, binding.btnGoalFlash, binding.btnOpenIn
+        ).forEach { it.background = ThemeManager.hudButtonDrawable(density) }
+
+        binding.bottomBar.setBackgroundColor(p.bgHeader)
+        binding.dividerBottomBar.setBackgroundColor(p.accent)
+        binding.channelInfoRow.setBackgroundColor(p.bgPrimary)
+        binding.liveNowRow.setBackgroundColor(p.bgMid)
+        binding.tvNowLabel.setTextColor(p.accent)
+        binding.liveNextRow.setBackgroundColor(p.bgPrimary)
+        binding.tvNextTime.setTextColor(p.accent)
+
+        binding.newsTickerRow.setBackgroundColor(ThemeManager.withAlpha(p.bgPrimary, 0xDD))
+        binding.tickerRow.setBackgroundColor(ThemeManager.withAlpha(p.bgPrimary, 0xDD))
+        binding.tvTicker.setTextColor(p.accent)
+        binding.tvNewsTicker.textColor = p.accent
+
+        listOf(binding.btnSeekBack, binding.btnPause, binding.btnSeekFwd).forEach {
+            it.background = ThemeManager.hudButtonDrawable(density)
+        }
+        binding.vodProgress.progressTintList = android.content.res.ColorStateList.valueOf(p.accent)
     }
 
     // ── Recording ─────────────────────────────────────────────────────────────
@@ -871,6 +910,7 @@ class PlayerActivity : AppCompatActivity() {
                     }
                 }
                 TickerManager.liveScores = scores
+                TickerManager.pruneFinished(this@PlayerActivity, scores)
                 updateTickerText()
             } catch (_: Exception) {}
         }
@@ -1509,7 +1549,7 @@ class PlayerActivity : AppCompatActivity() {
         com.orbital.iptv.utils.ReminderBus.register { r -> showReminderDialog(r) }
         GoalFlashManager.onGoal = { event ->
             runOnUiThread {
-                binding.goalFlashOverlay.addFlash(event, GoalFlashManager.getDurationSeconds(this).toLong() * 1000L)
+                binding.goalFlashOverlay.addFlash(event, GoalFlashManager.DURATION_SECONDS.toLong() * 1000L)
             }
         }
         androidx.core.content.ContextCompat.registerReceiver(

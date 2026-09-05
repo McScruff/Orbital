@@ -2,12 +2,16 @@ package com.orbital.iptv.ui.epg
 
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.OverScroller
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.orbital.iptv.data.model.EpgListing
 import com.orbital.iptv.data.model.getDecodedTitle
 import com.orbital.iptv.utils.ThemeManager
@@ -19,7 +23,8 @@ import kotlin.math.min
 data class EpgRow(
     val streamId: Int,
     val channelName: String,
-    var listings: List<EpgListing> = emptyList()
+    var listings: List<EpgListing> = emptyList(),
+    val logoUrl: String? = null
 )
 
 class EpgView @JvmOverloads constructor(
@@ -30,11 +35,29 @@ class EpgView @JvmOverloads constructor(
     var onChannelLongPress: ((streamId: Int) -> Unit)? = null
     var onProgrammeSelected: ((streamId: Int, channelName: String, listing: EpgListing) -> Unit)? = null
     var onRequestFocusLeft: (() -> Unit)? = null
+    // Fired (post()'d off the draw pass, so callers can safely launch coroutines) whenever the
+    // range of on-screen channel row indices changes — lets the caller fetch EPG data for rows
+    // as they scroll into view instead of the whole category upfront.
+    var onVisibleRangeChanged: ((IntRange) -> Unit)? = null
+    private var lastReportedRange: IntRange? = null
 
     private val rows = mutableListOf<EpgRow>()
 
+    // Real per-channel logos (stream_icon from the provider), not the coloured-initial swatches
+    // from the original design mock — a plain image reads as "channel branding", a colour grid
+    // reads as decoration. Global on/off toggle in Settings, independent of the app theme.
+    var showLogos: Boolean = true
+        set(value) { if (field != value) { field = value; invalidate() } }
+    private val logoBitmaps   = mutableMapOf<String, Bitmap>()
+    private val logoRequested = mutableSetOf<String>()
+    private val logoRect      = RectF()
+    private val logoPaint     = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
+
     private val dp              = resources.displayMetrics.density
     private val channelColWidth = (150 * dp).toInt()
+    private val logoSize        = (34 * dp).toInt()
+    private val logoStartX      = 6f * dp
+    private val logoTextGap     = 8f * dp
     private val rowHeight       = (50 * dp).toInt()
     private val headerHeight    = (44 * dp).toInt()
     private val textPad         = 8 * dp
@@ -81,6 +104,10 @@ class EpgView @JvmOverloads constructor(
     private val progNowPaint      = solidPaint(palette.focus)
     private val noDataPaint       = solidPaint(palette.bgPrimary)
     private val dividerPaint      = Paint().apply { color = palette.accent; strokeWidth = dp; alpha = 60 }
+    // Neutral hairline between channel rows — matches the iptv-gui.html mock's
+    // `border-top: 1px solid rgba(255,255,255,0.08)`, distinct from the accent-coloured
+    // [dividerPaint] used for the header's time gridlines.
+    private val rowDividerPaint   = Paint().apply { color = Color.WHITE; strokeWidth = dp; alpha = 20 }
     private val mainDivPaint      = Paint().apply { color = palette.accent; strokeWidth = 2 * dp }
     private val dayDivPaint       = Paint().apply { color = palette.accent; strokeWidth = 1.5f * dp; alpha = 200 }
     // Live "now" marker stays red regardless of theme — a universal, always-legible attention
@@ -98,6 +125,21 @@ class EpgView @JvmOverloads constructor(
     private val focusCellFillPaint = Paint().apply { color = 0x66FFFFFF.toInt(); isAntiAlias = true }
     private val focusCellBordPaint = Paint().apply {
         color = 0xFFFFFFFF.toInt(); strokeWidth = 3f * dp; style = Paint.Style.STROKE; isAntiAlias = true
+    }
+
+    // Fetches a channel logo once (Glide dedupes/caches by URL on disk+memory already; this
+    // just avoids repeated map lookups triggering new requests on every redraw) and stashes the
+    // decoded Bitmap so onDraw can blit it directly — Glide can't target a Canvas draw call.
+    private fun ensureLogo(url: String) {
+        if (url.isBlank() || logoBitmaps.containsKey(url) || !logoRequested.add(url)) return
+        Glide.with(this).asBitmap().load(url).fitCenter().override(logoSize, logoSize)
+            .into(object : CustomTarget<Bitmap>() {
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    logoBitmaps[url] = resource
+                    invalidate()
+                }
+                override fun onLoadCleared(placeholder: Drawable?) {}
+            })
     }
 
     // ── Geometry helpers ──────────────────────────────────────────────────────
@@ -180,10 +222,14 @@ class EpgView @JvmOverloads constructor(
         canvas.drawRect(0f, 0f, w, h, bgPaint)
 
         // ── Channel rows ─────────────────────────────────────────────────────
+        var firstVisibleRow = -1
+        var lastVisibleRow  = -1
         for (i in rows.indices) {
             val rowTop = headH + i * rowHeight - scrollY
             val rowBot = rowTop + rowHeight
             if (rowBot < headH || rowTop > h) continue
+            if (firstVisibleRow < 0) firstVisibleRow = i
+            lastVisibleRow = i
             val row = rows[i]
 
             canvas.drawRect(0f, rowTop, chanW, rowBot, if (i % 2 == 0) chanEvenPaint else chanOddPaint)
@@ -237,10 +283,31 @@ class EpgView @JvmOverloads constructor(
 
             canvas.save()
             canvas.clipRect(0f, rowTop, chanW, rowBot)
-            canvas.drawText(row.channelName, textPad, rowTop + rowHeight * 0.62f, chanTextPaint)
+            val hasLogoSlot = showLogos && !row.logoUrl.isNullOrBlank()
+            var nameTextX = textPad
+            if (hasLogoSlot) {
+                val url = row.logoUrl!!
+                ensureLogo(url)
+                nameTextX = logoStartX + logoSize + logoTextGap
+                logoBitmaps[url]?.let { bmp ->
+                    val logoTop = rowTop + (rowHeight - logoSize) / 2f
+                    logoRect.set(logoStartX, logoTop, logoStartX + logoSize, logoTop + logoSize)
+                    canvas.drawBitmap(bmp, null, logoRect, logoPaint)
+                }
+            }
+            canvas.drawText(row.channelName, nameTextX, rowTop + rowHeight * 0.62f, chanTextPaint)
             canvas.restore()
 
-            canvas.drawLine(0f, rowBot, w, rowBot, dividerPaint)
+            canvas.drawLine(0f, rowBot, w, rowBot, rowDividerPaint)
+        }
+
+        if (firstVisibleRow >= 0) {
+            val range = firstVisibleRow..lastVisibleRow
+            if (range != lastReportedRange) {
+                lastReportedRange = range
+                val callback = onVisibleRangeChanged
+                if (callback != null) post { callback(range) }
+            }
         }
 
         // ── Time header (fixed, drawn on top of rows) ─────────────────────────

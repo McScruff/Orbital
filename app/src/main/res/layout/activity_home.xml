@@ -124,6 +124,19 @@
             android:focusable="true"
             android:clickable="true"
             android:nextFocusDown="@id/header_tv_listings" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_time"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="14dp"
+            android:text="00:00"
+            android:textColor="@color/sky_cyan"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
     </LinearLayout>
 
     <!-- ═══ CYAN SEPARATOR ═══ -->
@@ -394,25 +407,13 @@
 
         <TextView
             android:id="@+id/tv_status_hint"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="ORBITAL  •  SELECT A CHANNEL TO WATCH"
             android:textColor="#556677"
             android:textSize="10sp"
             android:fontFamily="sans-serif-condensed"
             android:letterSpacing="0.05" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/tv_time"
-            android:text="LIVE TV"
-            android:textColor="@color/sky_cyan"
-            android:textSize="10sp"
-            android:fontFamily="sans-serif-condensed"
-            android:textStyle="bold"
-            android:letterSpacing="0.08" />
     </LinearLayout>
 
 </LinearLayout>

@@ -79,7 +79,10 @@ class EmbyBrowserActivity : AppCompatActivity() {
         binding.tvUsername.text = session!!.username
 
         adapter = EmbyMediaAdapter { item -> onItemClicked(item) }
-        binding.recyclerView.layoutManager = GridLayoutManager(this, 4)
+        // One column more than Box Office's movie grid (VodActivity uses 5) — this screen has no
+        // left-side category panel eating into the width, so the extra column keeps posters the
+        // same physical size instead of stretching them wider.
+        binding.recyclerView.layoutManager = GridLayoutManager(this, 6)
         binding.recyclerView.adapter = adapter
 
         setupTabBar()

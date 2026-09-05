@@ -68,7 +68,11 @@ object TickerManager {
         // scoreboard URL when re-polling this game's score (see PlayerActivity/TvModeActivity
         // fetchTickerScores()). Defaults to "soccer" so games pinned before this field existed
         // still parse from saved prefs.
-        val sportPath: String = "soccer"
+        val sportPath: String = "soccer",
+        // Local calendar date (yyyyMMdd) this game was pinned on — lets pruneStale() clear a
+        // pin left ticked from a previous day. Defaults to today so pins saved before this field
+        // existed aren't wrongly treated as stale the first time they're read back.
+        val pinnedDay: String = todayKey()
     )
 
     data class LiveScore(
@@ -109,6 +113,9 @@ object TickerManager {
     private const val KEY_GAMES        = "selected_games"
     private const val KEY_SPORT_IDS    = "selected_sport_ids"
 
+    private fun todayKey(): String =
+        java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date())
+
     fun getSelected(context: Context): List<SelectedGame> {
         val json = context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
             .getString(KEY_GAMES, "[]") ?: "[]"
@@ -118,7 +125,8 @@ object TickerManager {
                 val o = arr.getJSONObject(i)
                 SelectedGame(o.optString("id"), o.optString("leagueId"),
                     o.optString("homeTeam"), o.optString("awayTeam"),
-                    o.optString("sportPath", "soccer"))
+                    o.optString("sportPath", "soccer"),
+                    o.optString("pinnedDay", todayKey()))
             }
         } catch (_: Exception) { emptyList() }
     }
@@ -133,13 +141,41 @@ object TickerManager {
         save(context, list)
     }
 
+    /** Un-pins [gameId] once its match has finished — a finished game no longer needs tracking. */
+    fun unpin(context: Context, gameId: String) {
+        val list = getSelected(context)
+        val kept = list.filter { it.id != gameId }
+        if (kept.size != list.size) save(context, kept)
+    }
+
+    /** Un-pins any of [scores] that have reached full-time. */
+    fun pruneFinished(context: Context, scores: List<LiveScore>) {
+        val finishedIds = scores.filter { it.state == "post" }.map { it.gameId }.toSet()
+        if (finishedIds.isEmpty()) return
+        val list = getSelected(context)
+        val kept = list.filter { it.id !in finishedIds }
+        if (kept.size != list.size) save(context, kept)
+    }
+
+    /**
+     * Clears any pin left over from a previous day — called once on app start so a game ticked
+     * yesterday (that never got auto-unpinned, e.g. the app wasn't open when it finished) doesn't
+     * silently keep polling/showing forever.
+     */
+    fun pruneStale(context: Context) {
+        val today = todayKey()
+        val list = getSelected(context)
+        val kept = list.filter { it.pinnedDay == today }
+        if (kept.size != list.size) save(context, kept)
+    }
+
     private fun save(context: Context, games: List<SelectedGame>) {
         val arr = JSONArray()
         games.forEach { g ->
             arr.put(JSONObject().apply {
                 put("id", g.id); put("leagueId", g.leagueId)
                 put("homeTeam", g.homeTeam); put("awayTeam", g.awayTeam)
-                put("sportPath", g.sportPath)
+                put("sportPath", g.sportPath); put("pinnedDay", g.pinnedDay)
             })
         }
         context.getSharedPreferences(PREF, Context.MODE_PRIVATE)

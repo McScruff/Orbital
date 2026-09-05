@@ -30,4 +30,13 @@
         <item name="android:fontFamily">sans-serif-condensed</item>
         <item name="android:textSize">13sp</item>
     </style>
+
+    <!-- Selected at runtime via ThemeManager.dialogStyle() when the AURORA app theme is active. -->
+    <style name="Theme.Orbital.Dialog.Aurora" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog_aurora</item>
+        <item name="android:textColorPrimary">#F2F4FF</item>
+        <item name="android:colorAccent">#4E8CFF</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textSize">13sp</item>
+    </style>
 </resources>

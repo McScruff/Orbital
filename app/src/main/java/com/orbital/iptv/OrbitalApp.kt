@@ -11,6 +11,7 @@ import android.view.WindowManager
 class OrbitalApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        com.orbital.iptv.utils.TickerManager.pruneStale(this)
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(a: Activity, b: Bundle?) =
                 a.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

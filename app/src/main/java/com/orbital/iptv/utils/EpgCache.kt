@@ -10,7 +10,10 @@ import java.io.File
 
 object EpgCache {
 
-    private const val TTL_MS      = 24 * 60 * 60 * 1000L
+    // Full per-channel EPG pulls cover a 7-day window; refreshing at 4 days keeps a comfortable
+    // buffer before the cached data runs off the end of that window while still avoiding a
+    // network hit on every app open.
+    private const val TTL_MS      = 4 * 24 * 60 * 60 * 1000L
     private const val PREF        = "epg_cache_meta"
     private const val KEY_BATCH   = "batch_ts_ms"
 
@@ -43,6 +46,14 @@ object EpgCache {
         return System.currentTimeMillis() - f.lastModified() < TTL_MS
     }
 
+    // True only for a channel that WAS cached but has aged past the TTL — distinct from "never
+    // cached", so callers can tell the user specifically when an existing guide is being renewed
+    // rather than toasting on every ordinary first-time load.
+    fun isStale(context: Context, streamId: Int): Boolean {
+        val f = channelFile(context, streamId)
+        return f.exists() && !isValid(context, streamId)
+    }
+
     // minCount: treat cache as stale if it has fewer entries than this (e.g. was saved from a short-epg call)
     suspend fun get(context: Context, streamId: Int, minCount: Int = 1): List<EpgListing>? = withContext(Dispatchers.IO) {
         if (!isValid(context, streamId)) return@withContext null
@@ -53,11 +64,16 @@ object EpgCache {
         } catch (_: Exception) { null }
     }
 
-    // Never downgrade: only write if the new dataset is larger than what's already cached.
-    suspend fun put(context: Context, streamId: Int, listings: List<EpgListing>) = withContext(Dispatchers.IO) {
+    // Never downgrade: only write if the new dataset is larger than what's already cached. This
+    // protects the opportunistic/background paths (a short_epg fallback shouldn't clobber a
+    // previously-successful full pull), but [force] bypasses it for an explicit "get me current
+    // data now" refresh — a big dataset isn't necessarily a *fresh* one, and without this a stale
+    // (but numerically larger) old 7-day window could block a genuinely current one from ever
+    // landing, leaving the guide rendering real entries that are simply all in the past.
+    suspend fun put(context: Context, streamId: Int, listings: List<EpgListing>, force: Boolean = false) = withContext(Dispatchers.IO) {
         try {
             val file = channelFile(context, streamId)
-            if (file.exists()) {
+            if (!force && file.exists()) {
                 val existing = try {
                     val type = object : TypeToken<List<EpgListing>>() {}.type
                     Gson().fromJson<List<EpgListing>>(file.readText(), type)

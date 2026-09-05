@@ -46,9 +46,11 @@ import com.orbital.iptv.ui.search.GlobalSearchActivity
 import com.orbital.iptv.ui.tv.TvModeActivity
 import com.orbital.iptv.ui.tv.TvModeHolder
 import com.orbital.iptv.utils.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Semaphore
@@ -134,6 +136,20 @@ class HomeActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                // Back from the category list used to fall straight through to the app-exit
+                // path below with no stop in between — send it up to the top nav bar first, same
+                // as a Live TV screen would on any other platform.
+                if (binding.originalCatContainer?.hasFocus() == true) {
+                    binding.tabTvGuide?.requestFocus()
+                    return
+                }
+                // Back from the top nav bar is the true "leave the app" gesture — confirm instead
+                // of exiting immediately, since a stray Back here would otherwise kill the app
+                // with no way back except relaunching.
+                if (binding.layoutNavBar?.hasFocus() == true) {
+                    confirmExitApp()
+                    return
+                }
                 if (PrefsManager.isTvModeEnabled(this@HomeActivity)) {
                     val url = PrefsManager.getLastTvChannelUrl(this@HomeActivity)
                     if (url != null) {
@@ -151,6 +167,15 @@ class HomeActivity : AppCompatActivity() {
                 isEnabled = true
             }
         })
+    }
+
+    private fun confirmExitApp() {
+        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
+            .setTitle("EXIT ORBITAL")
+            .setMessage("Are you sure you want to exit?")
+            .setPositiveButton("EXIT") { _, _ -> finishAffinity() }
+            .setNegativeButton("CANCEL", null)
+            .show()
     }
 
     private fun setupTabButtons() {
@@ -301,6 +326,8 @@ class HomeActivity : AppCompatActivity() {
         items += Item(themeLabel)                         { showThemePicker() }
         items += Item(tvModeLabel)                        { toggleTvMode() }
         items += Item(pipLabel)                           { PrefsManager.setPipEnabled(this, !PrefsManager.isPipEnabled(this)) }
+        val logosLabel  = "CHANNEL LOGOS: ${if (PrefsManager.isChannelLogosEnabled(this)) "ON" else "OFF"}"
+        items += Item(logosLabel)                         { toggleChannelLogos() }
         val subKeyLabel = if (PrefsManager.getOpenSubsApiKey(this) != null)
             "OPENSUBTITLES: KEY SET" else "OPENSUBTITLES: NO KEY SET"
         items += Item(subKeyLabel)                        { showOpenSubsKeyDialog() }
@@ -309,8 +336,6 @@ class HomeActivity : AppCompatActivity() {
         items += Item(tmdbKeyLabel)                       { showTmdbKeyDialog() }
         val liveFormatLabel = "LIVE STREAM FORMAT: ${PrefsManager.getLiveFormat(this).uppercase()}"
         items += Item(liveFormatLabel) { toggleLiveFormat() }
-        val goalFlashLabel = "GOAL FLASH DURATION: ${com.orbital.iptv.utils.GoalFlashManager.getDurationSeconds(this)}s"
-        items += Item(goalFlashLabel)                     { showGoalFlashDurationPicker() }
         items += Item("PIN PROTECTED CATEGORIES")          { showPinProtectedCategories() }
         items += Item("CHANGE PIN")                       { showChangePinDialog() }
         items += Item("CHECK FOR UPDATES")                { checkForUpdatesManually() }
@@ -408,18 +433,6 @@ class HomeActivity : AppCompatActivity() {
             .setItems(labels) { _, which ->
                 ThemeManager.set(this, themes[which])
                 recreate()
-            }
-            .show()
-    }
-
-    private fun showGoalFlashDurationPicker() {
-        val options = intArrayOf(3, 5, 8, 10, 15)
-        val current = com.orbital.iptv.utils.GoalFlashManager.getDurationSeconds(this)
-        val labels = options.map { s -> if (s == current) "●  ${s}s" else "○  ${s}s" }.toTypedArray()
-        androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
-            .setTitle("GOAL FLASH DURATION")
-            .setItems(labels) { _, which ->
-                com.orbital.iptv.utils.GoalFlashManager.setDurationSeconds(this, options[which])
             }
             .show()
     }
@@ -528,9 +541,20 @@ class HomeActivity : AppCompatActivity() {
             val container = binding.originalCatContainer
             var focused = false
             if (container != null) {
+                // Land back on whichever category row is actually selected (tagged with its
+                // categoryId in setupCategoryMenu) rather than always jumping to the top of the
+                // list — Down/Up from here would otherwise have to re-walk past every category
+                // above the one currently being browsed.
+                val selectedId = viewModel.uiState.value?.selectedXtreamCategory?.categoryId
                 for (i in 0 until container.childCount) {
                     val child = container.getChildAt(i)
-                    if (child.isFocusable) { child.requestFocus(); focused = true; break }
+                    if (child.isFocusable && child.tag == selectedId) { child.requestFocus(); focused = true; break }
+                }
+                if (!focused) {
+                    for (i in 0 until container.childCount) {
+                        val child = container.getChildAt(i)
+                        if (child.isFocusable) { child.requestFocus(); focused = true; break }
+                    }
                 }
             }
             if (!focused) binding.headerTvListings.requestFocus()
@@ -539,41 +563,90 @@ class HomeActivity : AppCompatActivity() {
 
     private fun loadCategoryIntoEpg(channels: List<LiveStream>, onComplete: (() -> Unit)? = null) {
         currentChannels = channels
-        val rows = channels.map { EpgRow(streamId = it.streamId, channelName = it.name) }
+        val rows = channels.map { EpgRow(streamId = it.streamId, channelName = it.name, logoUrl = it.streamIcon) }
+        binding.epgView.showLogos = PrefsManager.isChannelLogosEnabled(this)
         binding.epgView.setRows(rows)
         binding.epgView.scrollToNow()
 
         epgLoadingJob?.cancel()
         val creds = PrefsManager.getCredentials(this) ?: return
+        // Only the priority window (below) is actually fetched on this load — checking staleness
+        // across the whole category would toast every time a huge category is opened just because
+        // some never-scrolled-to channel near the bottom aged out, even though nothing is really
+        // being refreshed for it. Scope the toast to what's actually about to be re-fetched.
+        val priorityCount = 30
+        if (channels.take(priorityCount).any { EpgCache.isStale(this, it.streamId) }) {
+            android.widget.Toast.makeText(this, "EPG CACHE IS OVER 4 DAYS OLD — REFRESHING…", android.widget.Toast.LENGTH_LONG).show()
+        }
         // Capped concurrency: firing one request per channel at once (e.g. 100+ in a large
         // category) floods the Xtream server, which throttles/truncates the burst — that's what
         // made a freshly-cleared cache come back showing only "now" or nothing at all instead of
         // the full multi-day guide. A shared semaphore keeps only a handful of requests in flight.
         val fetchLimiter = Semaphore(6)
-        epgLoadingJob = lifecycleScope.launch {
-            // coroutineScope waits for every per-channel launch{} below to finish before this
-            // block completes, so onComplete (e.g. the "refresh done" toast) fires only once the
-            // whole category has actually loaded rather than right after kicking off the fetches.
-            coroutineScope {
-                channels.forEach { stream ->
-                    launch {
-                        val cached = EpgCache.get(this@HomeActivity, stream.streamId, minCount = 50)
-                        if (cached != null) {
-                            binding.epgView.updateRow(stream.streamId, cached)
-                        } else {
-                            val result = fetchLimiter.withPermit {
-                                repository.getFullChannelEpg(creds.serverUrl, creds.username, creds.password, stream.streamId)
-                            }
-                            result.onSuccess { epg ->
-                                val listings = epg.listings ?: emptyList()
-                                EpgCache.put(this@HomeActivity, stream.streamId, listings)
-                                binding.epgView.updateRow(stream.streamId, listings)
-                            }
+        // Cache hits resolve near-instantly regardless of order (no network, no semaphore) — this
+        // set only governs the network-bound misses, so a channel is never requested twice.
+        val requested = mutableSetOf<Int>()
+
+        fun fetchChannel(scope: CoroutineScope, stream: LiveStream) {
+            if (!requested.add(stream.streamId)) return
+            scope.launch {
+                // Paint whatever's cached immediately, no matter how few entries — a channel with
+                // a genuinely sparse 7-day schedule (bulk XMLTV coverage, quiet regional feeds...)
+                // would otherwise sit blank forever: minCount<50 used to mean "treat as a miss",
+                // which hid perfectly good data while a re-fetch ran, and left the row empty if
+                // that re-fetch failed or came back just as thin.
+                val cached = EpgCache.get(this@HomeActivity, stream.streamId, minCount = 1)
+                if (cached != null) binding.epgView.updateRow(stream.streamId, cached)
+                if (cached == null || cached.size < 50) {
+                    var result = fetchLimiter.withPermit {
+                        repository.getFullChannelEpg(creds.serverUrl, creds.username, creds.password, stream.streamId)
+                    }
+                    // A transient throttle/timeout must not permanently blackhole this row: `requested`
+                    // already blocks any later scroll-triggered retry for this category load, so this
+                    // was why a launch-time guide sometimes came back with gaps that only "FULL EPG
+                    // REFRESH" (a single bulk request, immune to per-channel throttling) could fill —
+                    // one retry after a short backoff recovers the vast majority of those.
+                    if (result.isFailure) {
+                        delay(1500)
+                        result = fetchLimiter.withPermit {
+                            repository.getFullChannelEpg(creds.serverUrl, creds.username, creds.password, stream.streamId)
                         }
                     }
+                    result.onSuccess { epg ->
+                        val listings = epg.listings ?: emptyList()
+                        if (listings.size > (cached?.size ?: 0)) {
+                            EpgCache.put(this@HomeActivity, stream.streamId, listings)
+                            binding.epgView.updateRow(stream.streamId, listings)
+                        }
+                    }
+                    // Still failing after the retry — un-jam it so scrolling away and back (or the
+                    // next visible-range pass) gets another shot instead of leaving it blank for
+                    // the rest of this category load.
+                    if (result.isFailure) requested.remove(stream.streamId)
                 }
             }
+        }
+
+        // Only fetch the on-screen window (plus a generous buffer) up front — a category with
+        // 100+ channels used to queue all of them behind the same 6-wide semaphore, so anything
+        // below the fold waited on the whole list. Most categories are well under this count, so
+        // this is a no-op for them; the rest streams in on demand as the guide scrolls, via
+        // onVisibleRangeChanged below, still funnelled through the same semaphore.
+        epgLoadingJob = lifecycleScope.launch {
+            // coroutineScope waits for every per-channel launch{} below to finish before this
+            // block completes, so onComplete (e.g. the "refresh done" toast) fires once the
+            // priority window has loaded rather than right after kicking off the fetches.
+            coroutineScope {
+                val scope = this
+                channels.take(priorityCount).forEach { fetchChannel(scope, it) }
+            }
             onComplete?.invoke()
+        }
+
+        binding.epgView.onVisibleRangeChanged = { range ->
+            val lo = (range.first - 5).coerceAtLeast(0)
+            val hi = (range.last + 15).coerceAtMost(channels.size - 1)
+            for (i in lo..hi) fetchChannel(lifecycleScope, channels[i])
         }
     }
 
@@ -583,22 +656,52 @@ class HomeActivity : AppCompatActivity() {
     }
 
     /**
-     * EPG listings are cached on disk per channel for 24h (see EpgCache) so switching
-     * categories/channels doesn't re-hit the server every time. This clears that cache and
-     * reloads the currently-visible category, forcing a fresh 7-day pull without touching the
-     * channel/VOD/series catalog (that's what "REFRESH SERVER" is for).
+     * EPG listings are cached on disk per channel for 4 days (see EpgCache) so switching
+     * categories/channels doesn't re-hit the server every time, and normal aging past that TTL
+     * already re-fetches (and toasts) on its own from loadCategoryIntoEpg. This is the manual
+     * override, and unlike the automatic path (which only ever touches the category you're
+     * looking at) this warms every channel app-wide in one shot via the provider's bulk XMLTV
+     * export (see XtreamRepository.getFullEpgXmltv) — one request instead of one per channel.
+     * Falls back to the old clear-and-reload-current-category method if the provider doesn't
+     * support xmltv.php.
      */
     private fun confirmFullEpgRefresh() {
         val name = PrefsManager.getActiveProfile(this)?.name?.uppercase() ?: "SERVER"
         androidx.appcompat.app.AlertDialog.Builder(this, com.orbital.iptv.utils.ThemeManager.dialogStyle())
             .setTitle("FULL EPG REFRESH")
-            .setMessage("Clear the cached guide data for $name and re-download the 7-day EPG. Continue?")
+            .setMessage("Re-download the full 7-day EPG for every channel on $name. This can take a minute or two. Continue?")
             .setPositiveButton("REFRESH") { _, _ ->
                 lifecycleScope.launch {
-                    EpgCache.clearAll(this@HomeActivity)
-                    android.widget.Toast.makeText(this@HomeActivity, "EPG REFRESHING…", android.widget.Toast.LENGTH_SHORT).show()
-                    loadCategoryIntoEpg(currentChannels) {
-                        android.widget.Toast.makeText(this@HomeActivity, "EPG REFRESH COMPLETE", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(this@HomeActivity, "FETCHING ALL EPG DATA — THIS CAN TAKE A MINUTE OR TWO…", android.widget.Toast.LENGTH_LONG).show()
+                    val creds = PrefsManager.getCredentials(this@HomeActivity) ?: return@launch
+                    val byChannelId = repository.getFullEpgXmltv(creds.serverUrl, creds.username, creds.password).getOrNull()
+                    if (byChannelId != null && byChannelId.isNotEmpty()) {
+                        var count = 0
+                        viewModel.getAllStreams().forEach { stream ->
+                            val id = XtreamRepository.normEpgId(stream.epgChannelId)
+                            if (id != null) {
+                                byChannelId[id]?.let { listings ->
+                                    // force=true: this is an explicit "get current data now" refresh —
+                                    // see the comment on EpgCache.put for why never-downgrade is wrong here.
+                                    EpgCache.put(this@HomeActivity, stream.streamId, listings, force = true)
+                                    count++
+                                }
+                            }
+                        }
+                        EpgCache.markBatchRefreshed(this@HomeActivity)
+                        // Bulk XMLTV won't cover every channel (some providers omit epg_channel_id,
+                        // or a channel just isn't in their XMLTV feed) — loadCategoryIntoEpg's own
+                        // cache-miss fallback fills those gaps for whatever's in the current
+                        // category's priority window, so wait for that too before saying "done".
+                        loadCategoryIntoEpg(currentChannels) {
+                            android.widget.Toast.makeText(this@HomeActivity, "EPG REFRESH COMPLETE — $count CHANNELS", android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        // Provider doesn't support bulk XMLTV — fall back to the per-channel method
+                        EpgCache.clearAll(this@HomeActivity)
+                        loadCategoryIntoEpg(currentChannels) {
+                            android.widget.Toast.makeText(this@HomeActivity, "EPG REFRESH COMPLETE", android.widget.Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
@@ -622,7 +725,7 @@ class HomeActivity : AppCompatActivity() {
 
         val density = resources.displayMetrics.density
         binding.tabTvGuide?.background = ThemeManager.navTabDrawable(density, selected = true)
-        binding.tabTvGuide?.setTextColor(0xFF000000.toInt())
+        binding.tabTvGuide?.setTextColor(p.tabTextOnSelected)
         listOf(binding.tabBoxOffice, binding.tabRadio, binding.tabInteractive, binding.tabServices).forEach {
             it?.background = ThemeManager.navTabDrawable(density, selected = false)
             it?.setTextColor(0xFFFFFFFF.toInt())
@@ -676,6 +779,15 @@ class HomeActivity : AppCompatActivity() {
         binding.catOther.visibility = View.GONE
 
         binding.originalCatContainer?.visibility = View.VISIBLE
+        // Rebuilding below destroys whichever row currently has focus (e.g. right after the user
+        // clicked one to select it — selectXtreamCategory()'s state update lands back here
+        // synchronously, tearing down and recreating every row before the click handler even
+        // returns). Losing focus mid-rebuild sends Android's default focus search wherever it
+        // finds nearest, which was landing on the top tab bar instead of staying in this list — a
+        // Right press right after selecting a category then hit the tab bar's own focus chain
+        // instead of nextFocusRightId's route to the channel list. Remember it here and restore
+        // it onto the equivalent (by categoryId tag) row once rebuilt.
+        val hadFocus = binding.originalCatContainer?.hasFocus() == true
         binding.originalCatContainer?.removeAllViews()
 
         val rowHeightPx = android.util.TypedValue.applyDimension(
@@ -705,6 +817,7 @@ class HomeActivity : AppCompatActivity() {
             isClickable = true
             isFocusable = true
             nextFocusRightId = R.id.epg_view
+            tag = HomeViewModel.FAV_CATEGORY_ID
             if (p.cardElevation > 0f) elevation = p.cardElevation * density
             clipToOutline = true
             if (isFavSelected) {
@@ -712,11 +825,11 @@ class HomeActivity : AppCompatActivity() {
                 setTextColor(0xFF000000.toInt())
                 binding.tvCurrentCategory?.text = "FAVOURITES"
             } else {
-                background = ThemeManager.roundedBg(p.bgMid, density)
+                background = ThemeManager.roundedBg(p.rowEven, density)
                 setTextColor(0xFFFFFFFF.toInt())
             }
             setOnFocusChangeListener { _, hasFocus ->
-                if (!isFavSelected) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
+                if (!isFavSelected) background = ThemeManager.focusRowDrawable(density, p.rowEven, hasFocus)
             }
             setOnClickListener {
                 val ids = FavouritesManager.getLiveChannels(this@HomeActivity).map { it.streamId }.toSet()
@@ -727,7 +840,7 @@ class HomeActivity : AppCompatActivity() {
         binding.originalCatContainer?.addView(favTv)
 
         visibleCategories.forEachIndexed { index, category ->
-            val normalBg = if (index % 2 == 0) p.bgMid else p.bgPrimary
+            val normalBg = if (index % 2 == 0) p.rowEven else p.rowOdd
             val tv = android.widget.TextView(this).apply {
                 val lp = android.widget.LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT, rowHeightPx
@@ -742,6 +855,7 @@ class HomeActivity : AppCompatActivity() {
                 isClickable = true
                 isFocusable = true
                 nextFocusRightId = R.id.epg_view
+                tag = category.categoryId
                 if (p.cardElevation > 0f) elevation = p.cardElevation * density
                 clipToOutline = true
 
@@ -769,6 +883,20 @@ class HomeActivity : AppCompatActivity() {
             }
             binding.originalCatContainer?.addView(tv)
         }
+
+        if (hadFocus) {
+            val container = binding.originalCatContainer
+            for (i in 0 until (container?.childCount ?: 0)) {
+                val child = container!!.getChildAt(i)
+                if (child.tag == selected?.categoryId) { child.requestFocus(); break }
+            }
+        }
+    }
+
+    private fun toggleChannelLogos() {
+        val enabled = !PrefsManager.isChannelLogosEnabled(this)
+        PrefsManager.setChannelLogosEnabled(this, enabled)
+        binding.epgView.showLogos = enabled
     }
 
     private fun toggleLiveFormat() {
