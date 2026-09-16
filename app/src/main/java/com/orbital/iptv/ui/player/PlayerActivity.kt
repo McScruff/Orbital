@@ -450,7 +450,14 @@ class PlayerActivity : AppCompatActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (event.keyCode) {
-                KeyEvent.KEYCODE_BACK -> { finish(); return true }
+                KeyEvent.KEYCODE_BACK -> {
+                    if (binding.hudOverlay.visibility == View.VISIBLE) {
+                        hideOverlay()
+                    } else {
+                        finish()
+                    }
+                    return true
+                }
 
                 KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
                 KeyEvent.KEYCODE_MEDIA_PLAY,
@@ -651,6 +658,10 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private val playerListener = object : Player.Listener {
+        override fun onCues(cueGroup: androidx.media3.common.text.CueGroup) {
+            binding.subtitleView.setCues(cueGroup.cues)
+        }
+
         override fun onPlaybackStateChanged(state: Int) {
             when (state) {
                 Player.STATE_BUFFERING -> runOnUiThread {
