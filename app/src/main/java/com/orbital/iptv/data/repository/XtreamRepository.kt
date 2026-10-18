@@ -1,14 +1,20 @@
 package com.orbital.iptv.data.repository
 
 import android.util.Base64
+import android.util.Log
 import android.util.Xml
 import com.orbital.iptv.data.api.ApiClient
 import com.orbital.iptv.data.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.xmlpull.v1.XmlPullParser
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 
 class XtreamRepository {
@@ -19,6 +25,20 @@ class XtreamRepository {
         // normalize both sides before comparing so getFullEpgXmltv's map lookups aren't silently
         // missed by a cosmetic mismatch (e.g. "BBC1.uk" vs "bbc1.uk").
         fun normEpgId(raw: String?): String? = raw?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
+
+        private const val TAG = "XtreamRepository"
+
+        /** For the full-guide download only (see streamFullEpgXmltv). IPv4 first, as in ApiClient. */
+        private val bulkClient by lazy {
+            OkHttpClient.Builder()
+                .dns(object : okhttp3.Dns {
+                    override fun lookup(hostname: String) =
+                        okhttp3.Dns.SYSTEM.lookup(hostname).sortedBy { if (it is java.net.Inet4Address) 0 else 1 }
+                })
+                .connectTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build()
+        }
     }
 
     suspend fun authenticate(serverUrl: String, username: String, password: String): Result<ServerInfo> {
@@ -190,6 +210,118 @@ class XtreamRepository {
                 Result.failure(e)
             }
         }
+
+    /**
+     * Bulk EPG fetch: one request for the whole guide (every channel, full multi-day window)
+     * instead of one call per channel. A provider's guide can be very large (one is 146 MB with
+     * nearly half a million programmes), far more than the app may hold in memory, so nothing is
+     * collected here: the response is stream-parsed and each channel's programmes are handed to
+     * [onChannel] as soon as that channel ends, then dropped. Only channels in [wanted] (ids as
+     * normEpgId gives them) are kept, and programmes that finished more than a day ago are skipped.
+     * XMLTV lists a channel's programmes together; if a provider repeats a channel later in the
+     * file, [onChannel] is called again for it with the extra programmes and [append] = true.
+     * Returns how many channels were handed over. [onChannel] runs on the IO thread.
+     */
+    suspend fun streamFullEpgXmltv(
+        serverUrl: String, username: String, password: String, wanted: Set<String>,
+        onChannel: (epgId: String, listings: List<EpgListing>, append: Boolean) -> Unit
+    ): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            Log.i(TAG, "full guide: requesting")
+            val url = (if (serverUrl.endsWith("/")) serverUrl else "$serverUrl/").toHttpUrl().newBuilder()
+                .addPathSegment("xmltv.php")
+                .addQueryParameter("username", username)
+                .addQueryParameter("password", password)
+                .build()
+            // Its own client, not the shared API one: the guide screen keeps that one's per-host
+            // slots busy with per-channel requests, and this call used to queue behind them for
+            // minutes without ever reaching the network.
+            val response = bulkClient.newCall(Request.Builder().url(url).build()).execute()
+            if (!response.isSuccessful) {
+                response.close()
+                Log.w(TAG, "full guide: HTTP ${response.code}")
+                throw retrofit2.HttpException(retrofit2.Response.error<Any>(response.code,
+                    "".toResponseBody(null)))
+            }
+            Log.i(TAG, "full guide: downloading")
+            val body = response.body ?: throw java.io.IOException("Empty guide response")
+            val cutoff = System.currentTimeMillis() / 1000 - 24 * 3600
+            val done = HashSet<String>()
+            var current: String? = null
+            var batch = ArrayList<EpgListing>()
+            var programmes = 0
+            fun flush() {
+                val ch = current ?: return
+                if (batch.isNotEmpty()) {
+                    onChannel(ch, batch, !done.add(ch))
+                    batch = ArrayList()
+                    if (done.size % 500 == 0) Log.i(TAG, "full guide: ${done.size} channels so far")
+                }
+            }
+            body.byteStream().use { stream ->
+                val parser = Xml.newPullParser()
+                parser.setInput(stream, null)   // null = auto-detect encoding from the XML prolog
+                var eventType = parser.eventType
+                var keep = false
+                var curStart: Long? = null
+                var curStop: Long? = null
+                val title = StringBuilder()
+                val desc = StringBuilder()
+                var inTitle = false
+                var inDesc = false
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    when (eventType) {
+                        XmlPullParser.START_TAG -> when (parser.name) {
+                            "programme" -> {
+                                val ch = normEpgId(parser.getAttributeValue(null, "channel"))
+                                if (ch != current) { flush(); current = ch }
+                                curStop = parseXmltvDateSec(parser.getAttributeValue(null, "stop"))
+                                keep = ch != null && ch in wanted && (curStop ?: 0L) >= cutoff
+                                curStart = if (keep) parseXmltvDateSec(parser.getAttributeValue(null, "start")) else null
+                                title.setLength(0)
+                                desc.setLength(0)
+                            }
+                            "title" -> inTitle = keep
+                            "desc" -> inDesc = keep
+                        }
+                        XmlPullParser.TEXT -> {
+                            if (inTitle) title.append(parser.text)
+                            else if (inDesc) desc.append(parser.text)
+                        }
+                        XmlPullParser.END_TAG -> when (parser.name) {
+                            "title" -> inTitle = false
+                            "desc" -> inDesc = false
+                            "programme" -> {
+                                val s = curStart
+                                val e = curStop
+                                if (keep && s != null && e != null) {
+                                    batch.add(EpgListing(
+                                        id = null,
+                                        epgId = null,
+                                        title = b64(title.toString()),
+                                        description = b64(desc.toString()),
+                                        start = null,
+                                        end = null,
+                                        startTimestamp = s.toString(),
+                                        stopTimestamp = e.toString()
+                                    ))
+                                    programmes++
+                                }
+                                keep = false
+                            }
+                        }
+                    }
+                    eventType = parser.next()
+                }
+                flush()
+            }
+            Log.i(TAG, "xmltv.php: saved ${done.size} channels, $programmes programmes")
+            Result.success(done.size)
+        } catch (e: Exception) {
+            Log.w(TAG, "xmltv.php bulk EPG fetch failed: ${e.javaClass.simpleName}")
+            Result.failure(e)
+        }
+    }
 
     suspend fun getVodCategories(serverUrl: String, username: String, password: String): Result<List<VodCategory>> {
         return try {

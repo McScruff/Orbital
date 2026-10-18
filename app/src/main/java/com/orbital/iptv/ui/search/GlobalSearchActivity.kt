@@ -171,10 +171,15 @@ class GlobalSearchAdapter(
         )
         val vh = VH(b)
         b.root.setOnClickListener { onClick(getItem(vh.bindingAdapterPosition)) }
+        val nb = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        if (nb) {
+            val d0 = b.root.resources.displayMetrics.density
+            b.root.background = ThemeManager.focusRowDrawable(d0, ThemeManager.palette().bgMid, false)
+        }
         b.root.setOnFocusChangeListener { _, hasFocus ->
             val p = ThemeManager.palette()
             val d = b.root.resources.displayMetrics.density
-            b.root.background = ThemeManager.focusRowDrawable(d, p.bgPrimary, hasFocus)
+            b.root.background = ThemeManager.focusRowDrawable(d, if (nb) p.bgMid else p.bgPrimary, hasFocus)
         }
         return vh
     }
@@ -269,24 +274,32 @@ class GlobalSearchActivity : AppCompatActivity() {
     private var searchJob: Job?  = null
     private var lastSearchQuery  = ""
     private var lastSearchMs     = 0L
+    private var nebula = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityGlobalSearchBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityGlobalSearchBinding.bind(layoutInflater.inflate(R.layout.activity_global_search_nebula, null))
+        else ActivityGlobalSearchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.SEARCH)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
-        binding.root.findViewById<android.view.View>(R.id.layout_header)?.setBackgroundColor(p.bgHeader)
-        binding.root.findViewById<android.view.View>(R.id.view_accent)?.setBackgroundColor(p.accent)
+        if (!nebula) {
+            binding.root.findViewById<android.view.View>(R.id.layout_header)?.setBackgroundColor(p.bgHeader)
+            binding.root.findViewById<android.view.View>(R.id.view_accent)?.setBackgroundColor(p.accent)
+        }
 
         adapter = GlobalSearchAdapter { onResultClicked(it) }
         binding.recyclerView.layoutManager = GridLayoutManager(this, 4)
         binding.recyclerView.adapter = adapter
 
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
             binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1A3560.toInt(), hasFocus)
         }
@@ -317,6 +330,10 @@ class GlobalSearchActivity : AppCompatActivity() {
             binding.btnFilterSeries to SearchFilter.SERIES
         ).forEach { (btn, filter) ->
             btn.setOnFocusChangeListener { _, hasFocus ->
+                if (nebula) {
+                    com.orbital.iptv.ui.nebula.NebulaStyle.chip(btn, filter == currentFilter)
+                    return@setOnFocusChangeListener
+                }
                 if (filter != currentFilter) {
                     val p = ThemeManager.palette()
                     val d = resources.displayMetrics.density
@@ -341,6 +358,10 @@ class GlobalSearchActivity : AppCompatActivity() {
             binding.btnFilterSeries to SearchFilter.SERIES
         ).forEach { (btn, filter) ->
             val selected = filter == currentFilter
+            if (nebula) {
+                com.orbital.iptv.ui.nebula.NebulaStyle.chip(btn, selected)
+                return@forEach
+            }
             btn.setBackgroundColor(if (selected) p.highlight else p.bgHeader)
             btn.setTextColor(if (selected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
         }
@@ -613,8 +634,8 @@ class GlobalSearchActivity : AppCompatActivity() {
                 textSize = 10f
                 typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
                 isClickable = true; isFocusable = true
-                background = ThemeManager.roundedBg(if (isSelected) p.highlight else p.bgMid, density)
-                setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+                background = ThemeManager.roundedBg(if (isSelected) (if (nebula) 0xFF221B4F.toInt() else p.highlight) else p.bgMid, density)
+                setTextColor(if (isSelected && !nebula) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
                 setOnFocusChangeListener { _, hasFocus ->
                     if (!isSelected) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
                 }

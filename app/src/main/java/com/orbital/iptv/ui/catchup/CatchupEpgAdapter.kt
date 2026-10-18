@@ -39,7 +39,10 @@ class CatchupEpgAdapter(
         holder.binding.tvDuration.text = "${durationMin} MIN"
 
         val p = ThemeManager.palette()
-        val base = if (position % 2 == 0) p.bgMid else p.bgPrimary
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        val base = if (nebula) com.orbital.iptv.ui.nebula.NebulaStyle.rowBg(position)
+                   else if (position % 2 == 0) p.bgMid else p.bgPrimary
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaStyle.prepCard(holder.binding.root)
         val density = holder.binding.root.resources.displayMetrics.density
         holder.binding.root.background = ThemeManager.focusRowDrawable(density, base, false)
         holder.binding.root.setOnFocusChangeListener { _, hasFocus ->

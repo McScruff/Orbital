@@ -60,18 +60,26 @@ class EmbyBrowserActivity : AppCompatActivity() {
     private var selectedGenreId: String? = null   // null=ALL, "__continue__"=Continue Watching, else genre id
     private var currentGenreTypes: String = "Movie"
     private var firstResume = true
+    private var nebula = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityEmbyBrowserBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityEmbyBrowserBinding.bind(layoutInflater.inflate(com.orbital.iptv.R.layout.activity_media_browser_nebula, null))
+        else ActivityEmbyBrowserBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.EMBY)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
-        binding.layoutHeader?.setBackgroundColor(p.bgHeader)
-        binding.viewAccent?.setBackgroundColor(p.accent)
-        binding.tabBar?.setBackgroundColor(p.bgMid)
+        if (!nebula) {
+            binding.layoutHeader?.setBackgroundColor(p.bgHeader)
+            binding.viewAccent?.setBackgroundColor(p.accent)
+            binding.tabBar?.setBackgroundColor(p.bgMid)
+        }
 
         session = EmbyPrefsManager.getSession(this)
         if (session == null) { finish(); return }
@@ -89,7 +97,7 @@ class EmbyBrowserActivity : AppCompatActivity() {
         setupSearch()
 
         binding.btnBack.setOnClickListener { if (!handleBack()) finish() }
-        binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
             binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1A3560.toInt(), hasFocus)
         }
@@ -270,6 +278,10 @@ class EmbyBrowserActivity : AppCompatActivity() {
             }
             view.setOnFocusChangeListener { _, hasFocus ->
                 val selected = tab == currentTab
+                if (nebula) {
+                    com.orbital.iptv.ui.nebula.NebulaStyle.chip(view, selected)
+                    return@setOnFocusChangeListener
+                }
                 val base = if (selected) 0xFF00557A.toInt() else 0x00000000
                 view.background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, base, hasFocus)
             }
@@ -287,6 +299,10 @@ class EmbyBrowserActivity : AppCompatActivity() {
             binding.tabMusic    to Tab.MUSIC
         )
         tabs.forEach { (view, t) ->
+            if (nebula) {
+                com.orbital.iptv.ui.nebula.NebulaStyle.chip(view, t == tab)
+                return@forEach
+            }
             view.setBackgroundColor(if (t == tab) 0xFF00557A.toInt() else 0x00000000)
             view.setTextColor(if (t == tab) 0xFFFFCC00.toInt() else 0xFFFFFFFF.toInt())
         }
@@ -350,9 +366,11 @@ class EmbyBrowserActivity : AppCompatActivity() {
                 textSize = 11f
                 typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
                 isClickable = true; isFocusable = true
-                val normalBg = if (i % 2 == 0) 0xFF1A3A6A.toInt() else 0xFF0D1B35.toInt()
-                setBackgroundColor(if (isSelected) 0xFF00AACC.toInt() else normalBg)
-                setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+                val normalBg = if (nebula) 0x00000000 else if (i % 2 == 0) 0xFF1A3A6A.toInt() else 0xFF0D1B35.toInt()
+                val selBg = if (nebula) 0xFF221B4F.toInt() else 0xFF00AACC.toInt()
+                background = ThemeManager.roundedBg(if (isSelected) selBg else normalBg, resources.displayMetrics.density)
+                setTextColor(if (isSelected) (if (nebula) 0xFFFFFFFF.toInt() else 0xFF000000.toInt()) else (if (nebula) 0xFFD8D6F0.toInt() else 0xFFFFFFFF.toInt()))
+                if (nebula) textSize = 13f
                 setOnFocusChangeListener { _, hasFocus ->
                     if (!isSelected)
                         background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, normalBg, hasFocus, focusFillColor = 0xFF2A5A8A.toInt())

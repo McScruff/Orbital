@@ -36,11 +36,17 @@ class MovieDetailActivity : AppCompatActivity() {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var selectedSubtitle: File? = null
     private var movieYear: String? = null
+    private var nebula = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityMovieDetailBinding.inflate(layoutInflater)
+        ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityMovieDetailBinding.bind(layoutInflater.inflate(com.orbital.iptv.R.layout.activity_movie_detail_nebula, null))
+        else ActivityMovieDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val streamId    = intent.getIntExtra(EXTRA_STREAM_ID, -1)
@@ -52,13 +58,12 @@ class MovieDetailActivity : AppCompatActivity() {
         val username    = intent.getStringExtra(EXTRA_USERNAME) ?: ""
         val password    = intent.getStringExtra(EXTRA_PASSWORD) ?: ""
 
-        ThemeManager.load(this)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
 
-        binding.btnBack.setBackgroundColor(p.bgHeader)
+        if (!nebula) binding.btnBack.setBackgroundColor(p.bgHeader)
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
             binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, hasFocus)
         }
@@ -82,14 +87,14 @@ class MovieDetailActivity : AppCompatActivity() {
                 subtitlePath = selectedSubtitle?.absolutePath ?: ""
             )
         }
-        binding.btnPlay.setBackgroundColor(p.highlight)
-        binding.btnPlay.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebula) binding.btnPlay.setBackgroundColor(p.highlight)
+        if (!nebula) binding.btnPlay.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
             binding.btnPlay.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().highlight, hasFocus)
         }
 
-        binding.btnSubs.setBackgroundColor(p.bgHeader)
-        binding.btnSubs.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebula) binding.btnSubs.setBackgroundColor(p.bgHeader)
+        if (!nebula) binding.btnSubs.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
             binding.btnSubs.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, hasFocus)
         }
@@ -123,7 +128,7 @@ class MovieDetailActivity : AppCompatActivity() {
             }
             updateFavButton(favId, streamName, streamIcon, vodUrl, streamId)
         }
-        binding.btnFav.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebula) binding.btnFav.setOnFocusChangeListener { _, hasFocus ->
             val isFav = FavouritesManager.contains(this, favId)
             val d = resources.displayMetrics.density
             val baseColor = if (isFav) 0xFF2D4A20.toInt() else ThemeManager.palette().bgHeader
@@ -187,8 +192,8 @@ class MovieDetailActivity : AppCompatActivity() {
         val isFav = FavouritesManager.contains(this, favId)
         val p = ThemeManager.palette()
         binding.btnFav.text = if (isFav) "★  FAVOURITED — TAP TO REMOVE" else "☆  ADD TO FAVOURITES"
-        binding.btnFav.setTextColor(if (isFav) p.highlight else 0xFFFFFFFF.toInt())
-        binding.btnFav.setBackgroundColor(if (isFav) 0xFF2D4A20.toInt() else p.bgHeader)
+        binding.btnFav.setTextColor(if (isFav) (if (nebula) 0xFFFF5C97.toInt() else p.highlight) else 0xFFFFFFFF.toInt())
+        if (!nebula) binding.btnFav.setBackgroundColor(if (isFav) 0xFF2D4A20.toInt() else p.bgHeader)
     }
 
     private fun populateInfo(info: MovieInfo, streamId: Int) {

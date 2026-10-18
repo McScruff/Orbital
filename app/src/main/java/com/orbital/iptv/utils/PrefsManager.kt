@@ -148,6 +148,9 @@ object PrefsManager {
     fun getTheme(context: Context): String =
         prefs(context).getString("app_theme", "ORBITAL") ?: "ORBITAL"
 
+    /** The saved theme, or null if the user (or the first-run default) has never set one. */
+    fun getThemeOrNull(context: Context): String? = prefs(context).getString("app_theme", null)
+
     fun setTheme(context: Context, themeName: String) {
         prefs(context).edit().putString("app_theme", themeName).apply()
     }
@@ -227,5 +230,23 @@ object PrefsManager {
 
     fun setSurroundEnabled(context: Context, enabled: Boolean) =
         prefs(context).edit().putBoolean("surround_enabled", enabled).apply()
+
+    // ── Sports Bar ────────────────────────────────────────────────────────────
+
+    /** Sport ids (SportsCatalog.Sport.id) hidden from the Sports Bar's tabs via the ⚙ chip. */
+    fun getHiddenSports(context: Context): Set<String> =
+        prefs(context).getStringSet("hidden_sports", emptySet()) ?: emptySet()
+
+    fun setHiddenSports(context: Context, ids: Set<String>) {
+        prefs(context).edit().putStringSet("hidden_sports", ids).apply()
+    }
+
+    // ── EPG ───────────────────────────────────────────────────────────────────
+
+    /** The small "EPG updating" panel shown while a full-guide refresh runs in the background. */
+    fun isEpgIndicatorEnabled(context: Context): Boolean = prefs(context).getBoolean("epg_indicator", true)
+
+    fun setEpgIndicatorEnabled(context: Context, on: Boolean) =
+        prefs(context).edit().putBoolean("epg_indicator", on).apply()
 
 }

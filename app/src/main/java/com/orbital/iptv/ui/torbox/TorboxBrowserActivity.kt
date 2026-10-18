@@ -37,8 +37,13 @@ class TorboxBrowserActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
         ThemeManager.load(this)
-        binding = ActivityTorboxBrowserBinding.inflate(layoutInflater)
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityTorboxBrowserBinding.bind(layoutInflater.inflate(R.layout.activity_torbox_browser_nebula, null))
+        else ActivityTorboxBrowserBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.TORBOX)
 
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
@@ -49,11 +54,11 @@ class TorboxBrowserActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
         val density = resources.displayMetrics.density
-        binding.btnBack.setOnFocusChangeListener { _, f ->
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, f ->
             binding.btnBack.background = ThemeManager.focusRowDrawable(density, 0xFF1A3560.toInt(), f)
         }
         binding.btnRefresh.setOnClickListener { loadTorrents() }
-        binding.btnRefresh.setOnFocusChangeListener { _, f ->
+        if (!nebula) binding.btnRefresh.setOnFocusChangeListener { _, f ->
             binding.btnRefresh.background = ThemeManager.focusRowDrawable(density, 0xFF1A3560.toInt(), f)
         }
 
@@ -177,8 +182,20 @@ private class TorrentAdapter(
         holder.tvMeta.text = "$status  •  ${torrent.files.size} file(s)  •  $sizeLabel"
 
         val p = ThemeManager.palette()
-        val rowBg = if (position % 2 == 0) 0xFF0D1B35.toInt() else 0xFF0A1628.toInt()
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        val rowBg = when {
+            nebula -> if (position % 2 == 0) 0xFF171531.toInt() else 0xFF11102A.toInt()
+            position % 2 == 0 -> 0xFF0D1B35.toInt()
+            else -> 0xFF0A1628.toInt()
+        }
         val density = holder.itemView.resources.displayMetrics.density
+        if (nebula) {
+            (holder.itemView.layoutParams as? ViewGroup.MarginLayoutParams)?.setMargins(
+                0, (3 * density).toInt(), 0, (3 * density).toInt()
+            )
+            holder.itemView.clipToOutline = true
+            holder.tvMeta.setTextColor(if (torrent.downloadFinished) 0xFF22D3EE.toInt() else 0xFFF5C518.toInt())
+        }
         holder.itemView.background = ThemeManager.focusRowDrawable(density, rowBg, false)
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->
             holder.itemView.background = ThemeManager.focusRowDrawable(density, rowBg, hasFocus, focusFillColor = p.rowSelected)

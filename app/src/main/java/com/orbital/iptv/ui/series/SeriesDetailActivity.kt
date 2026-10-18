@@ -50,10 +50,17 @@ class SeriesDetailActivity : AppCompatActivity() {
     private lateinit var username: String
     private lateinit var password: String
 
+    private var nebula = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivitySeriesDetailBinding.inflate(layoutInflater)
+        ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivitySeriesDetailBinding.bind(layoutInflater.inflate(com.orbital.iptv.R.layout.activity_series_detail_nebula, null))
+        else ActivitySeriesDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         seriesId        = intent.getIntExtra(EXTRA_SERIES_ID, -1)
@@ -64,13 +71,12 @@ class SeriesDetailActivity : AppCompatActivity() {
         username        = intent.getStringExtra(EXTRA_USERNAME) ?: ""
         password        = intent.getStringExtra(EXTRA_PASSWORD) ?: ""
 
-        ThemeManager.load(this)
         val themeP = ThemeManager.palette()
         binding.root.setBackgroundColor(themeP.bgPrimary)
 
-        binding.btnBack.setBackgroundColor(themeP.bgHeader)
+        if (!nebula) binding.btnBack.setBackgroundColor(themeP.bgHeader)
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
             binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, hasFocus)
         }
@@ -84,7 +90,7 @@ class SeriesDetailActivity : AppCompatActivity() {
         binding.rvEpisodes.apply {
             adapter = episodeAdapter
             layoutManager = LinearLayoutManager(this@SeriesDetailActivity)
-            addItemDecoration(DividerItemDecoration(this@SeriesDetailActivity, DividerItemDecoration.VERTICAL))
+            if (!nebula) addItemDecoration(DividerItemDecoration(this@SeriesDetailActivity, DividerItemDecoration.VERTICAL))
         }
 
         if (seriesCoverUrl.isNotEmpty()) {
@@ -158,10 +164,10 @@ class SeriesDetailActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.MATCH_PARENT
-                ).also { it.marginEnd = (4 * dp).toInt() }
+                ).also { it.marginEnd = ((if (nebula) 8 else 4) * dp).toInt() }
                 gravity = Gravity.CENTER
                 text = "S$season"
-                textSize = 11f
+                textSize = if (nebula) 12f else 11f
                 typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
                 setPadding(padH, padV, padH, padV)
                 isClickable = true
@@ -172,6 +178,10 @@ class SeriesDetailActivity : AppCompatActivity() {
             tab.setOnFocusChangeListener { _, hasFocus ->
                 val p = ThemeManager.palette()
                 val isSelected = selectedSeason == season
+                if (nebula) {
+                    com.orbital.iptv.ui.nebula.NebulaStyle.chip(tab, isSelected)
+                    return@setOnFocusChangeListener
+                }
                 tab.background = when {
                     isSelected -> ThemeManager.focusRowDrawable(dp, p.highlight, hasFocus, focusFillColor = p.highlight)
                     else       -> ThemeManager.focusRowDrawable(dp, p.bgMid, hasFocus)
@@ -195,6 +205,10 @@ class SeriesDetailActivity : AppCompatActivity() {
         for (i in 0 until container.childCount) {
             val tab = container.getChildAt(i) as? TextView ?: continue
             val isSelected = tab.text == "S$season"
+            if (nebula) {
+                com.orbital.iptv.ui.nebula.NebulaStyle.chip(tab, isSelected)
+                continue
+            }
             tab.background = ThemeManager.focusRowDrawable(dp, if (isSelected) p.highlight else p.bgMid, tab.isFocused, focusFillColor = p.highlight)
             tab.setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
         }

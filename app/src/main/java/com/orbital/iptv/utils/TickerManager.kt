@@ -18,15 +18,56 @@ object TickerManager {
     private const val ESPN_USER_AGENT =
         "Mozilla/5.0 (Linux; Android 14; Pixel 9a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
 
-    private val espnClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        // Forcing HTTP/1.1 avoids ESPN's Akamai front fingerprinting our HTTP/2 SETTINGS frame,
-        // which differs from Chrome's even when every header matches.
+    // Forcing HTTP/1.1 avoids ESPN's Akamai front fingerprinting our HTTP/2 SETTINGS frame,
+    // which differs from Chrome's even when every header matches. But that same trick is itself
+    // what some networks/devices get blocked on, so a plain HTTP/2 client is kept as a fallback.
+    private val espnClientH1 = OkHttpClient.Builder()
+        .connectTimeout(8, TimeUnit.SECONDS)
+        .readTimeout(8, TimeUnit.SECONDS)
         .protocols(listOf(Protocol.HTTP_1_1))
         .build()
+    private val espnClientH2 = OkHttpClient.Builder()
+        .connectTimeout(8, TimeUnit.SECONDS)
+        .readTimeout(8, TimeUnit.SECONDS)
+        .build()
 
+    private const val PRIMARY_HOST = "site.api.espn.com"
+    private const val ALT_HOST = "site.web.api.espn.com"
+
+    // Routes tried in order; the one that last worked is tried first so a network that blocks
+    // the default route only pays the extra attempts once.
+    private val routes = listOf(
+        Triple(PRIMARY_HOST, espnClientH1, "primary/h1"),
+        Triple(ALT_HOST, espnClientH1, "alt/h1"),
+        Triple(PRIMARY_HOST, espnClientH2, "primary/h2"),
+        Triple(ALT_HOST, espnClientH2, "alt/h2")
+    )
+    @Volatile private var preferredRoute = 0
+
+    /**
+     * Fetches an ESPN JSON document, retrying through alternate hosts/protocols when a reply is a
+     * block page or an error. Throws (with the HTTP status) if every route fails, rather than
+     * handing back a non-JSON body that callers would silently parse into "nothing".
+     */
     fun espnGet(url: String): String {
+        var lastError: Exception? = null
+        val order = (routes.indices).sortedBy { if (it == preferredRoute) -1 else it }
+        for (idx in order) {
+            val (host, client, label) = routes[idx]
+            val target = url.replace(PRIMARY_HOST, host)
+            try {
+                val body = fetchEspn(client, target)
+                preferredRoute = idx
+                return body
+            } catch (e: Exception) {
+                android.util.Log.w("EspnApi", "route $label failed for $url: ${e.message}")
+                lastError = e
+            }
+        }
+        throw lastError ?: java.io.IOException("ESPN request failed")
+    }
+
+    private fun fetchEspn(client: OkHttpClient, url: String): String {
         val req = Request.Builder()
             .url(url)
             .header("User-Agent", ESPN_USER_AGENT)
@@ -44,16 +85,19 @@ object TickerManager {
             .header("sec-fetch-mode", "cors")
             .header("sec-fetch-site", "same-site")
             .build()
-        return espnClient.newCall(req).execute().use { resp ->
+        return client.newCall(req).execute().use { resp ->
             val body = resp.body?.string() ?: ""
-            // Quiet on success; log enough to diagnose on a block/error without spamming
-            // logcat on every normal poll (this endpoint gets hit frequently).
-            if (!resp.isSuccessful || !body.trimStart().startsWith("{")) {
+            if (!resp.isSuccessful) {
                 android.util.Log.w(
                     "EspnApi",
                     "bad response ${resp.code} ct=${resp.header("content-type")} server=${resp.header("server")} " +
                         "from $url body=${body.take(300)}"
                 )
+                throw java.io.IOException("ESPN HTTP ${resp.code}")
+            }
+            if (!body.trimStart().startsWith("{")) {
+                android.util.Log.w("EspnApi", "non-JSON reply ct=${resp.header("content-type")} from $url body=${body.take(300)}")
+                throw java.io.IOException("ESPN sent a non-JSON reply")
             }
             body
         }

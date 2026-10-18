@@ -2186,11 +2186,16 @@ class TvModeActivity : AppCompatActivity() {
                 if (total > 0) tvBytes.text = "%.1f / %.1f MB".format(done / 1_048_576.0, total / 1_048_576.0)
             }
             dialog.dismiss()
-            if (file != null) {
-                UpdateChecker.installApk(this@TvModeActivity, file)
-                finish()
-            } else {
-                Toast.makeText(this@TvModeActivity, "DOWNLOAD FAILED — CHECK CONNECTION", Toast.LENGTH_LONG).show()
+            when {
+                file == null -> Toast.makeText(this@TvModeActivity, "DOWNLOAD FAILED — CHECK CONNECTION", Toast.LENGTH_LONG).show()
+                !UpdateChecker.isValidUpdate(this@TvModeActivity, file, update.sha256) -> {
+                    file.delete()
+                    Toast.makeText(this@TvModeActivity, "THE DOWNLOAD DIDN'T PASS ITS CHECKS, SO IT WASN'T INSTALLED", Toast.LENGTH_LONG).show()
+                }
+                else -> {
+                    UpdateChecker.installApk(this@TvModeActivity, file)
+                    finish()
+                }
             }
         }
     }

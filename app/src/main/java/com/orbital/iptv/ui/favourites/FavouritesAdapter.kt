@@ -67,6 +67,7 @@ class FavouritesAdapter(
 
             // Row colours
             applyColors(position, focused = false)
+            if (ThemeManager.current == ThemeManager.AppTheme.NEBULA) applyNebulaExtras()
 
             b.root.setOnClickListener { onClick(item) }
             b.root.setOnLongClickListener { onLongPress(item); true }
@@ -84,6 +85,20 @@ class FavouritesAdapter(
                     if (isActive && bmp != null) b.ivArt.setImageBitmap(bmp)
                 }
             }
+        }
+
+        private fun applyNebulaExtras() {
+            val d = b.root.resources.displayMetrics.density
+            (b.root.layoutParams as? ViewGroup.MarginLayoutParams)?.setMargins(
+                (14 * d).toInt(), (3 * d).toInt(), (14 * d).toInt(), (3 * d).toInt()
+            )
+            b.root.clipToOutline = true
+            b.accentBar.setBackgroundColor(0xFF7C6CFF.toInt())
+            b.progressContainer.setBackgroundColor(0xFF2A2750.toInt())
+            b.progressFill.setBackgroundColor(0xFF22D3EE.toInt())
+            b.tvResumeLabel.setTextColor(0xFF22D3EE.toInt())
+            b.tvBadge.background = com.orbital.iptv.ui.nebula.NebulaStyle.gradientPill(d, 8f)
+            b.tvBadge.setTextColor(0xFFFFFFFF.toInt())
         }
 
         private fun applyColors(position: Int, focused: Boolean) {

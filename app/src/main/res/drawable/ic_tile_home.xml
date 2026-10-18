@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Top bar tile for home: gradient square with its glyph. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="11dp" />
+            <gradient
+                android:angle="315"
+                android:endColor="#A78BFA"
+                android:startColor="#6D5BFF" />
+        </shape>
+    </item>
+    <item
+        android:bottom="7dp"
+        android:drawable="@drawable/ic_glyph_orbit"
+        android:left="7dp"
+        android:right="7dp"
+        android:top="7dp" />
+</layer-list>

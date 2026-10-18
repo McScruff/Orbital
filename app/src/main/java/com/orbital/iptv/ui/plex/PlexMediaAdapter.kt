@@ -33,6 +33,20 @@ class PlexMediaAdapter(
     inner class VH(private val b: ItemEmbyMediaBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: PlexItem) {
             b.tvTitle.text = item.title
+            val nebula = com.orbital.iptv.utils.ThemeManager.current == com.orbital.iptv.utils.ThemeManager.AppTheme.NEBULA
+            val d = b.root.resources.displayMetrics.density
+            val nbCard = com.orbital.iptv.utils.ThemeManager.palette().bgMid
+            val nbAccent = com.orbital.iptv.utils.ThemeManager.palette().accent
+            val ph = if (nebula) nbCard else 0xFF0D1B35.toInt()
+            if (nebula) {
+                b.root.background = android.graphics.drawable.GradientDrawable().apply { setColor(nbCard); cornerRadius = 14 * d }
+                b.ivPoster.outlineProvider = object : android.view.ViewOutlineProvider() {
+                    override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                        outline.setRoundRect(0, 0, view.width, view.height, 10 * d)
+                    }
+                }
+                b.ivPoster.clipToOutline = true
+            }
             val res = item.videoResolutionLabel()
             if (res != null) {
                 b.tvResolution.text = res
@@ -62,26 +76,28 @@ class PlexMediaAdapter(
                 Glide.with(b.root.context)
                     .load(url)
                     .centerCrop()
-                    .placeholder(android.graphics.drawable.ColorDrawable(0xFF0D1B35.toInt()))
-                    .error(android.graphics.drawable.ColorDrawable(0xFF0D1B35.toInt()))
+                    .placeholder(android.graphics.drawable.ColorDrawable(ph))
+                    .error(android.graphics.drawable.ColorDrawable(ph))
                     .into(b.ivPoster)
             } else {
                 Glide.with(b.root.context).clear(b.ivPoster)
-                b.ivPoster.setBackgroundColor(0xFF0D1B35.toInt())
+                b.ivPoster.setBackgroundColor(ph)
             }
 
             b.root.setOnClickListener { onItemClick(item) }
             b.root.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     b.root.scaleX = 1.06f; b.root.scaleY = 1.06f; b.root.elevation = 8f
-                    b.tvTitle.setTextColor(0xFFE5A00D.toInt())
+                    b.tvTitle.setTextColor(if (nebula) nbAccent else 0xFFE5A00D.toInt())
                     val bg = android.graphics.drawable.GradientDrawable()
-                    bg.setColor(0xFF0D1B35.toInt()); bg.setStroke(3, 0xFFE5A00D.toInt())
+                    bg.setColor(ph); bg.setStroke(3, if (nebula) nbAccent else 0xFFE5A00D.toInt())
+                    if (nebula) bg.cornerRadius = 14 * d
                     b.root.background = bg
                 } else {
                     b.root.scaleX = 1f; b.root.scaleY = 1f; b.root.elevation = 0f
                     b.tvTitle.setTextColor(0xFFFFFFFF.toInt())
-                    b.root.setBackgroundColor(0xFF0D1B35.toInt())
+                    if (nebula) b.root.background = android.graphics.drawable.GradientDrawable().apply { setColor(ph); cornerRadius = 14 * d }
+                    else b.root.setBackgroundColor(ph)
                 }
             }
         }

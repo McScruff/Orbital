@@ -61,6 +61,7 @@ class EpisodeAdapter(
         }
 
         private fun applyColors(position: Int, focused: Boolean, selected: Boolean) {
+            if (ThemeManager.current == ThemeManager.AppTheme.NEBULA) { applyNebulaColors(position, focused, selected); return }
             val baseBg = when {
                 selected -> 0xFFFFCC00.toInt()
                 position % 2 == 0 -> 0xFF0D1B35.toInt()
@@ -74,6 +75,25 @@ class EpisodeAdapter(
             b.tvEpDuration.setTextColor(if (selected) 0xFF000080.toInt() else 0xFF888888.toInt())
             b.btnPlayEp.setBackgroundColor(if (selected) 0xFF000080.toInt() else 0xFFFFCC00.toInt())
             b.btnPlayEp.setTextColor(if (selected) 0xFFFFFFFF.toInt() else 0xFF0D1B35.toInt())
+        }
+
+        private fun applyNebulaColors(position: Int, focused: Boolean, selected: Boolean) {
+            val d = b.root.resources.displayMetrics.density
+            (b.root.layoutParams as? ViewGroup.MarginLayoutParams)?.setMargins(
+                (2 * d).toInt(), (3 * d).toInt(), (2 * d).toInt(), (3 * d).toInt()
+            )
+            b.root.clipToOutline = true
+            val baseBg = when {
+                selected -> 0xFF221B4F.toInt()
+                position % 2 == 0 -> 0xFF171531.toInt()
+                else -> 0xFF11102A.toInt()
+            }
+            b.root.background = ThemeManager.focusRowDrawable(d, baseBg, focused)
+            b.tvEpNum.setTextColor(0xFF22D3EE.toInt())
+            b.tvEpTitle.setTextColor(0xFFFFFFFF.toInt())
+            b.tvEpDuration.setTextColor(0xFF8A87B0.toInt())
+            b.btnPlayEp.background = com.orbital.iptv.ui.nebula.NebulaStyle.gradientPill(d)
+            b.btnPlayEp.setTextColor(0xFFFFFFFF.toInt())
         }
     }
 }

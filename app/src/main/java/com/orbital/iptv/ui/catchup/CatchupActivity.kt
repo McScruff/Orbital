@@ -30,22 +30,29 @@ class CatchupActivity : AppCompatActivity() {
     private var categoryMap: Map<String, List<LiveStream>> = emptyMap()
     private var categories: List<LiveCategory> = emptyList()
     private var selectedCategoryId: String? = null
+    private var nebula = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityCatchupBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityCatchupBinding.bind(layoutInflater.inflate(com.orbital.iptv.R.layout.activity_catchup_nebula, null))
+        else ActivityCatchupBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.MORE)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
-        binding.layoutHeader?.setBackgroundColor(p.bgHeader)
-        binding.viewAccent?.setBackgroundColor(p.accent)
+        if (!nebula) {
+            binding.layoutHeader?.setBackgroundColor(p.bgHeader)
+            binding.viewAccent?.setBackgroundColor(p.accent)
+        }
 
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnBack.setBackgroundColor(p.bgHeader)
-        binding.btnBack.setOnFocusChangeListener { _, h ->
+        if (!nebula) binding.btnBack.setBackgroundColor(p.bgHeader)
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, h ->
             val d = resources.displayMetrics.density
             binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, h)
         }
@@ -108,8 +115,8 @@ class CatchupActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, rowH)
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(pad, 0, 0, 0)
-                text = cat.categoryName.uppercase()
-                textSize = 11f
+                text = if (nebula) cat.categoryName else cat.categoryName.uppercase()
+                textSize = if (nebula) 13f else 11f
                 typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
                 isClickable = true; isFocusable = true
                 val isSelected = cat.categoryId == selectedCategoryId
@@ -117,7 +124,7 @@ class CatchupActivity : AppCompatActivity() {
                 setOnFocusChangeListener { _, hasFocus ->
                     val p = ThemeManager.palette()
                     if (cat.categoryId != selectedCategoryId) {
-                        val base = if (i % 2 == 0) p.bgMid else p.bgPrimary
+                        val base = if (nebula) 0x00000000 else if (i % 2 == 0) p.bgMid else p.bgPrimary
                         background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, base, hasFocus)
                     }
                 }
@@ -127,6 +134,11 @@ class CatchupActivity : AppCompatActivity() {
     }
 
     private fun applyRowStyle(tv: TextView, index: Int, isSelected: Boolean) {
+        if (nebula) {
+            tv.background = ThemeManager.roundedBg(if (isSelected) 0xFF221B4F.toInt() else 0x00000000, tv.resources.displayMetrics.density)
+            tv.setTextColor(if (isSelected) 0xFFFFFFFF.toInt() else 0xFFD8D6F0.toInt())
+            return
+        }
         val p = ThemeManager.palette()
         if (isSelected) {
             tv.setBackgroundColor(p.highlight)

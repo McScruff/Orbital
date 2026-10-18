@@ -26,18 +26,25 @@ class EmbyLoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEmbyLoginBinding
     private val repository = EmbyRepository()
     private var useConnect = false
+    private var nebula = false
     private var pollingJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityEmbyLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityEmbyLoginBinding.bind(layoutInflater.inflate(R.layout.activity_emby_login_nebula, null))
+        else ActivityEmbyLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
-        binding.root.findViewById<android.view.View>(R.id.layout_header)?.setBackgroundColor(p.bgHeader)
-        binding.root.findViewById<android.view.View>(R.id.view_accent)?.setBackgroundColor(p.accent)
+        if (!nebula) {
+            binding.root.findViewById<android.view.View>(R.id.layout_header)?.setBackgroundColor(p.bgHeader)
+            binding.root.findViewById<android.view.View>(R.id.view_accent)?.setBackgroundColor(p.accent)
+        }
 
         val savedUrl = EmbyPrefsManager.getSavedServerUrl(this)
         if (savedUrl.isNotBlank()) binding.etServerUrl.setText(savedUrl)
@@ -51,9 +58,18 @@ class EmbyLoginActivity : AppCompatActivity() {
 
         binding.btnRefreshPin.setOnClickListener { startPinSession() }
         setupFocusHighlights()
+        if (nebula) {
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabDirect, true)
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabConnect, false)
+        }
     }
 
     private fun setupFocusHighlights() {
+        if (nebula) {
+            binding.tabDirect.setOnFocusChangeListener { _, _ -> com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabDirect, !useConnect) }
+            binding.tabConnect.setOnFocusChangeListener { _, _ -> com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabConnect, useConnect) }
+            return
+        }
         val p = ThemeManager.palette()
         val density = resources.displayMetrics.density
         val inactiveBg = 0xFF1A2E4A.toInt()
@@ -111,6 +127,10 @@ class EmbyLoginActivity : AppCompatActivity() {
         binding.rowDirectBtn.visibility = if (connect) View.GONE else View.VISIBLE
         binding.tvError.visibility = View.GONE
 
+        if (nebula) {
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabDirect, !useConnect)
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabConnect, useConnect)
+        } else {
         val activeText   = getColor(R.color.orbital_dark_blue)
         val activeBg     = getColor(R.color.sky_yellow)
         val inactiveText = 0xFFAABBCC.toInt()
@@ -120,6 +140,7 @@ class EmbyLoginActivity : AppCompatActivity() {
         binding.tabDirect.setBackgroundColor( if (!connect) activeBg  else inactiveBg)
         binding.tabConnect.setTextColor(     if (connect)  activeText else inactiveText)
         binding.tabConnect.setBackgroundColor(if (connect) activeBg  else inactiveBg)
+        }
 
         if (connect) startPinSession()
     }

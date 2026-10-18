@@ -17,19 +17,25 @@ class RadioActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityRadioBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         ThemeManager.load(this)
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityRadioBinding.bind(layoutInflater.inflate(R.layout.activity_radio_nebula, null))
+        else ActivityRadioBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.MORE)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
-        binding.layoutHeader?.setBackgroundColor(p.bgHeader)
-        binding.viewAccent?.setBackgroundColor(p.accent)
-        binding.tvStationCount?.setTextColor(p.highlight)
+        if (!nebula) {
+            binding.layoutHeader?.setBackgroundColor(p.bgHeader)
+            binding.viewAccent?.setBackgroundColor(p.accent)
+            binding.tvStationCount?.setTextColor(p.highlight)
+        }
 
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnBack.setBackgroundColor(p.bgHeader)
-        binding.btnBack.setOnFocusChangeListener { _, h ->
+        if (!nebula) binding.btnBack.setBackgroundColor(p.bgHeader)
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, h ->
             val d = resources.displayMetrics.density
             binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, h)
         }

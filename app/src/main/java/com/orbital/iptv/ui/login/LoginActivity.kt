@@ -41,13 +41,10 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
+        // Loading the theme here also records the first-run default (see ThemeManager.load).
+        ThemeManager.load(this)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        ThemeManager.load(this)
-        val p = ThemeManager.palette()
-        binding.root.setBackgroundColor(p.bgPrimary)
-        binding.root.findViewById<android.view.View>(R.id.layout_header)?.setBackgroundColor(p.bgHeader)
-        binding.root.findViewById<android.view.View>(R.id.view_accent)?.setBackgroundColor(p.accent)
 
         prefillForm()
         setupClickListeners()
@@ -113,12 +110,6 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        val connectBaseColor = androidx.core.content.ContextCompat.getColor(this, R.color.sky_yellow)
-        binding.btnConnect.setOnFocusChangeListener { _, hasFocus ->
-            binding.btnConnect.background = ThemeManager.focusRowDrawable(
-                resources.displayMetrics.density, connectBaseColor, hasFocus, focusFillColor = connectBaseColor
-            )
-        }
         binding.btnConnect.setOnClickListener {
             val url  = binding.etServerUrl.text.toString().trim()
             val user = binding.etUsername.text.toString().trim()

@@ -46,6 +46,27 @@
             android:screenOrientation="landscape" />
 
         <activity
+            android:name=".ui.nebula.NebulaHomeActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".ui.nebula.NebulaMoreActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".ui.nebula.NebulaSettingsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".ui.nebula.NebulaLiveActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustNothing" />
+
+        <activity
             android:name=".ui.player.PlayerActivity"
             android:exported="false"
             android:screenOrientation="landscape"

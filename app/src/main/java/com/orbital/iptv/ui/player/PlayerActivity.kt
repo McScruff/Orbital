@@ -114,6 +114,9 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityPlayerBinding
+    private var nebula = false
+    private val pillOn get() = if (nebula) R.drawable.bg_nb_pill_on else R.drawable.bg_btn_scores_on
+    private val pillOff get() = if (nebula) R.drawable.bg_nb_secondary else R.drawable.bg_btn_hud
     private lateinit var player: ExoPlayer
 
     private var streamUrl: String = ""
@@ -225,7 +228,11 @@ class PlayerActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         ThemeManager.load(this)
-        binding = ActivityPlayerBinding.inflate(layoutInflater)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityPlayerBinding.bind(layoutInflater.inflate(R.layout.activity_player_nebula, null))
+        else ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // A raw SurfaceView renders to its own independent hardware surface punched through the
         // window as a "hole", separate from the normal view hierarchy. On some (especially
@@ -298,8 +305,10 @@ class PlayerActivity : AppCompatActivity() {
                               else channelName.uppercase()
             binding.tvChannelInfo.text = displayName
             val p2 = (2 * resources.displayMetrics.density).toInt()
-            binding.bottomBar.setBackgroundColor(0xFFE8890A.toInt())
-            binding.bottomBar.setPadding(p2, p2, p2, p2)
+            if (!nebula) {
+                binding.bottomBar.setBackgroundColor(0xFFE8890A.toInt())
+                binding.bottomBar.setPadding(p2, p2, p2, p2)
+            }
             binding.liveNowRow.visibility = View.VISIBLE
             binding.liveNextRow.visibility = View.VISIBLE
             binding.tvClock.visibility = View.VISIBLE
@@ -344,6 +353,15 @@ class PlayerActivity : AppCompatActivity() {
     private fun applyPlayerTheme() {
         val p = ThemeManager.palette()
         val density = resources.displayMetrics.density
+
+        if (nebula) {
+            // Backgrounds, pills and the floating card come from activity_player_nebula.xml.
+            binding.newsTickerRow.setBackgroundColor(ThemeManager.withAlpha(p.bgPrimary, 0xDD))
+            binding.tickerRow.setBackgroundColor(ThemeManager.withAlpha(p.bgPrimary, 0xDD))
+            binding.tvTicker.setTextColor(p.accent2)
+            binding.tvNewsTicker.textColor = p.accent2
+            return
+        }
 
         binding.hudOverlay.setBackgroundColor(ThemeManager.withAlpha(p.bgHeader, 0xD0))
         binding.tvPlayerTitle.setTextColor(p.accent)
@@ -849,7 +867,7 @@ class PlayerActivity : AppCompatActivity() {
         val on = TickerManager.tickerEnabled
         binding.btnScores.text = if (on) "SCORES ON" else "SCORES"
         binding.btnScores.setBackgroundResource(
-            if (on) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
+            if (on) pillOn else pillOff
         )
     }
 
@@ -1004,7 +1022,7 @@ class PlayerActivity : AppCompatActivity() {
         val on = TickerManager.newsTickerEnabled
         binding.btnNews.text = if (on) "NEWS ON" else "NEWS"
         binding.btnNews.setBackgroundResource(
-            if (on) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
+            if (on) pillOn else pillOff
         )
     }
 
@@ -1080,7 +1098,7 @@ class PlayerActivity : AppCompatActivity() {
         val on = GoalFlashManager.enabled
         binding.btnGoalFlash.text = if (on) "GOAL FLASH ON" else "GOAL FLASH"
         binding.btnGoalFlash.setBackgroundResource(
-            if (on) R.drawable.bg_btn_scores_on else R.drawable.bg_btn_hud
+            if (on) pillOn else pillOff
         )
     }
 

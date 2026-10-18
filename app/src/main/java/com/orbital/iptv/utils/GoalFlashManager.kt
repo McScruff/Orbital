@@ -142,6 +142,31 @@ object GoalFlashManager {
         done.retainAll(selectedIds)
     }
 
+    // ESPN's summary feed updates its sections independently: the header's running score (and the
+    // keyEvents list) can lag or lead each other by a poll, so pairing "the newest goal" with the
+    // header score sometimes flashed a stale scoreline (e.g. "2-0" for a 57' goal that made it 3-0).
+    // The commentary line written for each goal carries the true score at that instant
+    // ("Goal! Brighton 3, Arsenal 0. ..."), so the score shown is read from there instead.
+    private val scoreRegex = Regex("""\s(\d+),\s+[^\d]+?\s(\d+)\.""")
+
+    private data class GoalScore(val minute: String, val home: Int, val away: Int)
+
+    private fun goalScoresFromCommentary(root: JSONObject): List<GoalScore> {
+        val commentary = root.optJSONArray("commentary") ?: return emptyList()
+        val out = mutableListOf<GoalScore>()
+        for (i in 0 until commentary.length()) {
+            val c = commentary.getJSONObject(i)
+            val text = c.optString("text")
+            val isGoal = text.startsWith("Goal", true) || text.startsWith("Own Goal", true) || text.startsWith("Penalty", true)
+            if (!isGoal) continue
+            if (listOf("disallow", "saved", "miss", "cancel", "overturn").any { text.contains(it, true) }) continue
+            val m = scoreRegex.find(text) ?: continue
+            val minute = c.optJSONObject("time")?.optString("displayValue") ?: ""
+            out.add(GoalScore(minute, m.groupValues[1].toInt(), m.groupValues[2].toInt()))
+        }
+        return out.sortedBy { it.home + it.away }
+    }
+
     private fun processGame(
         game: TickerManager.SelectedGame, json: String,
         justKickedOff: Boolean = false, justFinished: Boolean = false
@@ -165,6 +190,14 @@ object GoalFlashManager {
         }
         if (homeName.isBlank() || awayName.isBlank()) return
         val gameLabel  = "$homeName vs $awayName"
+        val goalScores = goalScoresFromCommentary(root)
+
+        // Header score, unless the commentary has already recorded a later (higher) one.
+        val headerTotal = (homeScore.toIntOrNull() ?: 0) + (awayScore.toIntOrNull() ?: 0)
+        val latest = goalScores.lastOrNull()
+        if (latest != null && latest.home + latest.away > headerTotal) {
+            homeScore = latest.home.toString(); awayScore = latest.away.toString()
+        }
         val scoreLabel = "$homeName $homeScore – $awayScore $awayName"
 
         // Score is always 0-0 at this instant, so it's omitted as uninformative (same reasoning
@@ -175,16 +208,25 @@ object GoalFlashManager {
         val goalSeen       = seenGoalIds.getOrPut(game.id) { mutableSetOf() }
         val disallowedSeen = seenDisallowedSeqs.getOrPut(game.id) { mutableSetOf() }
 
+        var goalsSoFar = 0
         root.optJSONArray("keyEvents")?.let { keyEvents ->
             for (i in 0 until keyEvents.length()) {
                 val ev = keyEvents.getJSONObject(i)
                 if (!ev.optBoolean("scoringPlay", false)) continue
+                goalsSoFar++
                 val id = ev.optString("id")
                 if (id.isBlank() || !goalSeen.add(id)) continue
                 if (firstPoll) continue
 
                 val typeText = ev.optJSONObject("type")?.optString("text") ?: "Goal"
                 val minute   = ev.optJSONObject("clock")?.optString("displayValue") ?: ""
+
+                // Score as it stood right after THIS goal: the commentary entry for this minute
+                // (if two land in the same minute, the one whose total matches the goal count).
+                val atMinute = goalScores.filter { it.minute == minute }
+                val atGoal = atMinute.firstOrNull { it.home + it.away == goalsSoFar } ?: atMinute.firstOrNull()
+                val goalScoreLabel = if (atGoal != null)
+                    "$homeName ${atGoal.home} – ${atGoal.away} $awayName" else scoreLabel
                 val scorer   = ev.optJSONArray("athletesInvolved")?.optJSONObject(0)
                     ?.optString("displayName")?.takeIf { it.isNotBlank() } ?: typeText
 
@@ -196,7 +238,7 @@ object GoalFlashManager {
                 val detail = listOfNotNull(scorer, minute.takeIf { it.isNotBlank() })
                     .joinToString("  ") + suffix
 
-                onGoal?.invoke(GoalEvent(gameLabel, scoreLabel, detail, FlashType.GOAL))
+                onGoal?.invoke(GoalEvent(gameLabel, goalScoreLabel, detail, FlashType.GOAL))
             }
         }
 

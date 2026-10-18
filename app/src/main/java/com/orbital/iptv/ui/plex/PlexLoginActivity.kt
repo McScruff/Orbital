@@ -26,18 +26,25 @@ class PlexLoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPlexLoginBinding
     private val repository = PlexRepository()
     private var usePin = false
+    private var nebula = false
     private var pollingJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityPlexLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityPlexLoginBinding.bind(layoutInflater.inflate(R.layout.activity_plex_login_nebula, null))
+        else ActivityPlexLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
-        binding.root.findViewById<android.view.View>(R.id.layout_header)?.setBackgroundColor(p.bgHeader)
-        binding.root.findViewById<android.view.View>(R.id.view_accent)?.setBackgroundColor(p.accent)
+        if (!nebula) {
+            binding.root.findViewById<android.view.View>(R.id.layout_header)?.setBackgroundColor(p.bgHeader)
+            binding.root.findViewById<android.view.View>(R.id.view_accent)?.setBackgroundColor(p.accent)
+        }
 
         binding.btnBack.setOnClickListener { finish() }
         binding.tabDirect.setOnClickListener  { selectTab(false) }
@@ -48,9 +55,18 @@ class PlexLoginActivity : AppCompatActivity() {
 
         binding.btnRefreshPin.setOnClickListener { startPinSession() }
         setupFocusHighlights()
+        if (nebula) {
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabDirect, true)
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabConnect, false)
+        }
     }
 
     private fun setupFocusHighlights() {
+        if (nebula) {
+            binding.tabDirect.setOnFocusChangeListener { _, _ -> com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabDirect, !usePin) }
+            binding.tabConnect.setOnFocusChangeListener { _, _ -> com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabConnect, usePin) }
+            return
+        }
         val p = ThemeManager.palette()
         val density = resources.displayMetrics.density
         val inactiveBg = 0xFF1A2E4A.toInt()
@@ -101,6 +117,10 @@ class PlexLoginActivity : AppCompatActivity() {
         binding.rowDirectBtn.visibility = if (pin) View.GONE else View.VISIBLE
         binding.tvError.visibility = View.GONE
 
+        if (nebula) {
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabDirect, !usePin)
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.tabConnect, usePin)
+        } else {
         val activeText   = getColor(R.color.orbital_dark_blue)
         val activeBg     = 0xFFE5A00D.toInt()
         val inactiveText = 0xFFAABBCC.toInt()
@@ -110,6 +130,7 @@ class PlexLoginActivity : AppCompatActivity() {
         binding.tabDirect.setBackgroundColor( if (!pin) activeBg  else inactiveBg)
         binding.tabConnect.setTextColor(     if (pin)  activeText else inactiveText)
         binding.tabConnect.setBackgroundColor(if (pin) activeBg  else inactiveBg)
+        }
 
         if (pin) startPinSession()
     }

@@ -39,4 +39,14 @@
         <item name="android:fontFamily">sans-serif-condensed</item>
         <item name="android:textSize">13sp</item>
     </style>
+
+    <!-- Selected at runtime via ThemeManager.dialogStyle() when the NEBULA app theme is active. -->
+    <style name="Theme.Orbital.Dialog.Nebula" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog_nebula</item>
+        <item name="android:textColorPrimary">#F2F4FF</item>
+        <item name="android:textColorSecondary">#B8B5D6</item>
+        <item name="android:colorAccent">#7C6CFF</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textSize">13sp</item>
+    </style>
 </resources>

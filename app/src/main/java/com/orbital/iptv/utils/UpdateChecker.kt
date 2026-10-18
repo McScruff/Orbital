@@ -15,7 +15,8 @@ data class UpdateInfo(
     val versionCode: Int,
     val versionName: String,
     val downloadUrl: String,
-    val releaseNotes: String
+    val releaseNotes: String,
+    val sha256: String = ""
 )
 
 object UpdateChecker {
@@ -42,7 +43,8 @@ object UpdateChecker {
                     versionCode = remoteCode,
                     versionName = obj.getString("version_name"),
                     downloadUrl = obj.getString("download_url"),
-                    releaseNotes = obj.optString("release_notes", "")
+                    releaseNotes = obj.optString("release_notes", ""),
+                    sha256 = obj.optString("sha256", "")
                 )
             } else null
         } catch (_: Exception) {
@@ -85,6 +87,28 @@ object UpdateChecker {
         } catch (_: Exception) {
             null
         }
+    }
+
+    /**
+     * True if [file] is a newer build of this same app (and matches [expectedSha256] when given),
+     * so a bad download can't cause an install loop or an install of some other app.
+     */
+    fun isValidUpdate(context: Context, file: File, expectedSha256: String): Boolean {
+        if (expectedSha256.isNotBlank()) {
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            file.inputStream().use { input ->
+                val buf = ByteArray(64 * 1024)
+                while (true) { val n = input.read(buf); if (n < 0) break; digest.update(buf, 0, n) }
+            }
+            if (digest.digest().joinToString("") { "%02x".format(it) } != expectedSha256.lowercase()) return false
+        }
+        @Suppress("DEPRECATION")
+        val archive = context.packageManager.getPackageArchiveInfo(file.path, 0) ?: return false
+        @Suppress("DEPRECATION")
+        val code = if (android.os.Build.VERSION.SDK_INT >= 28) archive.longVersionCode else archive.versionCode.toLong()
+        @Suppress("DEPRECATION")
+        val currentCode = context.packageManager.getPackageInfo(context.packageName, 0).versionCode
+        return archive.packageName == context.packageName && code > currentCode
     }
 
     fun installApk(context: Context, file: File) {

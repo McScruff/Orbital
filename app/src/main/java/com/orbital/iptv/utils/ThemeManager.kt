@@ -24,7 +24,8 @@ object ThemeManager {
     enum class AppTheme(val label: String) {
         ORBITAL("ORBITAL"),
         MONOCHROME("BLACK & WHITE"),
-        AURORA("AURORA")
+        AURORA("AURORA"),
+        NEBULA("NEBULA")
     }
 
     data class Palette(
@@ -105,16 +106,46 @@ object ThemeManager {
             cardElevation  = 6f,
             accent2        = 0xFF9575FF.toInt(),  // purple — gradient partner for accent (blue)
             tabTextOnSelected = 0xFFF2F4FF.toInt() // text-hi — readable on the blue/purple gradient
+        ),
+        // "NEBULA" — near-black violet base, indigo→cyan gradient accent, rounded cards. Drives a
+        // dedicated streaming-app style home screen (NebulaHomeActivity); other screens just pick
+        // up this palette.
+        AppTheme.NEBULA to Palette(
+            bgPrimary   = 0xFF0A0916.toInt(),
+            bgHeader    = 0xFF0D0B1E.toInt(),
+            bgMid       = 0xFF171531.toInt(),
+            bgRowAlt    = 0xFF11102A.toInt(),
+            accent      = 0xFF7C6CFF.toInt(),   // indigo
+            highlight   = 0xFF7C6CFF.toInt(),
+            focus       = 0xFF2C2764.toInt(),
+            tabSelected = 0xFF171531.toInt(),
+            rowEven     = 0xFF171531.toInt(),
+            rowOdd      = 0xFF11102A.toInt(),
+            rowSelected = 0xFF5B4BD6.toInt(),
+            cornerRadiusDp = 12f,
+            itemMarginDp   = 4f,
+            cardElevation  = 6f,
+            accent2        = 0xFF22D3EE.toInt(),  // cyan — gradient partner
+            tabTextOnSelected = 0xFFFFFFFF.toInt()
         )
     )
 
-    var current: AppTheme = AppTheme.ORBITAL
+    var current: AppTheme = AppTheme.NEBULA
         private set
 
     fun palette(): Palette = palettes.getValue(current)
 
     fun load(context: Context) {
-        val saved = PrefsManager.getTheme(context)
+        val saved = PrefsManager.getThemeOrNull(context)
+        if (saved == null) {
+            // Nothing chosen yet — fresh install or an existing install that never touched the
+            // theme setting. NEBULA is now the default either way; anyone who already explicitly
+            // picked a theme (including an explicit ORBITAL) keeps it untouched, since this branch
+            // only runs when the preference was never set at all.
+            PrefsManager.setTheme(context, AppTheme.NEBULA.name)
+            current = AppTheme.NEBULA
+            return
+        }
         current = try { AppTheme.valueOf(saved) } catch (_: Exception) { AppTheme.ORBITAL }
     }
 
@@ -134,6 +165,7 @@ object ThemeManager {
     fun dialogStyle(): Int = when (current) {
         AppTheme.MONOCHROME -> com.orbital.iptv.R.style.Theme_Orbital_Dialog_Mono
         AppTheme.AURORA -> com.orbital.iptv.R.style.Theme_Orbital_Dialog_Aurora
+        AppTheme.NEBULA -> com.orbital.iptv.R.style.Theme_Orbital_Dialog_Nebula
         else -> com.orbital.iptv.R.style.Theme_Orbital_Dialog
     }
 

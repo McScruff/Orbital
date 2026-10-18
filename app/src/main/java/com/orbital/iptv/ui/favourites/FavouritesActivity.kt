@@ -27,18 +27,25 @@ class FavouritesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityFavouritesBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         ThemeManager.load(this)
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityFavouritesBinding.bind(layoutInflater.inflate(R.layout.activity_favourites_nebula, null))
+        else ActivityFavouritesBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.FAVS)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
-        binding.layoutHeader?.setBackgroundColor(p.bgHeader)
-        binding.viewAccent?.setBackgroundColor(p.accent)
-        binding.headerContinue?.setBackgroundColor(p.bgMid)
-        binding.headerFavourites?.setBackgroundColor(p.bgMid)
+        if (!nebula) {
+            binding.layoutHeader?.setBackgroundColor(p.bgHeader)
+            binding.viewAccent?.setBackgroundColor(p.accent)
+            binding.headerContinue?.setBackgroundColor(p.bgMid)
+            binding.headerFavourites?.setBackgroundColor(p.bgMid)
+        }
 
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
             binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1E3D72.toInt(), hasFocus)
         }

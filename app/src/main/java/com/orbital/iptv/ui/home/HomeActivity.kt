@@ -61,6 +61,18 @@ import java.util.concurrent.TimeUnit
 
 class HomeActivity : AppCompatActivity() {
 
+    companion object {
+        /** Set by NebulaHomeActivity when it launches the classic Live TV guide / settings, so the
+         *  NEBULA theme's redirect below doesn't bounce straight back to it. */
+        const val EXTRA_CLASSIC = "classic_home"
+        const val EXTRA_OPEN_SETTINGS = "open_settings"
+        /** Set by NebulaSettingsActivity: which heavy settings dialog to open (servers, refresh, epg, ...). */
+        const val EXTRA_SETTING_ACTION = "setting_action"
+    }
+
+    private val fromNebula get() = intent.getBooleanExtra(EXTRA_CLASSIC, false)
+    private var nebulaGuide = false
+
     private lateinit var binding: ActivityHomeBinding
     private lateinit var viewModel: HomeViewModel
     private val repository = XtreamRepository()
@@ -80,6 +92,7 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (!::binding.isInitialized) return
         ReminderBus.register { r -> showReminderDialog(r) }
         clockRunnable.run()
     }
@@ -122,8 +135,18 @@ class HomeActivity : AppCompatActivity() {
         // activity to have already called load()) would bake in the default ORBITAL palette
         // regardless of the user's saved theme.
         ThemeManager.load(this)
-        binding = ActivityHomeBinding.inflate(layoutInflater)
+        if (ThemeManager.current == ThemeManager.AppTheme.NEBULA && !fromNebula) {
+            startActivity(Intent(this, com.orbital.iptv.ui.nebula.NebulaHomeActivity::class.java))
+            finish()
+            return
+        }
+        nebulaGuide = ThemeManager.current == ThemeManager.AppTheme.NEBULA && fromNebula
+        // The NEBULA guide carries the same view ids, so the same binding class binds to either.
+        binding = if (nebulaGuide)
+            ActivityHomeBinding.bind(layoutInflater.inflate(R.layout.activity_home_nebula, null))
+        else ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        if (nebulaGuide) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.GUIDE)
 
         ApiClient.liveFormat = PrefsManager.getLiveFormat(this)
         viewModel = ViewModelProvider(this)[HomeViewModel::class.java]
@@ -133,9 +156,17 @@ class HomeActivity : AppCompatActivity() {
         observeViewModel()
         loadData()
         checkForUpdates()
+        if (intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)) binding.root.post { showSettingsMenu() }
+        intent.getStringExtra(EXTRA_SETTING_ACTION)?.let { action ->
+            // Hosts the dialog over the (visible) Nebula TV Guide. Several actions reload the
+            // server or guide data in place, so this screen has to stay meaningful afterwards
+            // rather than blank; Back returns to Settings.
+            binding.root.post { runSettingAction(action) }
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (nebulaGuide) { finish(); return }
                 // Back from the category list used to fall straight through to the app-exit
                 // path below with no stop in between — send it up to the top nav bar first, same
                 // as a Live TV screen would on any other platform.
@@ -146,8 +177,12 @@ class HomeActivity : AppCompatActivity() {
                 // Back from the top nav bar is the true "leave the app" gesture — confirm instead
                 // of exiting immediately, since a stray Back here would otherwise kill the app
                 // with no way back except relaunching.
-                if (binding.layoutNavBar?.hasFocus() == true) {
+                if (binding.layoutNavBar?.hasFocus() == true && !fromNebula) {
                     confirmExitApp()
+                    return
+                }
+                if (fromNebula) {
+                    finish()
                     return
                 }
                 if (PrefsManager.isTvModeEnabled(this@HomeActivity)) {
@@ -167,6 +202,31 @@ class HomeActivity : AppCompatActivity() {
                 isEnabled = true
             }
         })
+    }
+
+    private fun runSettingAction(action: String) {
+        when (action) {
+            "servers"   -> showServerManager()
+            "refresh"   -> refreshServer()
+            "epg"       -> confirmFullEpgRefresh()
+            "categories" -> whenCategoriesReady { showManageServerCategoriesDialog() }
+            "pin"       -> whenCategoriesReady { showPinProtectedCategories() }
+            "changepin" -> showChangePinDialog()
+            "clear"     -> confirmClearAllData()
+        }
+    }
+
+    private fun whenCategoriesReady(block: () -> Unit) {
+        if (viewModel.uiState.value?.xtreamCategories?.isNotEmpty() == true) { block(); return }
+        val observer = object : androidx.lifecycle.Observer<HomeUiState> {
+            override fun onChanged(value: HomeUiState) {
+                if (value.xtreamCategories.isNotEmpty()) {
+                    viewModel.uiState.removeObserver(this)
+                    block()
+                }
+            }
+        }
+        viewModel.uiState.observe(this, observer)
     }
 
     private fun confirmExitApp() {
@@ -432,7 +492,9 @@ class HomeActivity : AppCompatActivity() {
             .setTitle("SELECT THEME")
             .setItems(labels) { _, which ->
                 ThemeManager.set(this, themes[which])
-                recreate()
+                // Launched from the NEBULA home: NebulaHomeActivity's onResume bounces back to the
+                // right home for whichever theme was just picked, so just step back to it.
+                if (fromNebula) finish() else recreate()
             }
             .show()
     }
@@ -718,6 +780,7 @@ class HomeActivity : AppCompatActivity() {
         window.navigationBarColor = p.bgPrimary
 
         binding.root.setBackgroundColor(p.bgPrimary)
+        if (nebulaGuide) return
         binding.layoutNavBar?.setBackgroundColor(p.bgHeader)
         binding.logoContainer?.setBackgroundColor(p.bgPrimary)
         binding.viewTopAccent?.setBackgroundColor(p.accent)
@@ -763,11 +826,11 @@ class HomeActivity : AppCompatActivity() {
         val visibleCategories = categories.filter { it.categoryId !in hiddenIds }
 
         binding.headerTvListings.setOnClickListener { launchEpgGuide() }
-        binding.headerTvListings.setOnFocusChangeListener { _, hasFocus ->
+        if (!nebulaGuide) binding.headerTvListings.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
             binding.headerTvListings.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().highlight, hasFocus)
         }
-        binding.headerTvListings.text = "  1  TV GUIDE"
+        if (!nebulaGuide) binding.headerTvListings.text = "  1  TV GUIDE"
 
         // Hide the fixed Sky category buttons permanently
         binding.catEntertainment.visibility = View.GONE
@@ -798,6 +861,10 @@ class HomeActivity : AppCompatActivity() {
         ).toInt()
 
         val p = ThemeManager.palette()
+        val selBg = if (nebulaGuide) 0xFF221B4F.toInt() else p.highlight
+        val selFg = if (nebulaGuide) 0xFFFFFFFF.toInt() else 0xFF000000.toInt()
+        val idleFg = if (nebulaGuide) 0xFFD8D6F0.toInt() else 0xFFFFFFFF.toInt()
+        val idleBg = if (nebulaGuide) 0x00000000 else p.rowEven
         val density = resources.displayMetrics.density
         val marginPx = (p.itemMarginDp * density).toInt()
 
@@ -811,8 +878,8 @@ class HomeActivity : AppCompatActivity() {
             layoutParams = lp
             gravity = android.view.Gravity.CENTER_VERTICAL
             setPadding(paddingPx, 0, 0, 0)
-            text = "  ★  FAVOURITES"
-            textSize = 12f
+            text = if (nebulaGuide) "★  Favourites" else "  ★  FAVOURITES"
+            textSize = if (nebulaGuide) 13f else 12f
             typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL)
             isClickable = true
             isFocusable = true
@@ -821,15 +888,15 @@ class HomeActivity : AppCompatActivity() {
             if (p.cardElevation > 0f) elevation = p.cardElevation * density
             clipToOutline = true
             if (isFavSelected) {
-                background = ThemeManager.roundedBg(p.highlight, density)
-                setTextColor(0xFF000000.toInt())
+                background = ThemeManager.roundedBg(selBg, density)
+                setTextColor(selFg)
                 binding.tvCurrentCategory?.text = "FAVOURITES"
             } else {
-                background = ThemeManager.roundedBg(p.rowEven, density)
-                setTextColor(0xFFFFFFFF.toInt())
+                background = ThemeManager.roundedBg(idleBg, density)
+                setTextColor(idleFg)
             }
             setOnFocusChangeListener { _, hasFocus ->
-                if (!isFavSelected) background = ThemeManager.focusRowDrawable(density, p.rowEven, hasFocus)
+                if (!isFavSelected) background = ThemeManager.focusRowDrawable(density, idleBg, hasFocus)
             }
             setOnClickListener {
                 val ids = FavouritesManager.getLiveChannels(this@HomeActivity).map { it.streamId }.toSet()
@@ -840,7 +907,7 @@ class HomeActivity : AppCompatActivity() {
         binding.originalCatContainer?.addView(favTv)
 
         visibleCategories.forEachIndexed { index, category ->
-            val normalBg = if (index % 2 == 0) p.rowEven else p.rowOdd
+            val normalBg = if (nebulaGuide) 0x00000000 else if (index % 2 == 0) p.rowEven else p.rowOdd
             val tv = android.widget.TextView(this).apply {
                 val lp = android.widget.LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT, rowHeightPx
@@ -849,8 +916,8 @@ class HomeActivity : AppCompatActivity() {
                 layoutParams = lp
                 gravity = android.view.Gravity.CENTER_VERTICAL
                 setPadding(paddingPx, 0, 0, 0)
-                text = "  ${index + 2}  ${category.categoryName.uppercase()}"
-                textSize = 12f
+                text = if (nebulaGuide) category.categoryName else "  ${index + 2}  ${category.categoryName.uppercase()}"
+                textSize = if (nebulaGuide) 13f else 12f
                 typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL)
                 isClickable = true
                 isFocusable = true
@@ -861,12 +928,12 @@ class HomeActivity : AppCompatActivity() {
 
                 val isSelected = category.categoryId == selected?.categoryId
                 if (isSelected) {
-                    background = ThemeManager.roundedBg(p.highlight, density)
-                    setTextColor(0xFF000000.toInt())
+                    background = ThemeManager.roundedBg(selBg, density)
+                    setTextColor(selFg)
                     binding.tvCurrentCategory?.text = category.categoryName.uppercase()
                 } else {
                     background = ThemeManager.roundedBg(normalBg, density)
-                    setTextColor(0xFFFFFFFF.toInt())
+                    setTextColor(idleFg)
                 }
 
                 setOnFocusChangeListener { _, hasFocus ->
@@ -1004,14 +1071,21 @@ class HomeActivity : AppCompatActivity() {
 
             dialog.dismiss()
 
-            if (file != null) {
-                tvStatus.text = "INSTALLING..."
-                UpdateChecker.installApk(this@HomeActivity, file)
-                finish()
-            } else {
-                android.widget.Toast.makeText(
+            when {
+                file == null -> android.widget.Toast.makeText(
                     this@HomeActivity, "DOWNLOAD FAILED — CHECK CONNECTION", android.widget.Toast.LENGTH_LONG
                 ).show()
+                !UpdateChecker.isValidUpdate(this@HomeActivity, file, update.sha256) -> {
+                    file.delete()
+                    android.widget.Toast.makeText(
+                        this@HomeActivity, "THE DOWNLOAD DIDN'T PASS ITS CHECKS, SO IT WASN'T INSTALLED", android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+                else -> {
+                    tvStatus.text = "INSTALLING..."
+                    UpdateChecker.installApk(this@HomeActivity, file)
+                    finish()
+                }
             }
         }
     }

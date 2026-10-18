@@ -15,6 +15,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.orbital.iptv.data.model.VodCategory
 import com.orbital.iptv.data.model.VodStream
 import com.orbital.iptv.databinding.ActivityVodBinding
+import com.orbital.iptv.databinding.ActivityNebulaBrowseBinding
+import com.orbital.iptv.ui.nebula.BrowseViews
+import com.orbital.iptv.ui.nebula.NebulaLiveActivity
+import com.orbital.iptv.ui.nebula.NebulaRail
 import com.orbital.iptv.data.model.FavType
 import com.orbital.iptv.data.repository.XtreamRepository
 import com.orbital.iptv.utils.ContentCache
@@ -30,7 +34,7 @@ import com.orbital.iptv.utils.ThemeManager
 
 class VodActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityVodBinding
+    private lateinit var v: BrowseViews
     private lateinit var viewModel: VodViewModel
     private lateinit var adapter: VodAdapter
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -43,23 +47,41 @@ class VodActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityVodBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         ThemeManager.load(this)
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        if (nebula) {
+            val b = ActivityNebulaBrowseBinding.inflate(layoutInflater)
+            setContentView(b.root)
+            b.nbBrowseTitle.text = "Movies"
+            b.etSearch.hint = "Search movies"
+            v = BrowseViews.from(b)
+            NebulaRail.bind(
+                this, b.rail, NebulaRail.Item.MOVIES,
+                onHome = { finish() },
+                onLive = { startActivity(Intent(this, NebulaLiveActivity::class.java)) }
+            )
+        } else {
+            val b = ActivityVodBinding.inflate(layoutInflater)
+            setContentView(b.root)
+            v = BrowseViews(
+                b.root, b.btnBack, b.etSearch, b.catContainer, b.tvCurrentCategory, b.progressBar,
+                b.tvError, b.rvMovies, b.tvMovieCount, b.layoutHeader, b.viewAccent
+            )
+        }
         val p = ThemeManager.palette()
-        binding.root.setBackgroundColor(p.bgPrimary)
-        binding.layoutHeader?.setBackgroundColor(p.bgHeader)
-        binding.viewAccent?.setBackgroundColor(p.accent)
+        v.root.setBackgroundColor(p.bgPrimary)
+        v.layoutHeader?.setBackgroundColor(p.bgHeader)
+        v.viewAccent?.setBackgroundColor(p.accent)
 
         viewModel = ViewModelProvider(this)[VodViewModel::class.java]
-        binding.btnBack.setOnClickListener { finish() }
-        binding.btnBack.setOnFocusChangeListener { _, hasFocus ->
+        v.btnBack.setOnClickListener { finish() }
+        if (!nebula) v.btnBack.setOnFocusChangeListener { _, hasFocus ->
             val d = resources.displayMetrics.density
-            binding.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1E3D72.toInt(), hasFocus)
+            v.btnBack.background = ThemeManager.focusRowDrawable(d, 0xFF1E3D72.toInt(), hasFocus)
         }
 
         adapter = VodAdapter(this) { movie -> onMovieSelected(movie) }
-        binding.rvMovies.apply {
+        v.rv.apply {
             this.adapter = this@VodActivity.adapter
             layoutManager = GridLayoutManager(this@VodActivity, 5)
         }
@@ -67,17 +89,17 @@ class VodActivity : AppCompatActivity() {
         setupSearch()
 
         viewModel.uiState.observe(this) { state ->
-            binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+            v.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
             state.error?.let {
-                binding.tvError.text = it.uppercase(); binding.tvError.visibility = View.VISIBLE
-            } ?: run { binding.tvError.visibility = View.GONE }
+                v.tvError.text = it.uppercase(); v.tvError.visibility = View.VISIBLE
+            } ?: run { v.tvError.visibility = View.GONE }
 
             if (!isSearchActive && !showingContinue && !showingFavourites) {
                 adapter.submitList(state.movies)
-                binding.tvMovieCount.text = "${state.movies.size} TITLES"
+                v.tvCount.text = "${state.movies.size} TITLES"
             }
             if (state.categories.isNotEmpty()) buildCategoryMenu(state.categories, state.selectedCategory)
-            if (!showingContinue && !showingFavourites) state.selectedCategory?.let { binding.tvCurrentCategory.text = it.categoryName.uppercase() }
+            if (!showingContinue && !showingFavourites) state.selectedCategory?.let { v.tvCurrentCategory.text = it.categoryName.uppercase() }
         }
 
         val creds = PrefsManager.getCredentials(this) ?: run { finish(); return }
@@ -97,17 +119,17 @@ class VodActivity : AppCompatActivity() {
     }
 
     private fun setupSearch() {
-        binding.etSearch.setOnKeyListener { _, keyCode, event ->
+        v.etSearch.setOnKeyListener { _, keyCode, event ->
             if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_DOWN &&
                 event.action == android.view.KeyEvent.ACTION_DOWN) {
-                for (i in 0 until binding.catContainer.childCount) {
-                    val child = binding.catContainer.getChildAt(i)
+                for (i in 0 until v.catContainer.childCount) {
+                    val child = v.catContainer.getChildAt(i)
                     if (child.isFocusable) { child.requestFocus(); break }
                 }
                 true
             } else false
         }
-        binding.etSearch.addTextChangedListener(object : TextWatcher {
+        v.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
@@ -120,8 +142,8 @@ class VodActivity : AppCompatActivity() {
                         else -> {
                             val current = viewModel.uiState.value?.movies ?: emptyList()
                             adapter.submitList(current)
-                            binding.tvMovieCount.text = "${current.size} TITLES"
-                            binding.tvCurrentCategory.text = viewModel.uiState.value?.selectedCategory?.categoryName?.uppercase() ?: "MOVIES"
+                            v.tvCount.text = "${current.size} TITLES"
+                            v.tvCurrentCategory.text = viewModel.uiState.value?.selectedCategory?.categoryName?.uppercase() ?: "MOVIES"
                         }
                     }
                 } else {
@@ -129,18 +151,23 @@ class VodActivity : AppCompatActivity() {
                     val source = allMovies.ifEmpty { viewModel.uiState.value?.movies ?: emptyList() }
                     val filtered = source.filter { it.name.contains(query, ignoreCase = true) }
                     adapter.submitList(filtered)
-                    binding.tvMovieCount.text = "${filtered.size} RESULTS"
-                    binding.tvCurrentCategory.text = "SEARCH: $query"
+                    v.tvCount.text = "${filtered.size} RESULTS"
+                    v.tvCurrentCategory.text = "SEARCH: $query"
                 }
             }
         })
     }
 
     private fun buildCategoryMenu(categories: List<VodCategory>, selected: VodCategory?) {
-        val container = binding.catContainer
+        val container = v.catContainer
         while (container.childCount > 1) container.removeViewAt(1)
 
         val p = ThemeManager.palette()
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        val selBg = if (nebula) 0xFF221B4F.toInt() else p.highlight
+        val selFg = if (nebula) 0xFFFFFFFF.toInt() else 0xFF000000.toInt()
+        val idleFg = if (nebula) 0xFFD8D6F0.toInt() else 0xFFFFFFFF.toInt()
+        val idleBg = if (nebula) 0x00000000 else p.bgMid
         val density = resources.displayMetrics.density
         val rowH = (38 * density).toInt()
         val pad  = (12 * density).toInt()
@@ -159,17 +186,17 @@ class VodActivity : AppCompatActivity() {
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(pad, 0, 0, 0)
                 text = "★ FAVOURITES"
-                textSize = 11f
+                textSize = if (nebula) 13f else 11f
                 typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
                 isClickable = true; isFocusable = true
-                background = ThemeManager.roundedBg(if (isSel) p.highlight else p.bgMid, density)
-                setTextColor(if (isSel) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+                background = ThemeManager.roundedBg(if (isSel) selBg else idleBg, density)
+                setTextColor(if (isSel) selFg else idleFg)
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSel) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
+                    if (!isSel) background = ThemeManager.focusRowDrawable(density, idleBg, hasFocus)
                 }
                 setOnClickListener {
                     showingFavourites = true; showingContinue = false
-                    binding.etSearch.text?.clear()
+                    v.etSearch.text?.clear()
                     showFavouritesMovies()
                     buildCategoryMenu(categories, selected)
                 }
@@ -185,17 +212,17 @@ class VodActivity : AppCompatActivity() {
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(pad, 0, 0, 0)
                 text = "▶ CONTINUE WATCHING"
-                textSize = 11f
+                textSize = if (nebula) 13f else 11f
                 typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
                 isClickable = true; isFocusable = true
-                background = ThemeManager.roundedBg(if (isSel) p.highlight else p.bgMid, density)
-                setTextColor(if (isSel) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+                background = ThemeManager.roundedBg(if (isSel) selBg else idleBg, density)
+                setTextColor(if (isSel) selFg else idleFg)
                 setOnFocusChangeListener { _, hasFocus ->
-                    if (!isSel) background = ThemeManager.focusRowDrawable(density, p.bgMid, hasFocus)
+                    if (!isSel) background = ThemeManager.focusRowDrawable(density, idleBg, hasFocus)
                 }
                 setOnClickListener {
                     showingContinue = true; showingFavourites = false
-                    binding.etSearch.text?.clear()
+                    v.etSearch.text?.clear()
                     showContinueWatching()
                     buildCategoryMenu(categories, selected)
                 }
@@ -206,7 +233,7 @@ class VodActivity : AppCompatActivity() {
         categories.take(60).forEachIndexed { i, cat ->
             val isSelected = !showingContinue && !showingFavourites && cat.categoryId == selected?.categoryId
             val idx = i + offset
-            val normalBg = if (idx % 2 == 0) p.bgMid else p.bgPrimary
+            val normalBg = if (nebula) 0x00000000 else if (idx % 2 == 0) p.bgMid else p.bgPrimary
             container.addView(TextView(this).apply {
                 val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, rowH)
                 if (marginPx > 0) lp.setMargins(marginPx, marginPx / 2, marginPx, marginPx / 2)
@@ -214,17 +241,17 @@ class VodActivity : AppCompatActivity() {
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(pad, 0, 0, 0)
                 text = cat.categoryName.uppercase()
-                textSize = 11f
+                textSize = if (nebula) 13f else 11f
                 typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
                 isClickable = true; isFocusable = true
-                background = if (isSelected) ThemeManager.roundedBg(p.highlight, density) else ThemeManager.roundedBg(normalBg, density)
-                setTextColor(if (isSelected) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+                background = if (isSelected) ThemeManager.roundedBg(selBg, density) else ThemeManager.roundedBg(normalBg, density)
+                setTextColor(if (isSelected) selFg else idleFg)
                 setOnFocusChangeListener { _, hasFocus ->
                     if (!isSelected) background = ThemeManager.focusRowDrawable(density, normalBg, hasFocus)
                 }
                 setOnClickListener {
                     showingContinue = false; showingFavourites = false
-                    binding.etSearch.text?.clear()
+                    v.etSearch.text?.clear()
                     viewModel.selectCategory(cat)
                 }
             })
@@ -237,8 +264,8 @@ class VodActivity : AppCompatActivity() {
             .map { it.streamId }.toSet()
         val favMovies = allMovies.filter { it.streamId in favIds }
         adapter.submitList(favMovies)
-        binding.tvMovieCount.text = "${favMovies.size} TITLES"
-        binding.tvCurrentCategory.text = "FAVOURITES"
+        v.tvCount.text = "${favMovies.size} TITLES"
+        v.tvCurrentCategory.text = "FAVOURITES"
     }
 
     private fun showContinueWatching() {
@@ -248,8 +275,8 @@ class VodActivity : AppCompatActivity() {
         }
         val resumeMovies = allMovies.filter { it.streamId in resumeLabels }
         adapter.submitList(resumeMovies, resumeLabels)
-        binding.tvMovieCount.text = "${resumeMovies.size} TITLES"
-        binding.tvCurrentCategory.text = "CONTINUE WATCHING"
+        v.tvCount.text = "${resumeMovies.size} TITLES"
+        v.tvCurrentCategory.text = "CONTINUE WATCHING"
     }
 
     private fun onMovieSelected(movie: VodStream) {

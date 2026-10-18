@@ -31,6 +31,7 @@ class CatchupEpgActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityCatchupEpgBinding
+    private var nebula = false
     private lateinit var adapter: CatchupEpgAdapter
     private val repository = XtreamRepository()
 
@@ -47,8 +48,14 @@ class CatchupEpgActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityCatchupEpgBinding.inflate(layoutInflater)
+        ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityCatchupEpgBinding.bind(layoutInflater.inflate(com.orbital.iptv.R.layout.activity_catchup_epg_nebula, null))
+        else ActivityCatchupEpgBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.MORE)
 
         streamId    = intent.getIntExtra(EXTRA_STREAM_ID, 0)
         val name    = intent.getStringExtra(EXTRA_CHANNEL_NAME) ?: ""
@@ -57,16 +64,17 @@ class CatchupEpgActivity : AppCompatActivity() {
         username    = intent.getStringExtra(EXTRA_USERNAME) ?: ""
         password    = intent.getStringExtra(EXTRA_PASSWORD) ?: ""
 
-        ThemeManager.load(this)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
-        binding.layoutHeader?.setBackgroundColor(p.bgHeader)
-        binding.viewAccent?.setBackgroundColor(p.accent)
+        if (!nebula) {
+            binding.layoutHeader?.setBackgroundColor(p.bgHeader)
+            binding.viewAccent?.setBackgroundColor(p.accent)
+        }
 
-        binding.tvChannelName.text = name.uppercase()
-        binding.btnBack.setBackgroundColor(p.bgHeader)
+        binding.tvChannelName.text = if (nebula) name else name.uppercase()
+        if (!nebula) binding.btnBack.setBackgroundColor(p.bgHeader)
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnBack.setOnFocusChangeListener { _, h ->
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, h ->
             val d = resources.displayMetrics.density
             binding.btnBack.background = ThemeManager.focusRowDrawable(d, ThemeManager.palette().bgHeader, h)
         }
@@ -97,7 +105,7 @@ class CatchupEpgActivity : AppCompatActivity() {
             }
             val tv = TextView(this).apply {
                 text = label
-                textSize = 11f
+                textSize = if (nebula) 12f else 11f
                 typeface = android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)
                 setTextColor(0xFFFFFFFF.toInt())
                 gravity = android.view.Gravity.CENTER
@@ -106,9 +114,10 @@ class CatchupEpgActivity : AppCompatActivity() {
                 layoutParams = android.widget.LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT
-                ).also { it.marginEnd = (4 * dp).toInt() }
+                ).also { it.marginEnd = ((if (nebula) 8 else 4) * dp).toInt() }
                 setOnClickListener { selectDay(offset) }
                 setOnFocusChangeListener { _, h ->
+                    if (nebula) { com.orbital.iptv.ui.nebula.NebulaStyle.chip(this, offset == selectedDayOffset); return@setOnFocusChangeListener }
                     val p = ThemeManager.palette()
                     if (offset != selectedDayOffset) background = ThemeManager.focusRowDrawable(resources.displayMetrics.density, p.bgPrimary, h)
                 }
@@ -120,6 +129,7 @@ class CatchupEpgActivity : AppCompatActivity() {
     }
 
     private fun highlightDayTab(offset: Int) {
+        if (nebula) { dayTabs.forEachIndexed { i, tv -> com.orbital.iptv.ui.nebula.NebulaStyle.chip(tv, i == offset) }; return }
         val p = ThemeManager.palette()
         dayTabs.forEachIndexed { i, tv ->
             tv.setBackgroundColor(if (i == offset) p.tabSelected else p.bgPrimary)

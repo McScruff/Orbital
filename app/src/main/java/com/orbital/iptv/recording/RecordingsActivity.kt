@@ -29,6 +29,7 @@ import java.util.*
 class RecordingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRecordingsBinding
+    private var nebula = false
     private val dao by lazy { RecordingDatabase.get(this).dao() }
     private lateinit var adapter: RecordingAdapter
     private var showingScheduled = true
@@ -37,10 +38,14 @@ class RecordingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        binding = ActivityRecordingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         ThemeManager.load(this)
+        nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        // The NEBULA layout carries the same view ids, so the same binding class binds to either.
+        binding = if (nebula)
+            ActivityRecordingsBinding.bind(layoutInflater.inflate(com.orbital.iptv.R.layout.activity_recordings_nebula, null))
+        else ActivityRecordingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaRail.attach(this, binding.root, com.orbital.iptv.ui.nebula.NebulaRail.Item.MORE)
         val p = ThemeManager.palette()
         binding.root.setBackgroundColor(p.bgPrimary)
 
@@ -53,18 +58,20 @@ class RecordingsActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
         val density = resources.displayMetrics.density
-        binding.btnBack.setOnFocusChangeListener { _, f ->
+        if (!nebula) binding.btnBack.setOnFocusChangeListener { _, f ->
             binding.btnBack.background = ThemeManager.focusRowDrawable(density, 0xFF1A3560.toInt(), f)
         }
 
         binding.btnScheduled.setOnClickListener { setTab(true) }
         binding.btnScheduled.setOnFocusChangeListener { _, f ->
+            if (nebula) { com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.btnScheduled, showingScheduled); return@setOnFocusChangeListener }
             val base = if (showingScheduled) 0xFF1A4090.toInt() else 0xFF0D1B35.toInt()
             binding.btnScheduled.background = ThemeManager.focusRowDrawable(density, base, f)
         }
 
         binding.btnCompleted.setOnClickListener { setTab(false) }
         binding.btnCompleted.setOnFocusChangeListener { _, f ->
+            if (nebula) { com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.btnCompleted, !showingScheduled); return@setOnFocusChangeListener }
             val base = if (!showingScheduled) 0xFF1A4090.toInt() else 0xFF0D1B35.toInt()
             binding.btnCompleted.background = ThemeManager.focusRowDrawable(density, base, f)
         }
@@ -75,8 +82,13 @@ class RecordingsActivity : AppCompatActivity() {
 
     private fun setTab(scheduled: Boolean) {
         showingScheduled = scheduled
-        binding.btnScheduled.setBackgroundColor(if (scheduled) 0xFF1A4090.toInt() else 0xFF0D1B35.toInt())
-        binding.btnCompleted.setBackgroundColor(if (scheduled) 0xFF0D1B35.toInt() else 0xFF1A4090.toInt())
+        if (nebula) {
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.btnScheduled, scheduled)
+            com.orbital.iptv.ui.nebula.NebulaStyle.chip(binding.btnCompleted, !scheduled)
+        } else {
+            binding.btnScheduled.setBackgroundColor(if (scheduled) 0xFF1A4090.toInt() else 0xFF0D1B35.toInt())
+            binding.btnCompleted.setBackgroundColor(if (scheduled) 0xFF0D1B35.toInt() else 0xFF1A4090.toInt())
+        }
         refreshAdapter()
     }
 
@@ -192,7 +204,10 @@ class RecordingAdapter(
 
         // ── Focus highlight on the row (buttons blocked by descendantFocusability) ──
         val p     = ThemeManager.palette()
-        val rowBg = if (position % 2 == 0) 0xFF0D1B35.toInt() else 0xFF0A1628.toInt()
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        val rowBg = if (nebula) com.orbital.iptv.ui.nebula.NebulaStyle.rowBg(position)
+                    else if (position % 2 == 0) 0xFF0D1B35.toInt() else 0xFF0A1628.toInt()
+        if (nebula) com.orbital.iptv.ui.nebula.NebulaStyle.prepCard(holder.itemView)
         val density = holder.itemView.resources.displayMetrics.density
         holder.itemView.background = ThemeManager.focusRowDrawable(density, rowBg, false)
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->

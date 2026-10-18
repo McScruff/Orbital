@@ -1,6 +1,7 @@
 {
-  "version_code": 25,
-  "version_name": "1.5.6",
+  "version_code": 26,
+  "version_name": "1.6.0",
   "download_url": "https://github.com/McScruff/Orbital/releases/latest/download/Orbital.apk",
-  "release_notes": "Fixed subtitles not appearing during playback (missing renderer view). Player: pressing Back while the on-screen controls (HUD) are open now closes the HUD instead of exiting playback — Back only exits when the HUD is already hidden."
+  "release_notes": "Huge update: new horizontal Nebula top nav bar across all screens, Nebula is now the default theme, a completely rebuilt 14-sport Sports Bar (football, NFL, UFC, boxing, F1, rugby, cricket, darts, snooker, tennis, golf, basketball, hockey, baseball, AFL) with live channel matching, D-pad scrolling fix, EPG auto-refresh with a progress indicator and a safer low-memory guide loader, and safer update downloads (checksum-verified).",
+  "sha256": "2daf8a1be0de8484b9eea6c3c73bb427e93e18dd8a0ebf86548a678cbed1f9a8"
 }

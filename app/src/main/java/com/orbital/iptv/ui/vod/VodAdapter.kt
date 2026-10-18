@@ -42,11 +42,12 @@ class VodAdapter(
         private var job: Job? = null
 
         fun bind(movie: VodStream) {
+            val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
             b.tvTitle.text = movie.name
             val resumeLabel = resumeLabels[movie.streamId]
             if (resumeLabel != null) {
                 b.tvRating.text = resumeLabel
-                b.tvRating.setTextColor(0xFF00CCFF.toInt())
+                b.tvRating.setTextColor(if (nebula) 0xFF22D3EE.toInt() else 0xFF00CCFF.toInt())
             } else {
                 val r = movie.rating?.takeIf { it.isNotBlank() && it != "0" && it != "0.0" }
                 b.tvRating.text = if (r != null) "★ $r" else ""
@@ -54,8 +55,22 @@ class VodAdapter(
             }
             b.ivPoster.setImageDrawable(null)
             val p = ThemeManager.palette()
+            val d = b.root.resources.displayMetrics.density
             b.ivPoster.setBackgroundColor(p.bgMid)
-            b.root.setBackgroundColor(p.bgMid)
+            if (nebula) {
+                b.ivPoster.outlineProvider = object : android.view.ViewOutlineProvider() {
+                    override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                        outline.setRoundRect(0, 0, view.width, view.height, 10 * d)
+                    }
+                }
+                b.ivPoster.clipToOutline = true
+                b.tvTitle.textSize = 11f
+                b.root.background = android.graphics.drawable.GradientDrawable().apply {
+                    setColor(p.bgMid); cornerRadius = 14 * d
+                }
+            } else {
+                b.root.setBackgroundColor(p.bgMid)
+            }
             b.root.setOnClickListener { onClick(movie) }
             b.root.setOnFocusChangeListener { _, hasFocus ->
                 val pp = ThemeManager.palette()
@@ -64,11 +79,13 @@ class VodAdapter(
                     b.tvTitle.setTextColor(pp.accent)
                     val bg = android.graphics.drawable.GradientDrawable()
                     bg.setColor(pp.bgMid); bg.setStroke(4, pp.accent)
+                    if (nebula) bg.cornerRadius = 14 * d
                     b.root.background = bg
                 } else {
                     b.root.scaleX = 1.0f; b.root.scaleY = 1.0f; b.root.elevation = 0f
                     b.tvTitle.setTextColor(0xFFFFFFFF.toInt())
-                    b.root.setBackgroundColor(pp.bgMid)
+                    if (nebula) b.root.background = android.graphics.drawable.GradientDrawable().apply { setColor(pp.bgMid); cornerRadius = 14 * d }
+                    else b.root.setBackgroundColor(pp.bgMid)
                 }
             }
 

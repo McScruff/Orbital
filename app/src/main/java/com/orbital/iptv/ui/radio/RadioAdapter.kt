@@ -32,8 +32,16 @@ class RadioAdapter(private val onClick: (RadioStation) -> Unit) :
         holder.tvUrl.text  = station.url
 
         val p = ThemeManager.palette()
-        val bg = if (position % 2 == 0) p.bgPrimary else p.bgMid
-        holder.itemView.setBackgroundColor(bg)
+        val nebula = ThemeManager.current == ThemeManager.AppTheme.NEBULA
+        val bg = if (nebula) com.orbital.iptv.ui.nebula.NebulaStyle.rowBg(position)
+                 else if (position % 2 == 0) p.bgPrimary else p.bgMid
+        if (nebula) {
+            com.orbital.iptv.ui.nebula.NebulaStyle.prepCard(holder.itemView)
+            holder.itemView.background = ThemeManager.focusRowDrawable(holder.itemView.resources.displayMetrics.density, bg, false)
+            holder.tvName.text = station.name
+        } else {
+            holder.itemView.setBackgroundColor(bg)
+        }
 
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->
             val density = holder.itemView.resources.displayMetrics.density

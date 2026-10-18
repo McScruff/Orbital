@@ -16,8 +16,8 @@ class OrbitalApp : Application() {
             override fun onActivityCreated(a: Activity, b: Bundle?) =
                 a.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             override fun onActivityStarted(a: Activity) {}
-            override fun onActivityResumed(a: Activity) {}
-            override fun onActivityPaused(a: Activity) {}
+            override fun onActivityResumed(a: Activity) = com.orbital.iptv.utils.EpgProgress.attach(a)
+            override fun onActivityPaused(a: Activity) = com.orbital.iptv.utils.EpgProgress.detach(a)
             override fun onActivityStopped(a: Activity) {}
             override fun onActivitySaveInstanceState(a: Activity, b: Bundle) {}
             override fun onActivityDestroyed(a: Activity) {}

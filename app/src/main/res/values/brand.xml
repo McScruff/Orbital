@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="brand_badge_padding">6dp</dimen>
+</resources>
